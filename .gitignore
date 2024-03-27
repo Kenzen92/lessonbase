@@ -1,0 +1,33 @@
+# Django
+*.pyc
+*.pyo
+__pycache__/
+*.sqlite3
+*.pyc
+*.pyo
+*.pyd
+*.pyc
+*.swp
+
+# React
+/node_modules
+/build
+.DS_Store
+.env
+
+# Common
+/.vscode
+/.idea
+/.vs
+/*.log
+/*.pot
+/*.potx
+/*.psess
+/.venv
+/.vscode
+/npm-debug.log*
+/yarn-debug.log*
+/yarn-error.log*
+/.idea/
+/.vscode/
+*.env
