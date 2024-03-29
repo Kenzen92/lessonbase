@@ -1,35 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Add your authentication logic here
+    // For simplicity, let's just compare hardcoded username and password
+    if (username === 'admin' && password === 'password') {
+      setLoggedIn(true);
+      alert('Login successful!');
+    } else {
+      alert('Invalid username or password');
+    }
+  };
 
   return (
-    <>
+    <div className="App">
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <h1>Kenny Solutions</h1>
+        <h2>A teaching solution for all.</h2>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      {!loggedIn ? (
+        <form onSubmit={handleLogin}>
+          <h1>Login</h1>
+          <label>
+            Username:
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+          </label>
+          <br />
+          <label>
+            Password:
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </label>
+          <br />
+          <button type="submit">Login</button>
+        </form>
+      ) : (
+        <div>
+          <h1>Welcome, {username}!</h1>
+          <button onClick={() => setLoggedIn(false)}>Logout</button>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
