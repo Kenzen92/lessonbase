@@ -4,6 +4,10 @@ from django.db import models
 from polymorphic.models import PolymorphicModel
 from polymorphic.managers import PolymorphicManager
 
+
+class Subject(models.Model):
+    name = models.CharField(max_length=100)
+
 class CustomUser(AbstractUser):
     password_reset_token = models.UUIDField(null=True, default=uuid.uuid4)
     is_student = models.BooleanField(default=False)
@@ -25,7 +29,7 @@ class Student(CustomerAccount):
         return self.user.username
 
 class Teacher(CustomerAccount):
-    subject = models.CharField(max_length=100)
+    subjects = models.ManyToManyField(Subject)
     hire_date = models.DateField()
 
     def __str__(self):
@@ -54,5 +58,8 @@ class ClassEvent(Event):
 
     def __str__(self):
         return self.name
+    
+
+
 
 

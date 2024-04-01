@@ -1,6 +1,7 @@
 from datetime import datetime
 from rest_framework import serializers
-from .models import Teacher, Student, Staff, ClassEvent, Event, CustomerAccount
+from .models import Subject, Teacher, Student, Staff, ClassEvent, Event, CustomerAccount
+from django.contrib.auth import authenticate
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -26,14 +27,22 @@ class StaffSerializer(serializers.ModelSerializer):
 
 class TeacherRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    # Define a list field for subjects
+    subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True, required=False)
 
     class Meta:
         model = Teacher
-        fields = ['username', 'password', 'email']
+        fields = ['username', 'password', 'email', 'subjects']
 
     def create(self, validated_data):
-        user = Teacher.objects.create(**validated_data, hire_date=datetime.now().date())
-        return user
+        subjects_data = validated_data.pop('subjects', [])
+        teacher = Teacher.objects.create(**validated_data, hire_date=datetime.now().date())
+
+        # Associate subjects with the teacher
+        for subject in subjects_data:
+            teacher.subjects.add(subject)
+        
+        return teacher
     
 class StudentRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -45,3 +54,24 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = Student.objects.create(**validated_data, enrollment_date=datetime.now().date())
         return user
+    
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        username = data.get('username')
+        password = data.get('password')
+
+        print("____________________________________")
+        print(username)
+        print(password)
+
+        user = authenticate(username=username, password=password)
+
+        if not user:
+            raise serializers.ValidationError('Invalid username or password')
+
+        # You can add additional validation logic here if needed
+
+        return data

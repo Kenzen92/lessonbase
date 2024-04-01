@@ -6,11 +6,37 @@ function Login() {
     const [loggedIn, setLoggedIn] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [token, setToken] = useState(null);
+    const [error, setError] = useState(null);
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Implement login functionality here
-        setLoggedIn(true);
+        const url = 'http://localhost:8000/login';
+        const payload = {
+            username: username,
+            password: password
+        };
+        console.log(payload);
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                setError('Failed to get token.');
+                return;
+            }
+
+            const data = await response.json();
+            setToken(data.token);
+        } catch (error) {
+            setError('Error: ' + error.message);
+        }
     };
 
     return (

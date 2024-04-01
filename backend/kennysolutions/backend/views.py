@@ -11,10 +11,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from .models import ClassEvent, Student, Teacher
-from .serializers import ClassEventSerializer, StudentRegistrationSerializer, TeacherRegistrationSerializer, TeacherSerializer
+from .serializers import ClassEventSerializer, LoginSerializer, StudentRegistrationSerializer, TeacherRegistrationSerializer, TeacherSerializer
 
 
 @api_view(['GET'])
@@ -77,8 +76,11 @@ def teacherRegister(request):
     if request.method == 'POST':
         serializer = TeacherRegistrationSerializer(data=request.data)
         if serializer.is_valid():
+            print("Valid")
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['POST'])
@@ -92,15 +94,14 @@ def studentRegister(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
-class LoginView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(username=username, password=password)
-        
-        if user is not None:
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+def login(request):
+    serializer = LoginSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
+        # Perform authentication logic here
+        return Response({"message": "Successfully logged in"})
+    else:
+        return Response(serializer.errors, status=400)
