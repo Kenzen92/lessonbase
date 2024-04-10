@@ -2,7 +2,11 @@ from datetime import datetime
 from rest_framework import serializers
 from .models import Subject, Teacher, Student, Staff, ClassEvent, Event, CustomerAccount
 from django.contrib.auth import authenticate
+import logging
+from django.contrib.auth.hashers import make_password
+logger = logging.getLogger(__name__)
 
+userModel = CustomerAccount()
 
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,35 +29,14 @@ class StaffSerializer(serializers.ModelSerializer):
         model = Staff
         fields = '__all__'
 
-class TeacherRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    # Define a list field for subjects
-    subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True, required=False)
+class CustomerAccountSerializer(serializers.ModelSerializer):
+    user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')])
 
     class Meta:
-        model = Teacher
-        fields = ['username', 'password', 'email', 'subjects']
-
-    def create(self, validated_data):
-        subjects_data = validated_data.pop('subjects', [])
-        teacher = Teacher.objects.create(**validated_data, hire_date=datetime.now().date())
-
-        # Associate subjects with the teacher
-        for subject in subjects_data:
-            teacher.subjects.add(subject)
-        
-        return teacher
+        model = CustomerAccount
+        fields = ('id', 'username', 'password', 'user_type')
     
-class StudentRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = Student
-        fields = ['username', 'password', 'email']
-
-    def create(self, validated_data):
-        user = Student.objects.create(**validated_data, enrollment_date=datetime.now().date())
-        return user
     
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -62,16 +45,15 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
+        print(username, password)
+        user = CustomerAccount.objects.get(username=username)
+        user.get_real_instance()
+        print(user)
+        validated = user.check_password(password)
 
-        print("____________________________________")
-        print(username)
-        print(password)
-
-        user = authenticate(username=username, password=password)
-
-        if not user:
-            raise serializers.ValidationError('Invalid username or password')
+        if not validated:
+            raise serializers.ValidationError(f'User: {user}, password: {password}, username: {username}, Invalid username or password')
 
         # You can add additional validation logic here if needed
 
-        return data
+        return user

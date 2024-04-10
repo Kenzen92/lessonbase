@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
+    'rest_framework.authtoken',
     'polymorphic',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -101,6 +102,8 @@ REST_FRAMEWORK = {
 }
 
 
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -143,9 +146,10 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = [
-    'backend.backends.CustomUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+AUTH_USER_MODEL = 'backend.CustomerAccount'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

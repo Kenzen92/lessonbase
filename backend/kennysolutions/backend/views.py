@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from faker import Faker
-
+import logging
+logger = logging.getLogger(__name__)
 # Create your views here.
 # views.py
 
@@ -12,8 +13,9 @@ from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from .models import ClassEvent, Student, Teacher
-from .serializers import ClassEventSerializer, LoginSerializer, StudentRegistrationSerializer, TeacherRegistrationSerializer, TeacherSerializer
+from .models import ClassEvent, Staff, Student, Teacher
+from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer
+from datetime import datetime
 
 
 @api_view(['GET'])
@@ -70,38 +72,35 @@ def createData(request):
 
     return Response(200)
 
+
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
-def teacherRegister(request):
-    if request.method == 'POST':
-        serializer = TeacherRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            print("Valid")
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+def userRegister(request):
+    serializer = CustomerAccountSerializer(data=request.data)
+    if serializer.is_valid():
+        user_type = serializer.validated_data['user_type']
+        # Create an instance of the appropriate subclass
+        if user_type == 1:
+            user = Teacher.objects.create(username=serializer.validated_data['username'], hire_date=datetime.now())
+        elif user_type == 2:
+            user = Student.objects.create(username=serializer.validated_data['username'])
         else:
-            print(serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-@api_view(['POST'])
-@permission_classes((permissions.AllowAny,))
-def studentRegister(request):
-    if request.method == 'POST':
-        serializer = StudentRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            user = Staff.objects.create(username=serializer.validated_data['username'])
+        # Set other common fields (e.g., password)
+        user.set_password(serializer.validated_data['password'])
+        user.save()
+        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def login(request):
     serializer = LoginSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data.get('username')
-        password = serializer.validated_data.get('password')
-        # Perform authentication logic here
-        return Response({"message": "Successfully logged in"})
+    if serializer.is_valid(raise_exception=True):
+        token, created = Token.objects.get_or_create(user=serializer.validated_data)
+        return Response({"account_type": f"{serializer.validated_data.polymorphic_ctype.model}", "Token": f"{token}"}, status=status.HTTP_200_OK)
     else:
-        return Response(serializer.errors, status=400)
+        logger.debug(serializer.errors)
+        return Response({"error": f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
