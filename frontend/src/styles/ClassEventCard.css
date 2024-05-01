@@ -1,0 +1,76 @@
+.class-event-card {
+    display: inline-block;
+    background-color: #07041d;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 10px;
+    width: calc(33.33% - 20px); /* Adjust as needed for responsiveness */
+    min-width: 20rem;
+    max-width: 35rem;
+    vertical-align: top;
+    text-align: left;
+    color:rgb(200, 235, 236);
+    opacity: 0.9;
+}
+
+.class-event-card:hover {
+    box-shadow: 1px 1px 0px 0px rgba(231, 231, 231, 0.849);
+    opacity: 1;
+}
+
+.class-event-card-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.class-event-card-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.start-class-event, .edit-class-event, .cancel-class-event {
+    padding: 1.5rem;
+    margin-top: 0.4rem;
+    border-radius: 5%;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+    background-color: rgb(71, 1, 71);
+    text-align: center;
+}
+
+.start-class-event:hover, .edit-class-event:hover, .cancel-class-event:hover{
+    box-shadow: 1px 4px 8px 0px rgba(231, 231, 231, 0.849);
+    opacity: 1;
+    cursor: pointer;
+}
+
+
+
+
+.start-time {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.students-list,
+.teachers-list {
+    margin-bottom: 10px;
+}
+
+.students-list ul,
+.teachers-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.students-list h3,
+.teachers-list h3 {
+    margin: 0;
+}
+
+.subject {
+    font-weight: bold;
+}

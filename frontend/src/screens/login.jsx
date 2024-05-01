@@ -1,13 +1,14 @@
 // Login.js
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Router, useNavigate } from 'react-router-dom';
+
 
 function Login() {
     const [loggedIn, setLoggedIn] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [token, setToken] = useState(null);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -16,8 +17,6 @@ function Login() {
             username: username,
             password: password
         };
-        console.log(payload);
-
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -28,14 +27,16 @@ function Login() {
             });
 
             if (!response.ok) {
-                setError('Failed to get token.');
+                setError('Username or password not correct');
                 return;
             }
 
             const data = await response.json();
-            setToken(data.token);
+            console.log(data)
+            await window.sessionStorage.setItem("Token", data['Token']);
+            navigate('/dashboard');
         } catch (error) {
-            setError('Error: ' + error.message);
+            console.log('Error: ' + error.message);
         }
     };
 
@@ -67,6 +68,14 @@ function Login() {
                     <button onClick={() => setLoggedIn(false)}>Logout</button>
                 </div>
             )}
+            {error ? (
+                <p>{error}</p>
+              )  : 
+                (
+                    <p></p>
+                )
+                
+            }
         </div>
     );
 }

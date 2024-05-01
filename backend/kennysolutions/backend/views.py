@@ -2,19 +2,19 @@ from django.shortcuts import render
 from faker import Faker
 import logging
 logger = logging.getLogger(__name__)
-# Create your views here.
-# views.py
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from .models import ClassEvent, Staff, Student, Teacher
-from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer
+from .models import ClassEvent, Staff, Student, Subject, Teacher
+from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer
 from datetime import datetime
 
 
@@ -50,7 +50,6 @@ def createData(request):
             email=fake.email(),
             first_name=fake.first_name(),
             last_name=fake.last_name(),
-            grade=fake.random_element(elements=('A', 'B', 'C', 'D')),
             enrollment_date=fake.date_this_decade(),
             is_student=True,
         )
@@ -82,6 +81,8 @@ def userRegister(request):
         # Create an instance of the appropriate subclass
         if user_type == 1:
             user = Teacher.objects.create(username=serializer.validated_data['username'], hire_date=datetime.now())
+            subject_ids = serializer.validated_data.get('subjects', [])  # Get list of subject IDs from request data
+            user.subjects.add(*subject_ids)  # Add subjects to the user
         elif user_type == 2:
             user = Student.objects.create(username=serializer.validated_data['username'])
         else:
@@ -89,7 +90,10 @@ def userRegister(request):
         # Set other common fields (e.g., password)
         user.set_password(serializer.validated_data['password'])
         user.save()
-        return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
+        # Exclude subjects field from response
+        serializer_data = serializer.validated_data.copy()
+        serializer_data.pop('subjects', None)
+        return Response(serializer_data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -100,7 +104,126 @@ def login(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         token, created = Token.objects.get_or_create(user=serializer.validated_data)
-        return Response({"account_type": f"{serializer.validated_data.polymorphic_ctype.model}", "Token": f"{token}"}, status=status.HTTP_200_OK)
+        return Response({"account_type": f"{serializer.validated_data.polymorphic_ctype.model}", "Token": f"{token}", "id": f"{serializer.validated_data.id}"}, status=status.HTTP_200_OK)
     else:
         logger.debug(serializer.errors)
         return Response({"error": f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes((permissions.AllowAny,))
+def students(request):
+    queryset = Student.objects.all()
+    serializer = StudentSerializer(queryset, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes((permissions.AllowAny,))
+def teachers(request):
+    queryset = Teacher.objects.all()
+    serializer = TeacherSerializer(queryset, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes((permissions.AllowAny,))
+def students_for_teacher(request):
+    queryset = Student.objects.filter(teacher=request.user.id)
+    serializer = StudentSerializer(queryset, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes((permissions.AllowAny,))
+def connect_student_teacher(request):
+    teacher = request.user.get_real_instance()
+    student_ids = request.data.get('students', [])
+    students = Student.objects.filter(id__in=student_ids)
+    teacher.students.add(*students)
+    teacher.save()
+    return Response(status=status.HTTP_201_CREATED)
+    
+    
+
+@api_view(['GET', 'POST', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def class_events(request, class_id=None):
+    if request.method == 'GET':
+        user = request.user
+        # Fetch class events where the user is either a student or a teacher
+        class_events = ClassEvent.objects.filter(students=user) | ClassEvent.objects.filter(teachers=user)
+        serializer = ClassEventSerializer(class_events, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == 'DELETE':
+        try:
+            class_event = ClassEvent.objects.get(id=class_id)
+            class_event.delete()
+            return Response({'message': 'Class event deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except ClassEvent.DoesNotExist:
+            return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    elif request.method == 'POST':
+        teacher_ids = request.data.get('teachers', [])
+        student_ids = request.data.get('students', [])
+
+        # Convert teacher_ids and student_ids to actual queryset objects
+        teachers = Teacher.objects.filter(pk__in=teacher_ids)
+        students = Student.objects.filter(pk__in=student_ids)
+
+        serializer = ClassEventSerializer(data=request.data)
+        if serializer.is_valid():
+            # Manually create a class event
+            class_event = ClassEvent.objects.create(start_time=serializer.validated_data['start_time'], 
+                                                    duration=serializer.validated_data['duration'], 
+                                                    subject=serializer.validated_data['subject'])
+            class_event.students.set(students)
+            class_event.teachers.set(teachers)
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)        
+
+
+@api_view(['GET', 'POST'])    
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def subjects(request):
+    user = request.user
+    if request.method == 'POST':
+        subjects_ids = request.data.get('subjects', [])
+        try:    
+            # If subjects array is empty, remove all subjects from the user
+            if not subjects_ids:
+                user.subjects.clear()
+                return Response({'message': 'All subjects removed from the user'}, status=status.HTTP_200_OK)
+            
+            # Filter subjects to retain only those present in the request data
+            valid_subjects = Subject.objects.filter(id__in=subjects_ids)
+            
+            # Remove subjects not present in the request data
+            user.subjects.remove(*user.subjects.exclude(id__in=valid_subjects.values_list('id', flat=True)))
+            
+            # Add subjects not already connected to the user
+            user.subjects.add(*valid_subjects.exclude(id__in=user.subjects.values_list('id', flat=True)))
+            
+            return Response({'message': 'User subjects updated successfully'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        user = user.get_real_instance()
+        subjects = user.subjects.all()
+        serializer = SubjectSerializer(instance=subjects, many=True)  # Use 'instance' instead of 'data'
+        return Response(serializer.data)
+    
+
+@api_view(['GET'])    
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def all_subjects(request):
+    subjects = Subject.objects.all()
+    serializer = SubjectSerializer(instance=subjects, many=True)  # Use 'instance' instead of 'data'
+    return Response(serializer.data)
+

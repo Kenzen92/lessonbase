@@ -11,19 +11,37 @@ userModel = CustomerAccount()
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['id', 'username', 'first_name', 'last_name', 'grade', 'enrollment_date']
+        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date']
 
-class TeacherSerializer(serializers.ModelSerializer):
+class SubjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = '__all__'
+
+class TeacherClassEventSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Teacher
-        fields = '__all__'#
+        fields = ['username']
+
+class TeacherSerializer(serializers.ModelSerializer):
+    subjects = SubjectSerializer(many=True)
+
+    class Meta:
+        model = Teacher
+        fields = ['username', 'subjects', 'students']
 
 
 class ClassEventSerializer(serializers.ModelSerializer):
+    students = StudentSerializer(many=True, read_only=True)
+    teachers = TeacherClassEventSerializer(many=True, read_only=True)
+    subject = SubjectSerializer()
+
     class Meta:
         model = ClassEvent
-        fields = '__all__'
-
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers']
+        read_only_fields = ['id']
+        
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = Staff
@@ -31,10 +49,11 @@ class StaffSerializer(serializers.ModelSerializer):
 
 class CustomerAccountSerializer(serializers.ModelSerializer):
     user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')])
+    subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True, write_only=True)
 
     class Meta:
         model = CustomerAccount
-        fields = ('id', 'username', 'password', 'user_type')
+        fields = ('id', 'username', 'password', 'user_type', 'subjects')
     
 
     
@@ -46,7 +65,10 @@ class LoginSerializer(serializers.Serializer):
         username = data.get('username')
         password = data.get('password')
         print(username, password)
-        user = CustomerAccount.objects.get(username=username)
+        try:
+            user = CustomerAccount.objects.get(username=username)
+        except CustomerAccount.DoesNotExist:
+            raise 
         user.get_real_instance()
         print(user)
         validated = user.check_password(password)
