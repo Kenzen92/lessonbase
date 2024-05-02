@@ -13,7 +13,6 @@ function Dashboard() {
     return (
         <div className="App">
             <div>
-                <h1 className="dashboard-header">Kenny Solutions</h1>
                 <Navigation />
                 <ClassDashboard />
             </div>

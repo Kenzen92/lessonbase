@@ -1,0 +1,35 @@
+/* profile.css */
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .profile-form {
+    width: 400px; /* Adjust width as needed */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px; /* Adjust gap between columns */
+  }
+  
+  .profile-form label {
+    font-weight: bold;
+  }
+  
+  .profile-form input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+  }
+  
+  .profile-form ul {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .profile-form ul li {
+    list-style-type: none;
+  }
+  
+  /* Additional styling if needed */
+  

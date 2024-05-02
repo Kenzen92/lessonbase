@@ -4,7 +4,8 @@ from .models import Subject, Teacher, Student, Staff, ClassEvent, Event, Custome
 from django.contrib.auth import authenticate
 import logging
 from django.contrib.auth.hashers import make_password
-logger = logging.getLogger(__name__)
+from django.contrib.auth.models import AbstractUser
+
 
 userModel = CustomerAccount()
 
@@ -16,7 +17,7 @@ class StudentSerializer(serializers.ModelSerializer):
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
-        fields = '__all__'
+        fields = ['id', 'name']
 
 class TeacherClassEventSerializer(serializers.ModelSerializer):
 
@@ -25,11 +26,13 @@ class TeacherClassEventSerializer(serializers.ModelSerializer):
         fields = ['username']
 
 class TeacherSerializer(serializers.ModelSerializer):
-    subjects = SubjectSerializer(many=True)
+    subjects = SubjectSerializer(many=True, read_only=True)
 
     class Meta:
         model = Teacher
-        fields = ['username', 'subjects', 'students']
+        fields = ['id', 'username', 'subjects', 'students', 'first_name', 'last_name', 'email']
+        read_only_fields = ['id', 'students']
+
 
 
 class ClassEventSerializer(serializers.ModelSerializer):
@@ -41,6 +44,12 @@ class ClassEventSerializer(serializers.ModelSerializer):
         model = ClassEvent
         fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers']
         read_only_fields = ['id']
+
+    def create(self, validated_data):
+        subject_data = validated_data.pop('subject')
+        subject_instance = Subject.objects.create(**subject_data)
+        class_event_instance = ClassEvent.objects.create(subject=subject_instance, **validated_data)
+        return class_event_instance
         
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,7 +57,7 @@ class StaffSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CustomerAccountSerializer(serializers.ModelSerializer):
-    user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')])
+    user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')], write_only=True)
     subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True, write_only=True)
 
     class Meta:
@@ -79,3 +88,8 @@ class LoginSerializer(serializers.Serializer):
         # You can add additional validation logic here if needed
 
         return user
+    
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AbstractUser
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']  # Add any other fields you need

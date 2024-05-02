@@ -79,7 +79,7 @@ class ClassEvent(Event):
     duration = models.PositiveSmallIntegerField(null=False)
     students = models.ManyToManyField(CustomUser, related_name='class_events_as_student', blank=True)
     teachers = models.ManyToManyField(CustomUser, related_name='class_events_as_teacher', blank=True)
-    subject = models.CharField(max_length=100)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)  # Change to ForeignKey field
 
     def __str__(self):
         return self.name

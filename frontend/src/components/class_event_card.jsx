@@ -77,7 +77,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
                         <h3>Teachers:</h3>
                         <ul>{teachersList}</ul>
                     </div>
-                    <p className="subject">{eventData.subject}</p> 
+                    <p className="subject">{eventData.subject['name']}</p> 
                 </div>
                 
                 <div className="class-event-card-actions">

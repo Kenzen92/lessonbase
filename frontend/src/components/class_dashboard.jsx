@@ -66,7 +66,7 @@ const ClassDashboard = () => {
     return (
         <div>
             <div className="schedule-class-modal">
-                <ScheduleClassModal />
+                <ScheduleClassModal handleReloadData={handleReloadData}/>
             </div>
             <div className="cards-section">
                 {/* Iterate over each date key */}

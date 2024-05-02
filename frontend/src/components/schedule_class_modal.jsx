@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/schedule_class_modal.css';
 
-const ScheduleClassModal = () => {
+const ScheduleClassModal = ({handleReloadData}) => {
     const [showing, setShowing] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [duration, setDuration] = useState('');
@@ -11,6 +12,7 @@ const ScheduleClassModal = () => {
     const [allSubjects, setAllSubjects] = useState([]);
     const [error, setError] = useState(null);
 
+    const navigate = useNavigate();
     const toggleModal = () => {
         setShowing(!showing);
     };
@@ -61,6 +63,8 @@ const ScheduleClassModal = () => {
     };
 
     useEffect(() => {
+        const now = new Date().toISOString().slice(0, 16);
+        setStartTime(now);
         fetchStudents();
         fetchSubjects();
     }, []);
@@ -73,13 +77,15 @@ const ScheduleClassModal = () => {
         const url = 'http://localhost:8000/class/';
         // Construct the class object to be submitted
 
+        // Find the subject object corresponding to the selectedSubject ID
+        const selectedSubjectObj = allSubjects.find(subject => subject.id === parseInt(selectedSubject));
         const newClass = {
             start_time: startTime,
             duration: duration,
             students: selectedStudents,
-            subject: selectedSubject
+            subject: selectedSubjectObj
         };
-        console.log(newClass);
+
 
         try {
             const auth = window.sessionStorage.getItem("Token");
@@ -101,7 +107,9 @@ const ScheduleClassModal = () => {
         // Here you can send the newClass object to your backend or perform other actions
         console.log('Submitted class:', newClass);
         // Close the modal after submission
+        handleReloadData();
         toggleModal();
+
     };
 
     const studentSelector = () => {
@@ -128,11 +136,11 @@ const ScheduleClassModal = () => {
         return (
             <select
                 id="subjects"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(Array.from(e.target.selectedOptions, (option) => option))}
+                value={selectedSubject}  // Assuming selectedSubject is the ID
+                onChange={(e) => setSelectedSubject(e.target.value)}  // Set only the ID as the value
                 required
                 className="form-input"
-                >
+            >
                 {allSubjects.map((subject) => (
                     <option key={subject.id} value={subject.id}>
                         {subject.name}
@@ -141,6 +149,9 @@ const ScheduleClassModal = () => {
             </select>
         );
     };
+    
+    
+    
 
     return (
         <div>
@@ -158,6 +169,7 @@ const ScheduleClassModal = () => {
                                 type="datetime-local"
                                 id="start_time"
                                 value={startTime}
+                                min={new Date().toISOString().slice(0, 16)}  // Minimum allowed datetime is current datetime
                                 onChange={(e) => setStartTime(e.target.value)}
                                 required
                                 className="form-input"

@@ -8,7 +8,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.views import APIView
@@ -152,10 +152,10 @@ def connect_student_teacher(request):
 def class_events(request, class_id=None):
     if request.method == 'GET':
         user = request.user
-        # Fetch class events where the user is either a student or a teacher
         class_events = ClassEvent.objects.filter(students=user) | ClassEvent.objects.filter(teachers=user)
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
+
     
     elif request.method == 'DELETE':
         try:
@@ -166,25 +166,23 @@ def class_events(request, class_id=None):
             return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
     
     elif request.method == 'POST':
-        teacher_ids = request.data.get('teachers', [])
+        teacher_ids = [request.user.pk]
         student_ids = request.data.get('students', [])
 
-        # Convert teacher_ids and student_ids to actual queryset objects
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
         students = Student.objects.filter(pk__in=student_ids)
 
         serializer = ClassEventSerializer(data=request.data)
         if serializer.is_valid():
-            # Manually create a class event
-            class_event = ClassEvent.objects.create(start_time=serializer.validated_data['start_time'], 
-                                                    duration=serializer.validated_data['duration'], 
-                                                    subject=serializer.validated_data['subject'])
-            class_event.students.set(students)
+            class_event = serializer.save()
             class_event.teachers.set(teachers)
-            return Response(status=status.HTTP_201_CREATED)
+            class_event.students.set(students)
+
+            return Response({"message": "Class event created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     else:
-        return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)        
+        return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @api_view(['GET', 'POST'])    
@@ -220,10 +218,37 @@ def subjects(request):
     
 
 @api_view(['GET'])    
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def all_subjects(request):
     subjects = Subject.objects.all()
     serializer = SubjectSerializer(instance=subjects, many=True)  # Use 'instance' instead of 'data'
     return Response(serializer.data)
 
+
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    if request.method == 'GET':
+        user = request.user.get_real_instance()
+        print(user.polymorphic_ctype.name)
+        if user.polymorphic_ctype.name == "teacher":
+            serializer = TeacherSerializer(instance=user)
+        else:
+            serializer = StudentSerializer(instance=user)
+        
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        user = request.user.get_real_instance()
+        print(request.data)
+        if user.polymorphic_ctype.name == "teacher":
+            serializer = TeacherSerializer(instance=user, data=request.data)
+        else:
+            serializer = StudentSerializer(instance=user, data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        

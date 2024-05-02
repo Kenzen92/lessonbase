@@ -7,7 +7,7 @@ const Navigation = () => {
         <nav className='navigation'>
             <ul>
                 <li>
-                    <Link className='nav-element' to="#">Dashboard</Link>
+                    <Link className='nav-element' to="/dashboard">Dashboard</Link>
                 </li>
                 <li>
                     <Link className='nav-element' to="/calendar">Calendar</Link>
@@ -19,7 +19,7 @@ const Navigation = () => {
                     <Link className='nav-element' to="/assignments">Assignments</Link>
                 </li>
                 <li>
-                    <Link className='nav-element' to="/settings">Settings / Profile</Link>
+                    <Link className='nav-element' to="/profile">Settings / Profile</Link>
                 </li>
             </ul>
         </nav>
