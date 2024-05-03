@@ -1,7 +1,7 @@
 // Login.js
 import React, { useState } from 'react';
-import { Link, Router, useNavigate } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
 
 function Login() {
     const [loggedIn, setLoggedIn] = useState(false);
@@ -27,6 +27,8 @@ function Login() {
             });
 
             if (!response.ok) {
+                console.log("nah")
+                toast("Fuck")
                 setError('Username or password not correct');
                 return;
             }
@@ -36,6 +38,7 @@ function Login() {
             await window.sessionStorage.setItem("Token", data['Token']);
             navigate('/dashboard');
         } catch (error) {
+            console.log("recked")
             console.log('Error: ' + error.message);
         }
     };
@@ -46,36 +49,26 @@ function Login() {
                 <h1>Kenny Solutions</h1>
                 <h2>A teaching solution for all.</h2>
             </div>
-            {!loggedIn ? (
-                <form onSubmit={handleLogin}>
-                    <h1>Login</h1>
-                    <label>
-                        Username:
-                        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-                    </label>
-                    <br />
-                    <label>
-                        Password:
-                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                    </label>
-                    <br />
-                    <button type="submit">Login</button>
-                    <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
-                </form>
-            ) : (
-                <div>
-                    <h1>Welcome, {username}!</h1>
-                    <button onClick={() => setLoggedIn(false)}>Logout</button>
-                </div>
-            )}
+            <form onSubmit={handleLogin}>
+                <h1>Login</h1>
+                <label>
+                    Username:
+                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+                </label>
+                <br />
+                <label>
+                    Password:
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                </label>
+                <br />
+                <button type="submit">Login</button>
+                <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
+            </form>
             {error ? (
                 <p>{error}</p>
-              )  : 
-                (
-                    <p></p>
-                )
-                
-            }
+            ) : (
+                <p></p>
+            )}
         </div>
     );
 }

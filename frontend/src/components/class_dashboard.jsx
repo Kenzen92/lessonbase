@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ClassEventCard from './class_event_card';
 import ScheduleClassModal from './schedule_class_modal';
 import '../styles/class_dashboard.css';
+import ToastNotification from './notification';
 
 const ClassDashboard = () => {
     const [classEvents, setClassEvents] = useState([]);
@@ -86,6 +87,7 @@ const ClassDashboard = () => {
                     </div>
                 ))}
             </div>
+            <ToastNotification />
         </div>
     );
 };    

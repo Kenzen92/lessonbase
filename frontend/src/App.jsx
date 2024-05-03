@@ -6,9 +6,11 @@ import Signup from './screens/signup';
 import Dashboard from './screens/dashboard/dashboard';
 import Profile from './screens/profile';
 import PrivateRoutes from './components/privateRoute';
+import ToastNotification from './components/notification';
 
 function App() {
     return (
+        <>
         <Router>
 
                 <Routes>
@@ -22,6 +24,8 @@ function App() {
                 </Routes>
 
         </Router>
+        <ToastNotification />
+        </>
     );
 }
 
