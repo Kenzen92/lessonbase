@@ -1,0 +1,17 @@
+.login-container {
+    text-align: center;
+}
+
+.login-form {
+    padding: 5rem;
+}
+
+.login-form input, .login-form button{
+    margin-top: 1rem;
+    margin-left: 0.4rem;
+}
+
+.error {
+    border: 1px solid red;
+}
+

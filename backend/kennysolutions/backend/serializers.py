@@ -47,7 +47,7 @@ class ClassEventSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         subject_data = validated_data.pop('subject')
-        subject_instance = Subject.objects.create(**subject_data)
+        subject_instance = Subject.objects.get_or_create(**subject_data)
         class_event_instance = ClassEvent.objects.create(subject=subject_instance, **validated_data)
         return class_event_instance
         
@@ -77,9 +77,8 @@ class LoginSerializer(serializers.Serializer):
         try:
             user = CustomerAccount.objects.get(username=username)
         except CustomerAccount.DoesNotExist:
-            raise 
+            raise serializers.ValidationError('Invalid username or password') 
         user.get_real_instance()
-        print(user)
         validated = user.check_password(password)
 
         if not validated:

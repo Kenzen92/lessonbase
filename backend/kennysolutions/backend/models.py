@@ -7,7 +7,7 @@ from django.contrib.auth.models import BaseUserManager
 
 
 class Subject(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
    
 class CustomUser(AbstractUser):

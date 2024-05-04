@@ -1,14 +1,17 @@
-// Login.js
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate  } from 'react-router-dom';
 import { toast } from "react-toastify";
+import '../styles/login.css'
 
 function Login() {
-    const [loggedIn, setLoggedIn] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [showForm, setShowForm] = useState(false);
     const [error, setError] = useState('');
+    const [usernameError, setUsernameError] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
     const navigate = useNavigate();
+
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -26,10 +29,11 @@ function Login() {
                 body: JSON.stringify(payload)
             });
 
+
             if (!response.ok) {
-                console.log("nah")
-                toast("Fuck")
-                setError('Username or password not correct');
+                toast.error("Username or password not correct");
+                setUsernameError(true);
+                setPasswordError(true);
                 return;
             }
 
@@ -38,38 +42,42 @@ function Login() {
             await window.sessionStorage.setItem("Token", data['Token']);
             navigate('/dashboard');
         } catch (error) {
-            console.log("recked")
-            console.log('Error: ' + error.message);
+            toast.error("Connection error. Please try again later.")
         }
     };
 
     return (
         <div className="App">
-            <div>
-                <h1>Kenny Solutions</h1>
-                <h2>A teaching solution for all.</h2>
+            <div className='login-container'>
+                <div className="login-header">
+                    <h1>Kenny Solutions</h1>
+                    <h2>A teaching solution for all.</h2>
+                </div>
+                {showForm ? 
+                    <form onSubmit={handleLogin} className="login-form">
+                        <label>
+                            Username
+                            <input type="text" value={username} onChange={(e) => { setUsername(e.target.value); setUsernameError(false); }} className={usernameError ? 'error' : ''} />
+                        </label>
+                        <br />
+                        <label>
+                            Password
+                            <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setPasswordError(false); }} className={passwordError ? 'error' : ''} />
+                        </label>
+                        <br />
+                        <button type="submit">Login</button>
+                        <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
+                    </form>
+                : 
+                    <>
+                        <button type="button" onClick={() => setShowForm(true)}>Sign in</button>
+                        <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
+                    </>
+                }
+
             </div>
-            <form onSubmit={handleLogin}>
-                <h1>Login</h1>
-                <label>
-                    Username:
-                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-                </label>
-                <br />
-                <label>
-                    Password:
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </label>
-                <br />
-                <button type="submit">Login</button>
-                <p>Don't have an account? <Link to="/signup">Sign up here</Link></p>
-            </form>
-            {error ? (
-                <p>{error}</p>
-            ) : (
-                <p></p>
-            )}
         </div>
+
     );
 }
 

@@ -6,6 +6,17 @@
     height: 100px; /* Set the desired height */
 }
 
+.navigation ul {
+    list-style-type: none;
+}
+
 .navigation li {
+    float: left;
     height: 50px;
 }
+
+.nav-element {
+    padding: 10px;
+    margin-left: 10px;
+}
+

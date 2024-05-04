@@ -16,6 +16,9 @@ from rest_framework.authtoken.models import Token
 from .models import ClassEvent, Staff, Student, Subject, Teacher
 from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer
 from datetime import datetime
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.conf import settings
 
 
 @api_view(['GET'])
@@ -109,9 +112,26 @@ def login(request):
         logger.debug(serializer.errors)
         return Response({"error": f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
     
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def logout(request):
+    user = request.user
+    try:
+        # Attempt to retrieve the token associated with the user
+        token = Token.objects.get(user=user)
+        # Delete the token
+        token.delete()
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+    except Token.DoesNotExist:
+        # If the token doesn't exist, consider the user as already logged out
+        return Response({"error": "User is not logged in"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes((permissions.AllowAny,))
+@permission_classes([IsAuthenticated])
 def students(request):
     queryset = Student.objects.all()
     serializer = StudentSerializer(queryset, many=True)
@@ -119,7 +139,7 @@ def students(request):
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes((permissions.AllowAny,))
+@permission_classes([IsAuthenticated])
 def teachers(request):
     queryset = Teacher.objects.all()
     serializer = TeacherSerializer(queryset, many=True)
@@ -127,7 +147,7 @@ def teachers(request):
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
-@permission_classes((permissions.AllowAny,))
+@permission_classes([IsAuthenticated])
 def students_for_teacher(request):
     queryset = Student.objects.filter(teacher=request.user.id)
     serializer = StudentSerializer(queryset, many=True)
@@ -135,7 +155,7 @@ def students_for_teacher(request):
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
-@permission_classes((permissions.AllowAny,))
+@permission_classes([IsAuthenticated])
 def connect_student_teacher(request):
     teacher = request.user.get_real_instance()
     student_ids = request.data.get('students', [])
@@ -252,3 +272,18 @@ def profile(request):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def send_email_view(request):
+    subject = request.data.get('subject')
+    sender_email = settings.DEFAULT_FROM_EMAIL
+    send_mail(
+        subject,
+        'Here is the message.',
+        sender_email,
+        ['jamespeterkenny@gmail.com'],
+        fail_silently=False,
+    )
+    return HttpResponse('Email sent successfully!')

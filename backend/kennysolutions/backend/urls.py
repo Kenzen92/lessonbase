@@ -6,6 +6,7 @@ urlpatterns = [
     path('create_data', views.createData),
     path('register_user', views.userRegister),
     path('login', views.login),
+    path('logout/', views.logout),
     path('students', views.students),
     path('teachers', views.teachers),
     path('students-for-teacher', views.students_for_teacher),
@@ -14,6 +15,7 @@ urlpatterns = [
     path('class/<int:class_id>/', views.class_events), 
     path('subjects/all', views.all_subjects),
     path('subjects/', views.subjects),
-    path('profile/', views.profile)
+    path('profile/', views.profile),
+    path('email/', views.send_email_view)
 
 ]

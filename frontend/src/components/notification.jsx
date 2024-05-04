@@ -8,7 +8,7 @@ function ToastNotification({ message }) { // Accepting 'message' prop
 
     return (
         <div>
-            <ToastContainer />
+            <ToastContainer theme="dark" />
         </div>
     );
 }

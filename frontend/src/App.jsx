@@ -1,32 +1,34 @@
 // App.js
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate  } from 'react-router-dom';
 import Login from './screens/login';
 import Signup from './screens/signup';
 import Dashboard from './screens/dashboard/dashboard';
 import Profile from './screens/profile';
 import PrivateRoutes from './components/privateRoute';
 import ToastNotification from './components/notification';
+import Students from './screens/students';
 
 function App() {
+    const auth = window.sessionStorage.getItem("Token");
+    
     return (
         <>
-        <Router>
-
+            <Router>
                 <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/" element={auth ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
                     <Route element={<PrivateRoutes />}>
                         <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/students" element={<Students />} />
                     </Route>
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/profile" element= {<Profile />} />
-                    
                 </Routes>
-
-        </Router>
-        <ToastNotification />
+            </Router>
+            <ToastNotification />
         </>
     );
 }
 
-export default App;
+export default App; 

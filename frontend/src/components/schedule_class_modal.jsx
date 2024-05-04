@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/schedule_class_modal.css';
+import handleUnauthorizedRequest from './unautherized_request';
+import { toast } from 'react-toastify';
 
 const ScheduleClassModal = ({handleReloadData}) => {
     const [showing, setShowing] = useState(false);
@@ -28,6 +30,10 @@ const ScheduleClassModal = ({handleReloadData}) => {
                     'Content-Type': 'application/json'
                 }
             });
+
+            if (response.status == 401) {
+                handleUnautherizedRequest(navigate);
+             }
 
             if (!response.ok) {
                 throw new Error('Failed to fetch students');
@@ -104,9 +110,8 @@ const ScheduleClassModal = ({handleReloadData}) => {
             console.log('Error: ' + error.message);
         }
     
-        // Here you can send the newClass object to your backend or perform other actions
-        console.log('Submitted class:', newClass);
         // Close the modal after submission
+        toast.success("The class event was scheduled")
         handleReloadData();
         toggleModal();
 

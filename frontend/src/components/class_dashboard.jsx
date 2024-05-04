@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate  } from 'react-router-dom';
 import ClassEventCard from './class_event_card';
 import ScheduleClassModal from './schedule_class_modal';
 import '../styles/class_dashboard.css';
-import ToastNotification from './notification';
+
+import handleUnautherizedRequest from './unautherized_request';
 
 const ClassDashboard = () => {
     const [classEvents, setClassEvents] = useState([]);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();  // Initialize useNavigate hook
 
     // Define fetchClassEvents function
     const fetchClassEvents = async () => {
@@ -19,6 +22,10 @@ const ClassDashboard = () => {
                     'Content-Type': 'application/json'
                 }
             });
+
+            if (response.status == 401) {
+               handleUnautherizedRequest(navigate);
+            }
 
             if (!response.ok) {
                 throw new Error('Failed to fetch class events');
@@ -87,7 +94,6 @@ const ClassDashboard = () => {
                     </div>
                 ))}
             </div>
-            <ToastNotification />
         </div>
     );
 };    

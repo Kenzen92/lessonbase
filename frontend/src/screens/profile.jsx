@@ -4,7 +4,8 @@ import { Link, Router, useNavigate } from 'react-router-dom';
 
 import Navigation from '../components/main_navigation';
 import '../styles/profile.css'
-
+import handleUnauthorizedRequest from '../components/unautherized_request';
+import { toast } from 'react-toastify';
 
 function Profile() {
     const [profileData, setProfileData] = useState(null);
@@ -21,6 +22,10 @@ function Profile() {
                     'Content-Type': 'application/json'
                 }
             });
+
+            if (response.status == 401) {
+                handleUnautherizedRequest(navigate);
+             }
 
             if (!response.ok) {
                 throw new Error('Failed to fetch class events');
@@ -77,9 +82,7 @@ function Profile() {
         console.log('Error: ' + error.message);
     }
 
-    // Here you can send the newClass object to your backend or perform other actions
-    console.log('Submitted profile: ', profileData);
-    // Close the modal after submission
+    toast.success("Profile data updated")
     handleReloadData();
     };
 
