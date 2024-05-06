@@ -41,9 +41,12 @@ class CustomerAccount(PolymorphicModel, CustomUser):
     objects = CustomerAccountManager()
     is_confirmed = models.BooleanField(null=False, default=False)
     premium_account = models.BooleanField(null=False, default=False)
+    confirmation_token = models.UUIDField(null=True, blank=True)
+    
 
     def __str__(self):
         return f"{self.username} is a {self.polymorphic_ctype}"
+    
  
 
 class Student(CustomerAccount):

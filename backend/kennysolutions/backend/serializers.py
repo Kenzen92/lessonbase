@@ -72,7 +72,7 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         username = data.get('username')
-        password = data.get('password')
+        password = data.get('password' )
         print(username, password)
         try:
             user = CustomerAccount.objects.get(username=username)

@@ -13,9 +13,9 @@ function Students() {
         e.preventDefault();
         setShowForm(!showForm);
         
-        const url = 'http://localhost:8000/email/';
+        const url = 'http://localhost:8000/new-student/';
         const payload = {
-            subject: "Welcome to Kenny Solutions"
+            email: e.target.email.value
         };
         const auth = window.sessionStorage.getItem("Token");
         

@@ -16,6 +16,8 @@ urlpatterns = [
     path('subjects/all', views.all_subjects),
     path('subjects/', views.subjects),
     path('profile/', views.profile),
-    path('email/', views.send_email_view)
+    path('new-student/', views.new_student),
+    path('confirm-account/', views.confirm_account, name='confirm_account'),
+
 
 ]

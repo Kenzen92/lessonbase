@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render
 from faker import Faker
 import logging
@@ -13,12 +14,13 @@ from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from .models import ClassEvent, Staff, Student, Subject, Teacher
+from .models import ClassEvent, CustomerAccount, Staff, Student, Subject, Teacher
 from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer
 from datetime import datetime
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.conf import settings
+from django.template.loader import render_to_string
 
 
 @api_view(['GET'])
@@ -276,14 +278,60 @@ def profile(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def send_email_view(request):
-    subject = request.data.get('subject')
+def new_student(request):
+    destination_email = request.data.get('email') # not using for now
+    print(destination_email )
     sender_email = settings.DEFAULT_FROM_EMAIL
+    # generate a token that is passed in the link url which will be used to validate the request to activate the account 
+    token = uuid.uuid4()
+    # Create an empty login account with default values, but attach the confirmation token.
+    student = CustomerAccount.objects.filter(email=destination_email).first()
+    if student is None:  # If student doesn't exist, create a new one
+        student = CustomerAccount.objects.create(email=destination_email, username=uuid.uuid4()) 
+    student.confirmation_token=token # replace any previous token
+    student.save()
+    # No need to specify 'templates' in the path
+    msg_plain = render_to_string('invitation_email.txt', {'token': token})
+    msg_html = render_to_string('invitation_email.html', {'token': token})
+    subject = 'Here is your invitation to join Kennysolutions'
+    
     send_mail(
         subject,
-        'Here is the message.',
+        msg_plain,
         sender_email,
         ['jamespeterkenny@gmail.com'],
+        html_message=msg_html,
         fail_silently=False,
     )
-    return HttpResponse('Email sent successfully!')
+    return Response({"Message": 'Email sent successfully!'}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET', 'POST'])
+@permission_classes((permissions.AllowAny,))
+def confirm_account(request):
+    if request.method == 'GET':
+        token = request.GET.get('token')
+        try:
+            account = CustomerAccount.objects.get(confirmation_token=token)
+        except CustomerAccount.DoesNotExist:
+            return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+       
+        return render(request, "student_account_signup.html", {"token": token, confirm_account: "http://localhost:8000/confirm_account/"})
+    elif request.method == 'POST':
+        if request.data['username'] and request.data['password1']:
+            token=request.data.get('token')
+            print(token ) 
+            try:
+                account = CustomerAccount.objects.get(confirmation_token=token)
+            except CustomerAccount.DoesNotExist:
+                return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            account.username=request.data['username']
+            account.set_password(request.data['password1'])
+            account.save()
+            account.confirmation_token = None # clear the token
+            # Perform any additional actions here like redirecting to a success page, etc.
+            return render(request, "account_confirmation.html")
+        else:
+            return Response({"error": "No username or password"}, status=status.HTTP_400_BAD_REQUEST)
