@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../styles/signup.css'
 
 function Signup() {
@@ -75,42 +75,45 @@ function Signup() {
 
     return (
         <div>
-            <h1>Sign Up</h1>
-            <form onSubmit={handleRegister}>
-                <label>
-                    Username:
-                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-                </label>
-                <br />
-                <label>
-                    Email:
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </label>
-                <br />
-                <label>
-                    Password:
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </label>
-                <br />
-                <label>
-                    Subjects:
-                    <select
-                            id="subjects"
-                            multiple
-                            value={selectedSubjects}
-                            onChange={(e) => setSelectedSubjects(Array.from(e.target.selectedOptions, (option) => option.value))}
-                            required
-                            className="form-input"
-                            >
-                            {subjects.map((subject) => (
-                                <option key={subject.id} value={subject.id}>
-                                    {subject.name}
-                                </option>
-                            ))}
+            <div className="signup-container">
+                <Link to="/login">Back</Link>
+                <h1>Sign Up</h1>
+                <form onSubmit={handleRegister} className="signup-form">
+                    <label>
+                        Username:
+                        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required/>
+                    </label>
+                    <br />
+                    <label>
+                        Email:
+                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    </label>
+                    <br />
+                    <label>
+                        Password:
+                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    </label>
+                    <br />
+                    <label>
+                        Subjects:
+                        <select
+                                id="subjects"
+                                multiple
+                                value={selectedSubjects}
+                                onChange={(e) => setSelectedSubjects(Array.from(e.target.selectedOptions, (option) => option.value))}
+                                required
+                                className="form-input"
+                                >
+                                {subjects.map((subject) => (
+                                    <option key={subject.id} value={subject.id} required>
+                                        {subject.name}
+                                    </option>
+                                ))}
                         </select>
-                </label>
-                <button type="submit">Sign Up</button>
-            </form>
+                    </label>
+                    <button type="submit">Sign Up</button>
+                </form>
+            </div>
         </div>
     );
 }
