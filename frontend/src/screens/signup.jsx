@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Select from 'react-select'
 import '../styles/signup.css'
 
 function Signup() {
@@ -27,7 +28,14 @@ function Signup() {
             }
 
             const data = await response.json();
-            setSubjects(data);
+            console.log(data);
+            let subject_options = []
+            for (let subject of data) {
+                const subject_option = { value: subject.id, label: subject.name };
+                subject_options.push(subject_option);
+            }
+            console.log(subject_options)
+            setSubjects(subject_options);
         } catch (error) {
             setError(error.message);
         }
@@ -96,20 +104,23 @@ function Signup() {
                     <br />
                     <label>
                         Subjects:
-                        <select
-                                id="subjects"
-                                multiple
-                                value={selectedSubjects}
-                                onChange={(e) => setSelectedSubjects(Array.from(e.target.selectedOptions, (option) => option.value))}
-                                required
-                                className="form-input"
-                                >
-                                {subjects.map((subject) => (
-                                    <option key={subject.id} value={subject.id} required>
-                                        {subject.name}
-                                    </option>
-                                ))}
-                        </select>
+                        <Select
+                            defaultValue={selectedSubjects}
+                            onChange={setSelectedSubjects}
+                            options={subjects}
+                            isMulti={true}
+                            styles={{
+                                menu: provided => ({
+                                  ...provided,
+                                  backgroundColor: '#333', // Change menu background color
+                                }),
+                                
+                                option: provided => ({
+                                  ...provided,
+                                  color: '#ccc', // Change option font color
+                                }),
+                              }}
+                        />
                     </label>
                     <button type="submit">Sign Up</button>
                 </form>

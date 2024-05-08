@@ -16,6 +16,7 @@
 
   .signup-form {
     text-align: center;
+    max-width: 15rem
   }
   
   .signup-form label {
@@ -25,8 +26,7 @@
     text-align: left;
   }
   
-  .signup-form input,
-  .signup-form select {
+  .signup-form input{
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -35,12 +35,7 @@
     font-size: 1rem;
   }
   
-  .signup-form select {
-    height: 250px; /* Adjust as needed based on your design */
-  }
 
-
-  
   .error-message {
     color: red;
     margin-top: 10px;
