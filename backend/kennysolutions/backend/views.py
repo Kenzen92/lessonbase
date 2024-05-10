@@ -211,7 +211,7 @@ def class_events(request, class_id=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def subjects(request):
-    user = request.user
+    user = request.user.get_real_instance()
     if request.method == 'POST':
         subjects_ids = request.data.get('subjects', [])
         try:    
@@ -264,14 +264,18 @@ def profile(request):
         user = request.user.get_real_instance()
         print(request.data)
         if user.polymorphic_ctype.name == "teacher":
+            print("ubdating teacher!")
             serializer = TeacherSerializer(instance=user, data=request.data)
         else:
+            print("updating student?!")
             serializer = StudentSerializer(instance=user, data=request.data)
         
         if serializer.is_valid():
             serializer.save()
+            print("sdata!" ,serializer.data)
             return Response(serializer.data)
         else:
+            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 

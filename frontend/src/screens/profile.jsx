@@ -1,15 +1,15 @@
 // Login.js
 import React, { useState, useEffect } from 'react';
-import { Link, Router, useNavigate } from 'react-router-dom';
-
 import Navigation from '../components/main_navigation';
 import '../styles/profile.css'
-import handleUnauthorizedRequest from '../components/unautherized_request';
+import Select from 'react-select'
 import { toast } from 'react-toastify';
 
 function Profile() {
     const [profileData, setProfileData] = useState(null);
     const [error, setError] = useState(null);
+    const [subjects, setSubjects] = useState([]);
+    const [selectedSubjects, setSelectedSubjects] = useState([]);
 
     // Define fetchClassEvents function
     const fetchProfileData = async () => {
@@ -32,8 +32,44 @@ function Profile() {
             }
 
             const data = await response.json();
-            console.log(data)
+            let profile_subjects = data['subjects'];
+            let profile_subjects_for_list = []
+            for (let subject of profile_subjects) {
+                const subject_option = { value: subject.id, label: subject.name };
+                profile_subjects_for_list.push(subject_option);
+            }
+            console.log(profile_subjects_for_list)
+            await setSelectedSubjects(profile_subjects_for_list);
+            console.log(selectedSubjects);
             setProfileData(data);
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    
+    const fetchSubjects = async () => {
+        try {
+            const auth = window.sessionStorage.getItem("Token");
+            const response = await fetch('http://localhost:8000/subjects/all', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${auth}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch subjects');
+            }
+
+            const data = await response.json();
+            let subject_options = []
+            for (let subject of data) {
+                const subject_option = { value: subject.id, label: subject.name };
+                subject_options.push(subject_option);
+            }
+            setSubjects(subject_options);
         } catch (error) {
             setError(error.message);
         }
@@ -41,6 +77,7 @@ function Profile() {
 
     useEffect(() => {
         fetchProfileData();
+        fetchSubjects();
     }, []);
 
     // Callback function to force re-render of ClassDashboard after item deletion
@@ -63,7 +100,6 @@ function Profile() {
     const handleSubmit = async (event) => {
     event.preventDefault();
     const url = 'http://localhost:8000/profile/';
-    // Construct the class object to be submitted
 
     try {
         const auth = window.sessionStorage.getItem("Token");
@@ -74,6 +110,27 @@ function Profile() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(profileData)
+        });
+
+        const data = await response.json();
+        console.log(data)
+    } catch (error) {
+        console.log('Error: ' + error.message);
+    }
+
+    const subject_url = 'http://localhost:8000/subjects/';
+    const subject_data = selectedSubjects.map(entry => entry.value);
+    const data_to_send = {"subjects": subject_data}
+    console.log(data_to_send);
+    try {
+        const auth = window.sessionStorage.getItem("Token");
+        const response = await fetch(subject_url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Token ${auth}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data_to_send)
         });
 
         const data = await response.json();
@@ -98,13 +155,23 @@ function Profile() {
                     <input type="text" id="username" name="username" value={profileData['username']} onChange={handleChange} />
 
                     <label htmlFor="subjects">Subjects:</label>
-                    <ul>
-                        {profileData.subjects.map((subject, index) => (
-                            <li key={index}>
-                                <input type="text" value={subject.name} readOnly />
-                            </li>
-                        ))}
-                    </ul>
+                    <Select
+                            defaultValue={selectedSubjects}
+                            onChange={setSelectedSubjects}
+                            options={subjects}
+                            isMulti={true}
+                            styles={{
+                                menu: provided => ({
+                                  ...provided,
+                                  backgroundColor: '#333', // Change menu background color
+                                }),
+                                
+                                option: provided => ({
+                                  ...provided,
+                                  color: '#ccc', // Change option font color
+                                }),
+                              }}
+                        />
 
                     <label htmlFor="first_name">First Name:</label>
                     <input type="text" id="first_name" name="first_name" value={profileData['first_name']} onChange={handleChange} />

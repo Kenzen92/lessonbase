@@ -18,6 +18,7 @@ class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
         fields = ['id', 'name']
+        read_only_fields = ['id', 'name']
 
 class TeacherClassEventSerializer(serializers.ModelSerializer):
 
@@ -26,7 +27,7 @@ class TeacherClassEventSerializer(serializers.ModelSerializer):
         fields = ['username']
 
 class TeacherSerializer(serializers.ModelSerializer):
-    subjects = SubjectSerializer(many=True, read_only=True)
+    subjects = SubjectSerializer(many=True, read_only=True )
 
     class Meta:
         model = Teacher
