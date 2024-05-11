@@ -284,15 +284,17 @@ def profile(request):
 @permission_classes([IsAuthenticated])
 def new_student(request):
     destination_email = request.data.get('email') # not using for now
-    print(destination_email )
+    print(destination_email)
     sender_email = settings.DEFAULT_FROM_EMAIL
     # generate a token that is passed in the link url which will be used to validate the request to activate the account 
     token = uuid.uuid4()
     # Create an empty login account with default values, but attach the confirmation token.
-    student = CustomerAccount.objects.filter(email=destination_email).first()
+    student = Student.objects.filter(email=destination_email).first()
     if student is None:  # If student doesn't exist, create a new one
-        student = CustomerAccount.objects.create(email=destination_email, username=uuid.uuid4()) 
+        student = Student.objects.create(email=destination_email, username=uuid.uuid4()) 
     student.confirmation_token=token # replace any previous token
+    teacher = request.user.get_real_instance()
+    teacher.students.add(student)
     student.save()
     # No need to specify 'templates' in the path
     msg_plain = render_to_string('invitation_email.txt', {'token': token})

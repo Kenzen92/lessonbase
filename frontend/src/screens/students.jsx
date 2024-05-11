@@ -1,12 +1,40 @@
 // Login.js
-import React, { useState } from 'react';
-import { Link, Router, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import Navigation from '../components/main_navigation';
 import { toast } from 'react-toastify';
 import '../styles/student.css'
+import StudentInfoCard from '../components/student_info_card';
 
 function Students() {
     const [showForm, setShowForm] = useState(false);
+    const [students, setstudents] = useState([]);
+
+    const fetchStudents = async () => {
+        try {
+            const auth = window.sessionStorage.getItem("Token");
+            const response = await fetch('http://localhost:8000/students-for-teacher', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Token ${auth}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch subjects');
+            }
+
+            const data = await response.json();
+            await setstudents(data);
+            console.log(data)
+        } catch (error) {
+            setError(error.message);
+        }
+    };
+
+    useEffect(() => {
+        fetchStudents();
+    }, []);
 
     // Function to handle form submission
     const handleFormSubmit = async (e) => {
@@ -59,6 +87,15 @@ function Students() {
                     <button onClick={() => setShowForm(!showForm)}>Add New Student</button>
                 </div>
                 }
+                <div className="cards-section">
+                {/* Iterate over each date key */}
+                {students.map(student => (
+                    <StudentInfoCard
+                        key={student.id}
+                        student={student}
+                    />
+                    ))}
+                </div>
             </div>
         </div>
     );
