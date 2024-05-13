@@ -39,18 +39,32 @@ class TeacherSerializer(serializers.ModelSerializer):
 class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = SubjectSerializer()
+    subject = serializers.SlugRelatedField(slug_field='name', queryset=Subject.objects.all())
 
     class Meta:
         model = ClassEvent
         fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers']
         read_only_fields = ['id']
 
-    def create(self, validated_data):
-        subject_data = validated_data.pop('subject')
-        subject_instance = Subject.objects.get_or_create(**subject_data)
-        class_event_instance = ClassEvent.objects.create(subject=subject_instance, **validated_data)
-        return class_event_instance
+    # def create(self, validated_data ):
+    #     print(validated_data)
+    #     students_data = validated_data.pop('students', [])
+    #     teachers_data = validated_data.pop('teachers', [])
+    #     subject_data = validated_data.pop('subject')
+
+    #     class_event = ClassEvent.objects.create(**validated_data)
+
+    #     for student_id in students_data:
+    #         class_event.students.add(student_id)
+
+    #     for teacher_id in teachers_data:
+    #         class_event.teachers.add(teacher_id)
+
+    #     class_event.subject_id = subject_data
+    #     class_event.save()
+
+    #     return class_event
+
         
 class StaffSerializer(serializers.ModelSerializer):
     class Meta:

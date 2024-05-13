@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ClassEventCard.css'
 import { Link, Router, useNavigate } from 'react-router-dom';
+import { FaDna, FaAtom, FaGlobe, FaCalculator, FaDesktop, FaLandmark, FaPalette, FaMusic, FaBalanceScaleLeft, FaBook } from 'react-icons/fa';
+
+const subjectIconMap = {
+    'Mathematics': FaCalculator,
+    'Physics': FaBalanceScaleLeft,
+    'Chemistry': FaAtom,
+    'Biology': FaDna,
+    'History': FaLandmark,
+    'Literature': FaBook,
+    'Computer Science': FaDesktop,
+    'Art': FaPalette,
+    'Music': FaMusic,
+    'Geography': FaGlobe,
+};
 
 const ClassEventCard = ({ eventData, handleReloadData }) => {
     const [error, setError] = useState(null);
@@ -8,6 +22,8 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     const navigate = useNavigate();
     // Convert the start_time string to a Date object
     const startTime = new Date(eventData.start_time);
+
+    const IconComponent = subjectIconMap[eventData.subject]
 
     // Define options for formatting time
     const options = {
@@ -77,7 +93,8 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
                         <h3>Teachers:</h3>
                         <ul>{teachersList}</ul>
                     </div>
-                    <p className="subject">{eventData.subject['name']}</p> 
+                    <p className="subject">{eventData.subject}</p> 
+                    <IconComponent />
                 </div>
                 
                 <div className="class-event-card-actions">

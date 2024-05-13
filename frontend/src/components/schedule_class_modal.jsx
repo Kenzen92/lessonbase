@@ -84,14 +84,17 @@ const ScheduleClassModal = ({handleReloadData}) => {
         // Construct the class object to be submitted
 
         // Find the subject object corresponding to the selectedSubject ID
+        console.log(selectedSubject)
+        
         const selectedSubjectObj = allSubjects.find(subject => subject.id === parseInt(selectedSubject));
+        console.log(selectedSubjectObj)
         const newClass = {
             start_time: startTime,
             duration: duration,
             students: selectedStudents,
-            subject: selectedSubjectObj
+            subject: selectedSubjectObj['name']
         };
-
+        console.log(newClass)
 
         try {
             const auth = window.sessionStorage.getItem("Token");

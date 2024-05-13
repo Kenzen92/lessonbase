@@ -194,13 +194,23 @@ def class_events(request, class_id=None):
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
         students = Student.objects.filter(pk__in=student_ids)
 
+        # subject = request.data.pop('subject')
+        # print(subject)
+        # try:
+        #     subject_instance = Subject.objects.get(id=subject['id'])
+        # except Subject.DoesNotExist:
+        #     return Response({'message': 'Subject found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # request.data['subject'] = subject_instance
         serializer = ClassEventSerializer(data=request.data)
         if serializer.is_valid():
             class_event = serializer.save()
             class_event.teachers.set(teachers)
             class_event.students.set(students)
-
             return Response({"message": "Class event created successfully"}, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     else:
