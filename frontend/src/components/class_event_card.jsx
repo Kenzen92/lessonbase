@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ClassEventCard.css'
 import { Link, Router, useNavigate } from 'react-router-dom';
-import { FaDna, FaAtom, FaGlobe, FaCalculator, FaDesktop, FaLandmark, FaPalette, FaMusic, FaBalanceScaleLeft, FaBook } from 'react-icons/fa';
+import { FaDna, FaAtom, FaGlobe, FaCalculator, FaDesktop, FaLandmark, FaPalette, FaMusic, FaBalanceScaleLeft, FaBook, FaGraduationCap } from 'react-icons/fa';
 
 const subjectIconMap = {
     'Mathematics': FaCalculator,
@@ -40,9 +40,9 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     
     let teachersList = [];
 
-    eventData.teachers.forEach((teacher, index) => {
-        teachersList.push(<li key={index}>{teacher.username}</li>);
-    });
+    // eventData.teachers.forEach((teacher, index) => {
+    //     teachersList.push(<li key={index}>{teacher.username}</li>);
+    // });
 
     let studentsList = [];
 
@@ -86,15 +86,14 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
                 <div className="class-event-card-info">
                     <p className="start-time">{formattedTime}</p>
                     <div className="students-list">
-                        <h3>Students:</h3>
+                        <FaGraduationCap className="student-icon"/>
                         <ul>{studentsList}</ul>
                     </div>
-                    <div className="teachers-list">
-                        <h3>Teachers:</h3>
-                        <ul>{teachersList}</ul>
+                    <div className='subject-section'>
+                        <IconComponent className="subject-icon"/>
+                        <h4 className="subject">{eventData.subject}</h4> 
                     </div>
-                    <p className="subject">{eventData.subject}</p> 
-                    <IconComponent />
+
                 </div>
                 
                 <div className="class-event-card-actions">
