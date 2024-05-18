@@ -1,3 +1,8 @@
+.main-content {
+    overflow-y: scroll;
+    width: 100%;
+}
+
 .cards-section {
     text-align: center;
 }

@@ -72,7 +72,7 @@ const ClassDashboard = () => {
     }
 
     return (
-        <div>
+        <div className='main-content'>
             <div className="schedule-class-modal">
                 <ScheduleClassModal handleReloadData={handleReloadData}/>
             </div>

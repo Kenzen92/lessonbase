@@ -39,24 +39,36 @@ const Navigation = () => {
 
     return (
         <nav className='navigation'>
-            <ul>
+              <ul className='navigation-list'>
                 <li>
-                    <Link className='nav-element' to="/dashboard">Dashboard</Link>
+                    <button className='nav-element'>
+                        <Link to="/dashboard">Dashboard</Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className='nav-element' to="/calendar">Calendar</Link>
+                    <button className='nav-element'>
+                        <Link to="/calendar">Calendar</Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className='nav-element' to="/students">Students</Link>
+                    <button className='nav-element'>
+                        <Link to="/students">Students</Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className='nav-element' to="/assignments">Assignments</Link>
+                    <button className='nav-element'>
+                        <Link to="/assignments">Assignments</Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className='nav-element' to="/profile">Settings / Profile</Link>
+                    <button className='nav-element'>
+                        <Link to="/profile">Settings / Profile</Link>
+                    </button>
                 </li>
                 <li>
-                    <Link className='nav-element' onClick={handleLogout}>Logout</Link>
+                    <button className='nav-element' onClick={handleLogout}>
+                        <Link to="/">Logout</Link>
+                    </button>
                 </li>
             </ul>
         </nav>
