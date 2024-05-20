@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate  } from 'react-router-dom';
 import ClassEventCard from './class_event_card';
 import ScheduleClassModal from './schedule_class_modal';
+import Avatar from '@mui/material/Avatar';
 import '../styles/class_dashboard.css';
 
 import handleUnautherizedRequest from './unautherized_request';
@@ -10,6 +11,19 @@ const ClassDashboard = () => {
     const [classEvents, setClassEvents] = useState([]);
     const [error, setError] = useState(null);
     const navigate = useNavigate();  // Initialize useNavigate hook
+    const [isHovering, setIsHovering] = useState(false);
+
+    const handleAvatarClick = () => {
+      history.push('/profile');
+    };
+  
+    const handleMouseEnter = () => {
+      setIsHovering(true);
+    };
+  
+    const handleMouseLeave = () => {
+      setIsHovering(false);
+    };
 
     // Define fetchClassEvents function
     const fetchClassEvents = async () => {
@@ -75,7 +89,21 @@ const ClassDashboard = () => {
 
         <div className='main-content'>
             <div className="profile-bar">
-                <p className="profile-icon">Profile</p>
+                <div className="avatar-container">
+                    <Avatar 
+                        alt="Remy Sharp" 
+                        src="https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg" 
+                        className="profile-icon"
+                        onClick={handleAvatarClick}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                    />
+                    {isHovering && (
+                        <div className="hover-bubble">
+                            <p>Remy Sharp</p>
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="schedule-class-modal">
                 <ScheduleClassModal handleReloadData={handleReloadData}/>

@@ -9,6 +9,11 @@ import Profile from './screens/profile';
 import PrivateRoutes from './components/privateRoute';
 import ToastNotification from './components/notification';
 import Students from './screens/students';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
 
 function App() {
     const auth = window.sessionStorage.getItem("Token");

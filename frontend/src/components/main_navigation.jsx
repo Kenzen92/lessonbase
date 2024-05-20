@@ -62,7 +62,7 @@ const Navigation = () => {
                 </li>
                 <li>
                     <button className='nav-element'>
-                        <Link to="/profile">Settings / Profile</Link>
+                        <Link to="/profile">Settings</Link>
                     </button>
                 </li>
                 <li>

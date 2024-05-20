@@ -6,12 +6,26 @@
 }
 
 .profile-bar {
-
+    display: flex;
+    justify-content: flex-end;
 }
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .hover-bubble {
+    position: inherit;
+  }
+  
 
 .profile-icon {
-    text-align: end;
+    margin-top: 2rem;
+    margin-right: 4rem;
+    cursor: pointer;
 }
+
 
 .cards-section {
     text-align: center;
