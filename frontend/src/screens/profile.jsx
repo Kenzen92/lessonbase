@@ -144,9 +144,11 @@ function Profile() {
     };
 
     return (
-        <div className="Profile">
-            <div>
-                <Navigation />
+        <>
+        <Navigation />
+        <div className="profile-container">
+            <div className="profile-header">
+                <h2>Profile</h2>
             </div>
             <div className='form-container'>
                 {profileData ? 
@@ -182,13 +184,14 @@ function Profile() {
                     <label htmlFor="email">Email:</label>
                     <input type="email" id="email" name="email" value={profileData['email']} onChange={handleChange}/>
 
-                    <button type="submit">Submit</button>
+                    <button className="submit-button" type="submit">Submit</button>
                 </form>
                 :
                 <div><p>Loading...</p></div>
                     }
             </div>
         </div>
+        </>
     );
 }
 

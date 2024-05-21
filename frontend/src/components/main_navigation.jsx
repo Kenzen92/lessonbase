@@ -12,7 +12,7 @@ const Navigation = () => {
     const [isHovering, setIsHovering] = useState(false);
 
     const handleAvatarClick = () => {
-    history.push('/profile');
+    navigate('/profile');
     };
 
     const handleMouseEnter = () => {
