@@ -58,34 +58,35 @@ const Navigation = () => {
                 <nav className='navigation'>
                     <ul className='navigation-list'>
                         <li>
-                            <button className='nav-element'>
-                                <Link to="/dashboard">Dashboard</Link>
-                            </button>
+                            <Link to="/dashboard">
+                                <button className='nav-element'>Dashboard</button>
+                            </Link>
                         </li>
                         <li>
-                            <button className='nav-element'>
-                                <Link to="/calendar">Calendar</Link>
-                            </button>
+                            <Link to="/calendar">
+                                <button className='nav-element'>Calendar</button>
+                            </Link>
                         </li>
                         <li>
-                            <button className='nav-element'>
-                                <Link to="/students">Students</Link>
-                            </button>
+                            <Link to="/students">
+                                <button className='nav-element'>Students</button>
+                            </Link>
                         </li>
                         <li>
-                            <button className='nav-element'>
-                                <Link to="/assignments">Assignments</Link>
-                            </button>
+                            <Link to="/assignments">
+                                <button className='nav-element'>Assignments</button>
+                            </Link>
                         </li>
                         <li>
-                            <button className='nav-element'>
-                                <Link to="/profile">Settings</Link>
-                            </button>
+                            <Link to="/profile">
+                            <button className='nav-element'>Settings</button>
+                            </Link>
+                            
                         </li>
                         <li>
-                            <button className='nav-element' onClick={handleLogout}>
-                                <Link to="/">Logout</Link>
-                            </button>
+                            <Link to="/">
+                                <button className='nav-element' onClick={handleLogout}>Logout</button>
+                            </Link>
                         </li>
                     </ul>
                 </nav>
