@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '../components/main_navigation';
 import { toast } from 'react-toastify';
+import '../styles/dashboard.css'
 import '../styles/student.css'
 import StudentInfoCard from '../components/student_info_card';
 
@@ -71,33 +72,33 @@ function Students() {
     };
 
     return (
-        <div className="App">
-            <div>
+            <>
                 <Navigation />
-                {showForm ? 
-                    <form onSubmit={handleFormSubmit}>
-                        <label>
-                            Email:
-                            <input type="email" name="email" required />
-                        </label>
-                        <button type="submit">Send Invitation</button>
-                    </form>
-                :
-                <div>
-                    <button onClick={() => setShowForm(!showForm)}>Add New Student</button>
+                <div className="student-container">
+                    {showForm ? 
+                        <form onSubmit={handleFormSubmit}>
+                            <label>
+                                Email:
+                                <input type="email" name="email" required />
+                            </label>
+                            <button type="submit">Send Invitation</button>
+                        </form>
+                    :
+                    <div>
+                        <button onClick={() => setShowForm(!showForm)}>Add New Student</button>
+                    </div>
+                    }
+                    <div className="cards-section">
+                    {/* Iterate over each date key */}
+                    {students.map(student => (
+                        <StudentInfoCard
+                            key={student.id}
+                            student={student}
+                        />
+                        ))}
+                    </div>
                 </div>
-                }
-                <div className="cards-section">
-                {/* Iterate over each date key */}
-                {students.map(student => (
-                    <StudentInfoCard
-                        key={student.id}
-                        student={student}
-                    />
-                    ))}
-                </div>
-            </div>
-        </div>
+            </>
     );
 }
 

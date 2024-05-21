@@ -34,25 +34,10 @@
     cursor: pointer;
 }
 
-/* Button */
-.new-class-button {
-    background-color: #012144; /* Blue color, adjust as needed */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
 .schedule-class-modal-inactive {
     height: 5rem;
 }
 
-/* Button hover effect */
-.new-class-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-}
 
 .form-label {
     padding: 0.5rem 2rem;

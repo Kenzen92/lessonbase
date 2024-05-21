@@ -11,12 +11,12 @@ function Dashboard() {
 
 
     return (
-        <div className="App">
-            <div className="app-container">
-                <Navigation />
+        <>
+            <Navigation />
+            <div className="dashboard-container">
                 <ClassDashboard />
             </div>
-        </div>
+        </>
     );
 }
 

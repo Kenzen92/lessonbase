@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/schedule_class_modal.css';
-import handleUnauthorizedRequest from './unautherized_request';
 import { toast } from 'react-toastify';
 
 const ScheduleClassModal = ({handleReloadData}) => {
@@ -159,8 +158,6 @@ const ScheduleClassModal = ({handleReloadData}) => {
     };
     
     
-    
-
     return (
         <div>
             {showing ? (
