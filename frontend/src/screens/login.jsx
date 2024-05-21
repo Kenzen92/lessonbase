@@ -47,7 +47,6 @@ function Login() {
     };
 
     return (
-        <div className="App">
             <div className='login-container'>
                 <div className="login-header">
                     <h1>Kenny Solutions</h1>
@@ -76,8 +75,6 @@ function Login() {
                 }
 
             </div>
-        </div>
-
     );
 }
 
