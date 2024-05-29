@@ -8,9 +8,11 @@ const Chat = () => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const { roomName } = useParams();
+    
 
     useEffect(() => {
-        WebSocketInstance.connect(roomName);
+        const auth = window.sessionStorage.getItem("Token");
+        WebSocketInstance.connect(roomName, auth);
         WebSocketInstance.addCallbacks(messageCallback);
 
         return () => {

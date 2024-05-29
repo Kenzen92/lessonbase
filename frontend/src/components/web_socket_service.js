@@ -13,8 +13,8 @@ class WebSocketService {
         this.socketRef = null;
     }
 
-    connect(roomName) {
-        const path = `ws://localhost:8000/ws/chat/${roomName}/`;
+    connect(roomName, token) {
+        const path = `ws://localhost:8000/ws/chat/${roomName}/?token=${token}`;
         this.socketRef = new WebSocket(path);
 
         this.socketRef.onopen = () => {
@@ -27,7 +27,8 @@ class WebSocketService {
 
         this.socketRef.onclose = () => {
             console.log('WebSocket closed');
-            this.connect(roomName);
+            const auth = window.sessionStorage.getItem("Token");
+            this.connect(roomName, auth);
         };
 
         this.socketRef.onerror = e => {

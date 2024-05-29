@@ -11,11 +11,11 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework import permissions, status
+from rest_framework import permissions, status, generics
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from .models import ClassEvent, CustomerAccount, Staff, Student, Subject, Teacher
-from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer
+from .models import ClassEvent, CustomerAccount, Staff, Student, Subject, Teacher, Chat, Message
+from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer, ChatSerializer, MessageSerializer
 from datetime import datetime
 from django.core.mail import send_mail
 from django.http import HttpResponse
@@ -299,7 +299,8 @@ def new_student(request):
     # generate a token that is passed in the link url which will be used to validate the request to activate the account 
     token = uuid.uuid4()
     # Create an empty login account with default values, but attach the confirmation token.
-    student = Student.objects.filter(email=destination_email).first()
+    # student = Student.objects.filter(email=destination_email).first()
+    student = None
     if student is None:  # If student doesn't exist, create a new one
         student = Student.objects.create(email=destination_email, username=uuid.uuid4()) 
     student.confirmation_token=token # replace any previous token
@@ -351,3 +352,54 @@ def confirm_account(request):
             return render(request, "account_confirmation.html")
         else:
             return Response({"error": "No username or password"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+class ChatListCreateView(generics.ListCreateAPIView):
+    serializer_class = ChatSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return Chat.objects.filter(participants=self.request.user)
+
+    def perform_create(self, serializer):
+        chat = serializer.save()
+        user_ids = self.request.data.get('participants', [])  # Ensure this is a list
+        print(f"User IDs to add: {user_ids}")
+
+        # Add the current user to the chat
+        chat.participants.add(self.request.user)
+        
+        # Add other participants
+        if user_ids:
+            for each_id in user_ids:
+                try:
+                    other_user = CustomerAccount.objects.get(id=each_id)
+                    print("Added the other user yo: ", other_user)
+                    chat.participants.add(other_user)
+                except CustomerAccount.DoesNotExist:
+                    print(f"User with ID {each_id} does not exist ")
+        
+        chat.save()
+
+        # Debug prints
+        print(f"Chat created with participants: {[participant.id for participant in chat.participants.all()]}")
+        print(f"Chat participants (excluding current user): {[participant.id for participant in chat.participants.exclude(id=self.request.user.id)]}")
+
+        # Return success response
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class MessageListCreateView(generics.ListCreateAPIView):
+    serializer_class = MessageSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        chat_id = self.kwargs['chat_id']
+        return Message.objects.filter(chat_id=chat_id, chat__participants=self.request.user)
+
+    def perform_create(self, serializer):
+        chat_id = self.kwargs['chat_id']
+        print("Creating chat with id: ", chat_id )
+        serializer.save(sender=self.request.user, chat_id=chat_id)

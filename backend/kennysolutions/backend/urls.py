@@ -18,6 +18,6 @@ urlpatterns = [
     path('profile/', views.profile),
     path('new-student/', views.new_student),
     path('confirm-account/', views.confirm_account, name='confirm_account'),
-
-
+    path('chats/', views.ChatListCreateView.as_view(), name='chat-list-create'),
+    path('chats/<int:chat_id>/messages/', views.MessageListCreateView.as_view(), name='message-list-create'),
 ]
