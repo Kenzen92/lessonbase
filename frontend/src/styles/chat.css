@@ -70,3 +70,15 @@
 .chat-send-button:hover {
     background-color: #0056b3;
 }
+
+.message-timestamp {
+    font-size: smaller;
+}
+
+.message-sender-row {
+    display: flex;
+}
+
+.message-text {
+    margin-left: 5rem;
+}

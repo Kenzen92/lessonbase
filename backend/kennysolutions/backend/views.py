@@ -80,6 +80,13 @@ def createData(request):
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def userRegister(request):
+    print("Request: ", request.data ) 
+    # grab the ID's from the subjects and place them back into the request for the serializer to process
+    subject_dicts = request.data['subjects']
+    subject_ids = []
+    for each_subject in subject_dicts:
+        subject_ids.append(each_subject['value'])
+    request.data['subjects'] = subject_ids
     serializer = CustomerAccountSerializer(data=request.data)
     if serializer.is_valid():
         user_type = serializer.validated_data['user_type']
@@ -99,6 +106,7 @@ def userRegister(request):
         serializer_data = serializer.validated_data.copy()
         serializer_data.pop('subjects', None)
         return Response(serializer_data, status=status.HTTP_201_CREATED)
+    print(serializer.errors )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

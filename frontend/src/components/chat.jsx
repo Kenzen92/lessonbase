@@ -21,7 +21,7 @@ const Chat = () => {
     }, [roomName]);
 
     const messageCallback = (parsedData) => {
-        setMessages((prevMessages) => [...prevMessages, parsedData.message]);
+        setMessages((prevMessages) => [...prevMessages, {message: parsedData.message, timestamp: parsedData.timestamp, sender: parsedData.sender}]);
     };
 
     const sendMessageHandler = (e) => {
@@ -41,7 +41,13 @@ const Chat = () => {
                 <p className="chat-room-name">Chat room: {roomName}</p>
                 <div className="chat-messages">
                     {messages.map((msg, index) => (
-                        <div key={index} className="chat-message">{msg}</div>
+                        <div key={index} className="chat-message">
+                        <p className="message-timestamp">{msg.timestamp}</p>
+                        <div className="message-sender-row">
+                        <p className="message-sender">{msg.sender}</p>
+                        <p className="message-text">{msg.message}</p>
+                        </div>
+                        </div>
                     ))}
                 </div>
                 <form onSubmit={sendMessageHandler} className="chat-form">

@@ -24,7 +24,7 @@ const StudentInfoCard = ({ student, chatId }) => {
 
             const data = await response.json();
             console.log("Data from create chat: ", data)
-            // navigate(`/chat/${data.id}`);
+            navigate(`/chat/${data.id}`);
         } catch (error) {
             setError(error.message);
         }
