@@ -14,7 +14,7 @@ function Students() {
 
     const fetchStudents = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/students-for-teacher', {
                 method: 'GET',
                 headers: {
@@ -37,7 +37,7 @@ function Students() {
 
     const fetchChats = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/chats', {
                 method: 'GET',
                 headers: {
@@ -77,7 +77,7 @@ function Students() {
         const payload = {
             email: e.target.email.value
         };
-        const auth = window.sessionStorage.getItem("Token");
+        const auth = window.sessionStorage.getItem("token");
         
         try {
             // Show a toast indicating that the email is being sent

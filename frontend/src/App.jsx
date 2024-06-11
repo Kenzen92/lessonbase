@@ -17,7 +17,7 @@ import '@fontsource/roboto/700.css';
 
 
 function App() {
-    const auth = window.sessionStorage.getItem("Token");
+    const auth = window.sessionStorage.getItem("token");
     
     return (
         <IconContext.Provider value={{ color: "blue", className: "global-class-name" }}>

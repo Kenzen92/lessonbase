@@ -16,7 +16,7 @@ const ClassDashboard = () => {
     // Define fetchClassEvents function
     const fetchClassEvents = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/class/', {
                 method: 'GET',
                 headers: {

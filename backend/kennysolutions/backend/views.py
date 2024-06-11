@@ -116,8 +116,15 @@ def userRegister(request):
 def login(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        token, created = Token.objects.get_or_create(user=serializer.validated_data)
-        return Response({"account_type": f"{serializer.validated_data.polymorphic_ctype.model}", "Token": f"{token}", "id": f"{serializer.validated_data.id}"}, status=status.HTTP_200_OK)
+        user = serializer.validated_data  # This should give you the user instance
+        token, created = Token.objects.get_or_create(user=user)
+        
+        if user.polymorphic_ctype.model == "teacher":
+            response_serializer = TeacherSerializer(user)
+            return Response({"token": f"{token}", 'user': response_serializer.data}, status=status.HTTP_200_OK)
+        else:
+            response_serializer = StudentSerializer(user)
+            return Response({"token": f"{token}", 'user': response_serializer.data}, status=status.HTTP_200_OK)
     else:
         logger.debug(serializer.errors)
         return Response({"error": f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)

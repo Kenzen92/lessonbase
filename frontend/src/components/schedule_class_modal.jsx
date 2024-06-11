@@ -21,7 +21,7 @@ const ScheduleClassModal = ({handleReloadData}) => {
     // Define fetchClassEvents function
     const fetchStudents = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/students', {
                 method: 'GET',
                 headers: {
@@ -47,7 +47,7 @@ const ScheduleClassModal = ({handleReloadData}) => {
 
     const fetchSubjects = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/subjects', {
                 method: 'GET',
                 headers: {
@@ -96,7 +96,7 @@ const ScheduleClassModal = ({handleReloadData}) => {
         console.log(newClass)
 
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {

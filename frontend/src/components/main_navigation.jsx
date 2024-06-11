@@ -10,6 +10,8 @@ const Navigation = () => {
 
     const navigate = useNavigate();
     const [isHovering, setIsHovering] = useState(false);
+    const [userProfileURL, setProfileURL] = useState(null);
+    const [userName, setName] = useState(null);
 
     const handleAvatarClick = () => {
     navigate('/profile');
@@ -23,9 +25,26 @@ const Navigation = () => {
     setIsHovering(false);
     };
 
+    const loadUserData = () => {
+        const userData = window.sessionStorage.getItem("user")
+
+        if (userData) {
+            // Parse the JSON string to get the JavaScript object
+            const user = JSON.parse(userData);
+            setName(user.first_name);
+            setProfileURL(user.profile_picture_url);
+        }
+    }
+
+    // useEffect to call loadUserData when the component mounts
+    useEffect(() => {
+        loadUserData();
+    }, []); // Empty dependency array means this runs once on mount
+
+
     async function handleLogout() {
         const url = 'http://localhost:8000/logout/';
-        const auth = window.sessionStorage.getItem("Token");
+        const auth = window.sessionStorage.getItem("token");
         try {
             const response = await fetch(url, {
                 method: 'POST',
@@ -94,16 +113,18 @@ const Navigation = () => {
             <div className="profile-bar">
                 <div className="avatar-container">
                     <Avatar 
-                        alt="Remy Sharp" 
-                        src="https://images.ctfassets.net/h6goo9gw1hh6/2sNZtFAWOdP1lmQ33VwRN3/24e953b920a9cd0ff2e1d587742a2472/1-intro-photo-final.jpg?w=1200&h=992&fl=progressive&q=70&fm=jpg" 
+                        alt={userName} 
+                        src={userProfileURL} 
                         className="profile-icon"
                         onClick={handleAvatarClick}
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
-                    />
+                    >
+                        {userName[0]}
+                    </Avatar>
                     {isHovering && (
                         <div className="hover-bubble">
-                            <p>Remy Sharp</p>
+                            <p>{userName}</p>
                         </div>
                     )}
                 </div>

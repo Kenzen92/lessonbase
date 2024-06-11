@@ -14,7 +14,7 @@ function Profile() {
     // Define fetchClassEvents function
     const fetchProfileData = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/profile', {
                 method: 'GET',
                 headers: {
@@ -50,7 +50,7 @@ function Profile() {
     
     const fetchSubjects = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/subjects/all', {
                 method: 'GET',
                 headers: {
@@ -102,7 +102,7 @@ function Profile() {
     const url = 'http://localhost:8000/profile/';
 
     try {
-        const auth = window.sessionStorage.getItem("Token");
+        const auth = window.sessionStorage.getItem("token");
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -123,7 +123,7 @@ function Profile() {
     const data_to_send = {"subjects": subject_data}
     console.log(data_to_send);
     try {
-        const auth = window.sessionStorage.getItem("Token");
+        const auth = window.sessionStorage.getItem("token");
         const response = await fetch(subject_url, {
             method: 'POST',
             headers: {

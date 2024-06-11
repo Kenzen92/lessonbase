@@ -13,7 +13,7 @@ const Chat = () => {
     
 
     useEffect(() => {
-        const auth = window.sessionStorage.getItem("Token");
+        const auth = window.sessionStorage.getItem("token");
         const user_id = window.sessionStorage.getItem("user_id")
         setCurrentUserID(user_id);
         WebSocketInstance.connect(roomName, auth);

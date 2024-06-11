@@ -8,7 +8,7 @@ const StudentInfoCard = ({ student, chatId }) => {
 
     const createChat = async () => {
         try {
-            const auth = window.sessionStorage.getItem("Token");
+            const auth = window.sessionStorage.getItem("token");
             const response = await fetch('http://localhost:8000/chats/', {
                 method: 'POST',
                 headers: {

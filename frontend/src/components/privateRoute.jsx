@@ -2,7 +2,7 @@ import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 
 const PrivateRoutes = () => {
-    const auth = window.sessionStorage.getItem("Token");
+    const auth = window.sessionStorage.getItem("token");
 
     // Define routes that are allowed for unauthorized users
     const allowedRoutes = ["/login", "/signup"];

@@ -39,8 +39,8 @@ function Login() {
 
             const data = await response.json();
             console.log(data)
-            await window.sessionStorage.setItem("Token", data['Token']);
-            await window.sessionStorage.setItem("user_id", data['id'])
+            await window.sessionStorage.setItem("token", data['token']);
+            await window.sessionStorage.setItem("user", JSON.stringify(data['user']));
             navigate('/dashboard');
         } catch (error) {
             toast.error("Connection error. Please try again later.")
