@@ -80,7 +80,7 @@ def createData(request):
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def userRegister(request):
-    print("Request: ", request.data ) 
+    print("Request: ", request.data)
     # grab the ID's from the subjects and place them back into the request for the serializer to process
     subject_dicts = request.data['subjects']
     subject_ids = []

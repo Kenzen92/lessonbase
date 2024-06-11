@@ -120,7 +120,7 @@ const Navigation = () => {
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                     >
-                        {userName[0]}
+                        {userName? userName[0] : null}
                     </Avatar>
                     {isHovering && (
                         <div className="hover-bubble">
