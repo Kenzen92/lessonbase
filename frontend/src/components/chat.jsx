@@ -3,15 +3,19 @@ import WebSocketInstance from './web_socket_service';
 import { useParams } from 'react-router-dom';
 import Navigation from './main_navigation';
 import './../styles/chat.css'
+import moment from 'moment';
 
 const Chat = () => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const { roomName } = useParams();
+    const [currentUserID, setCurrentUserID] = useState(null);
     
 
     useEffect(() => {
         const auth = window.sessionStorage.getItem("Token");
+        const user_id = window.sessionStorage.getItem("user_id")
+        setCurrentUserID(user_id);
         WebSocketInstance.connect(roomName, auth);
         WebSocketInstance.addCallbacks(messageCallback);
 
@@ -34,6 +38,11 @@ const Chat = () => {
         setMessage('');
     };
 
+    const Timestamp = ({ timestamp }) => {
+    return moment(timestamp).format('MMM Do [at] HH:mm');
+    };
+
+
     return (
         <>
             <Navigation />
@@ -42,9 +51,9 @@ const Chat = () => {
                 <div className="chat-messages">
                     {messages.map((msg, index) => (
                         <div key={index} className="chat-message">
-                        <p className="message-timestamp">{msg.timestamp}</p>
+                        <p className="message-timestamp">{Timestamp(msg.timestamp)}</p>
                         <div className="message-sender-row">
-                        <p className="message-sender">{msg.sender}</p>
+                        <p className="message-sender">{msg.sender.id != currentUserID ? msg.sender.username : null}</p>
                         <p className="message-text">{msg.message}</p>
                         </div>
                         </div>
