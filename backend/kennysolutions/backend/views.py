@@ -287,7 +287,9 @@ def profile(request):
         return Response(serializer.data)
     elif request.method == 'POST':
         user = request.user.get_real_instance()
-        print(request.data)
+        files = request.FILES
+        print("files: ", files )
+        print(request.data )
         if user.polymorphic_ctype.name == "teacher":
             print("ubdating teacher!")
             serializer = TeacherSerializer(instance=user, data=request.data)

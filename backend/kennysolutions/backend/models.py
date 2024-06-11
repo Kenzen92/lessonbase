@@ -54,7 +54,7 @@ class CustomerAccount(PolymorphicModel, CustomUser):
     is_confirmed = models.BooleanField(null=False, default=False)
     premium_account = models.BooleanField(null=False, default=False)
     confirmation_token = models.UUIDField(null=True, blank=True)
-    profile_picture_url = models.URLField(null=True)
+    profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.username} is a {self.polymorphic_ctype}"

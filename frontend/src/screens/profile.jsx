@@ -10,6 +10,7 @@ function Profile() {
     const [error, setError] = useState(null);
     const [subjects, setSubjects] = useState([]);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [profilePicture, setProfilePicture] = useState(null);
 
     // Define fetchClassEvents function
     const fetchProfileData = async () => {
@@ -96,20 +97,31 @@ function Profile() {
         });
     };
 
+    const handleFileChange = (event) => {
+        setProfilePicture(event.target.files[0]);
+    };
+
     // Function to handle form submission
     const handleSubmit = async (event) => {
     event.preventDefault();
     const url = 'http://localhost:8000/profile/';
-
+    // Create a FormData object to handle file upload
+    const formData = new FormData();
+    formData.append('username', profileData.username);
+    formData.append('first_name', profileData.first_name);
+    formData.append('last_name', profileData.last_name);
+    formData.append('email', profileData.email);
+    if (profilePicture) {
+        formData.append('profile_picture', profilePicture);
+    }
     try {
         const auth = window.sessionStorage.getItem("token");
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Authorization': `Token ${auth}`,
-                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(profileData)
+            body: formData
         });
 
         const data = await response.json();
@@ -183,6 +195,9 @@ function Profile() {
 
                     <label htmlFor="email">Email:</label>
                     <input type="email" id="email" name="email" value={profileData['email']} onChange={handleChange}/>
+
+                    <label htmlFor="profile_picture">Profile Picture:</label>
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*" onChange={handleFileChange} />
 
                     <button className="submit-button" type="submit">Submit</button>
                 </form>

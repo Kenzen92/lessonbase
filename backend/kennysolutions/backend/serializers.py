@@ -12,7 +12,7 @@ userModel = CustomerAccount()
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture_url']
+        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture']
 
 class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,7 +31,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Teacher
-        fields = ['id', 'username', 'subjects', 'students', 'first_name', 'last_name', 'email', 'profile_picture_url']
+        fields = ['id', 'username', 'subjects', 'students', 'first_name', 'last_name', 'email', 'profile_picture']
         read_only_fields = ['id', 'students']
 
 
