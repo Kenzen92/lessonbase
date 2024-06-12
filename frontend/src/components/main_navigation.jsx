@@ -32,7 +32,7 @@ const Navigation = () => {
             // Parse the JSON string to get the JavaScript object
             const user = JSON.parse(userData);
             setName(user.first_name);
-            setProfileURL(user.profile_picture_url);
+            setProfileURL(user.profile_picture);
         }
     }
 
