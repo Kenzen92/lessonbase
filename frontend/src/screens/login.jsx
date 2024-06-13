@@ -41,6 +41,7 @@ function Login() {
             console.log(data)
             await window.sessionStorage.setItem("token", data['token']);
             await window.sessionStorage.setItem("user", JSON.stringify(data['user']));
+            console.log("set the user profile url to: ", JSON.stringify(data['user']['profile_picture']))
             navigate('/dashboard');
         } catch (error) {
             toast.error("Connection error. Please try again later.")

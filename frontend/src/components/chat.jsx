@@ -5,12 +5,12 @@ import Navigation from './main_navigation';
 import './../styles/chat.css'
 import moment from 'moment';
 
-const Chat = () => {
+const Chat = (studentName) => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const { roomName } = useParams();
     const [currentUserID, setCurrentUserID] = useState(null);
-    
+    const [isFocused, setIsFocused] = useState(false);
 
     useEffect(() => {
         const auth = window.sessionStorage.getItem("token");
@@ -47,7 +47,7 @@ const Chat = () => {
         <>
             <Navigation />
             <div className="chat-container">
-                <p className="chat-room-name">Chat room: {roomName}</p>
+                <p className="chat-room-name">Chat</p>
                 <div className="chat-messages">
                     {messages.map((msg, index) => (
                         <div key={index} className="chat-message">
@@ -60,13 +60,15 @@ const Chat = () => {
                     ))}
                 </div>
                 <form onSubmit={sendMessageHandler} className="chat-form">
-                    <input
-                        type="text"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        className="chat-input"
-                        placeholder="Type your message here..."
-                    />
+                <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    className={`chat-input ${isFocused ? 'expanded' : ''}`}
+                    placeholder="Type your message here..."
+                    rows={isFocused ? 3 : 1}
+                />
                     <button type="submit" className="chat-send-button">Send</button>
                 </form>
             </div>

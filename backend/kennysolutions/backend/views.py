@@ -299,7 +299,7 @@ def profile(request):
         
         if serializer.is_valid():
             serializer.save()
-            print("sdata!" ,serializer.data)
+            print("sdata! " ,serializer.data)
             return Response(serializer.data)
         else:
             print(serializer.errors)

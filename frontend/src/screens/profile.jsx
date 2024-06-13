@@ -4,6 +4,7 @@ import Navigation from '../components/main_navigation';
 import '../styles/profile.css'
 import Select from 'react-select'
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 function Profile() {
     const [profileData, setProfileData] = useState(null);
@@ -11,6 +12,7 @@ function Profile() {
     const [subjects, setSubjects] = useState([]);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [profilePicture, setProfilePicture] = useState(null);
+    const navigate = useNavigate();
 
     // Define fetchClassEvents function
     const fetchProfileData = async () => {
@@ -81,9 +83,8 @@ function Profile() {
         fetchSubjects();
     }, []);
 
-    // Callback function to force re-render of ClassDashboard after item deletion
+
     const handleReloadData = () => {
-        console.log("Handling");
         // Call  to fetch updated data
         fetchProfileData();
     };
@@ -101,7 +102,7 @@ function Profile() {
         setProfilePicture(event.target.files[0]);
     };
 
-    // Function to handle form submission
+   // Function to handle form submission
     const handleSubmit = async (event) => {
     event.preventDefault();
     const url = 'http://localhost:8000/profile/';
@@ -124,16 +125,35 @@ function Profile() {
             body: formData
         });
 
+        if (!response.ok) {
+            console.error('Network response was not ok.');
+            return;
+        }
         const data = await response.json();
-        console.log(data)
+        const newURL = data['profile_picture'];
+        if (!newURL) {
+            console.error('No new profile picture URL in response.');
+            return;
+        }
+
+        let userData = await JSON.parse(window.sessionStorage.getItem("user"));
+
+        if (!userData) {
+            console.error('No user data found in session storage.');
+            return;
+        }
+
+        userData['profile_picture'] = newURL;
+
+        await window.sessionStorage.setItem("user", JSON.stringify(userData));
+        console.log('User data updated in session storage.');
     } catch (error) {
-        console.log('Error: ' + error.message);
+        console.error('Error:', error.message);
     }
 
     const subject_url = 'http://localhost:8000/subjects/';
     const subject_data = selectedSubjects.map(entry => entry.value);
     const data_to_send = {"subjects": subject_data}
-    console.log(data_to_send);
     try {
         const auth = window.sessionStorage.getItem("token");
         const response = await fetch(subject_url, {
@@ -151,8 +171,9 @@ function Profile() {
         console.log('Error: ' + error.message);
     }
 
-    toast.success("Profile data updated")
     handleReloadData();
+    toast.success("Profile data updated");
+    navigate('/dashboard');
     };
 
     return (

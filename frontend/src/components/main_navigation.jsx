@@ -39,8 +39,19 @@ const Navigation = () => {
     // useEffect to call loadUserData when the component mounts
     useEffect(() => {
         loadUserData();
-    }, []); // Empty dependency array means this runs once on mount
+        // Add a storage event listener
+        const handleStorageChange = () => {
+            console.log("Storage event detected");
+            loadUserData();
+        };
 
+        window.addEventListener('storage', handleStorageChange);
+
+        // Clean up the event listener on component unmount
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, []); // Empty dependency array means this runs once on mount
 
     async function handleLogout() {
         const url = 'http://localhost:8000/logout/';
