@@ -11,47 +11,23 @@
     vertical-align: top;
     text-align: left;
     color:rgb(19, 22, 22);
-    opacity: 0.9;
-}
-
-.student-info-card:hover {
-    box-shadow: 1px 1px 0px 0px rgba(231, 231, 231, 0.849);
-    opacity: 1;
 }
 
 .student-info-card-content {
+    padding: 0.2rem;
+}
+
+.username-picture-row {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
 }
 
 .student-info-card-info {
     width: 100%;
     margin-right: 2rem;
 }
-
-.class-event-card-actions {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.schedule-class-button {
-    padding: 1.5rem;
-    margin-top: 0.4rem;
-    border-radius: 5%;
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
-    background: rgb(142, 182, 187);
-    text-align: center;
-}
-
-.schedule-class-button:hover{
-    box-shadow: 1px 4px 8px 0px rgba(231, 231, 231, 0.849);
-    opacity: 1;
-    cursor: pointer;
-}
-
 
 .start-time {
     font-size: 18px;

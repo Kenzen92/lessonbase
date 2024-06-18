@@ -97,9 +97,9 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
                 </div>
                 
                 <div className="class-event-card-actions">
-                    <div className="start-class-event" onClick={handleStartClick}>START</div>
-                    <div className="edit-class-event" onClick={handleEditClick}>EDIT</div>
-                    <div className="cancel-class-event" onClick={() => handleCancelClick(eventData.id)}>CANCEL</div>
+                    <button className="start-class-event" onClick={handleStartClick}>START</button>
+                    <button className="edit-class-event" onClick={handleEditClick}>EDIT</button>
+                    <button className="cancel-class-event" onClick={() => handleCancelClick(eventData.id)}>CANCEL</button>
 
                 </div>
                 
