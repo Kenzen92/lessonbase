@@ -9,6 +9,7 @@ def create_required_objects(sender, **kwargs):
     student, created = Student.objects.get_or_create(username="student")
     student.set_password("student")
     teacher, created = Teacher.objects.get_or_create(username="teacher")
+    teacher.set_password("teacher")
     teacher.students.add(student)
     teacher.save()
     student.save()

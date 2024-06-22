@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/schedule_class_modal.css';
 import { toast } from 'react-toastify';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Modal from '@mui/material/Modal';
 
 const ScheduleClassModal = ({handleReloadData}) => {
     const [showing, setShowing] = useState(false);
@@ -12,11 +16,26 @@ const ScheduleClassModal = ({handleReloadData}) => {
     const [allStudents, setAllStudents] = useState([]);
     const [allSubjects, setAllSubjects] = useState([]);
     const [error, setError] = useState(null);
+    const [open, setOpen] = React.useState(false);
+    const handleOpen = () => setOpen(true);
+    const handleClose = () => setOpen(false);
 
     const navigate = useNavigate();
     const toggleModal = () => {
         setShowing(!showing);
     };
+
+    const style = {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 400,
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+      };
 
     // Define fetchClassEvents function
     const fetchStudents = async () => {
@@ -160,7 +179,23 @@ const ScheduleClassModal = ({handleReloadData}) => {
     
     return (
         <div>
-            {showing ? (
+            <button onClick={handleOpen}>Open modal</button>
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                    Text in a modal
+                </Typography>
+                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+                </Typography>
+                </Box>
+            </Modal>
+            {/* {showing ? (
                 <>
                 <div className="schedule-class-modal-inactive"> </div>
                 <div className="schedule-class-overlay">
@@ -207,7 +242,7 @@ const ScheduleClassModal = ({handleReloadData}) => {
                         New Class
                     </button>
                 </div>
-            )}
+            )} */}
         </div>
 
     );

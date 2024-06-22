@@ -1,4 +1,5 @@
 .dashboard-container {
+    padding-top: 5rem;
     overflow-y: scroll;
     width: 100%;
     display: flex;
