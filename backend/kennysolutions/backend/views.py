@@ -4,8 +4,7 @@ from faker import Faker
 import logging
 logger = logging.getLogger(__name__)
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.shortcuts import render
 from django.contrib.auth import login
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.authentication import TokenAuthentication
@@ -21,7 +20,8 @@ from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.conf import settings
 from django.template.loader import render_to_string
-
+from django.http import JsonResponse
+from openai import OpenAI
 
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
@@ -420,3 +420,44 @@ class MessageListCreateView(generics.ListCreateAPIView):
         chat_id = self.kwargs['chat_id']
         print("Creating chat with id: ", chat_id )
         serializer.save(sender=self.request.user, chat_id=chat_id)
+
+
+
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny,))
+def open_api(request):
+    class_id = request.GET.get('class_id')  # Assuming the class ID is passed as a query parameter
+    class_event = ClassEvent.objects.last()
+    
+    # Extract necessary information
+    student_name = class_event.students.first()
+    time_of_class = class_event.start_time
+    subject = class_event.subject
+    duration = class_event.duration
+
+    # Prepare the context for the LLM
+    class_summary = "We worked on the AQA GCSE Biology section about the nervous system."
+
+    context = f"""
+    You are a teacher's digital assistant. After the teacher conducts each class, you should receive a summary of it and its content
+    and then use that summary to create a formal report. You should also set a suitable 10-minute homework task based on the lesson contents.
+    
+    Student Name: {student_name}
+    Time of Class: {time_of_class}
+    Subject: {subject}
+    Duration: {duration}
+    Class Summary: {class_summary}
+    """
+
+    # Initialize OpenAI client and request a completion
+    client = OpenAI()
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": context}
+        ]
+    )
+
+    # Extract the message content correctly
+    message_content = completion.choices[0].message.content
+    return JsonResponse({"message": message_content})
