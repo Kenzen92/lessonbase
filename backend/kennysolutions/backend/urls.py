@@ -20,5 +20,6 @@ urlpatterns = [
     path('confirm-account/', views.confirm_account, name='confirm_account'),
     path('chats/', views.ChatListCreateView.as_view(), name='chat-list-create'),
     path('chats/<int:chat_id>/messages/', views.MessageListCreateView.as_view(), name='message-list-create'),
-    path('open_api', views.open_api, name="open-api")
+    path('class_report', views.class_report, name="open-api"),
+    path('class_material', views.class_material, name="open-api")
 ]

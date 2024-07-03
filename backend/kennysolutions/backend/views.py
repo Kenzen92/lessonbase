@@ -22,6 +22,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 from openai import OpenAI
+from docx import Document
 
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
@@ -422,31 +423,61 @@ class MessageListCreateView(generics.ListCreateAPIView):
         serializer.save(sender=self.request.user, chat_id=chat_id)
 
 
-
-@api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
-def open_api(request):
-    class_id = request.GET.get('class_id')  # Assuming the class ID is passed as a query parameter
-    class_event = ClassEvent.objects.last()
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def class_material(request):
+    class_id = request.data.get('classID')  # Assuming the class ID is passed as a query parameter
+    if class_id is None:
+        return Response({"error": "classID is required"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        class_event = ClassEvent.objects.get(id=class_id)
+    except ClassEvent.DoesNotExist:
+        return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
     
+     # Handling file upload
+    uploaded_file = request.FILES.get('file', None)
+    file_purpose = request.data.get('filePurpose', 'unknown')
+
+    #TODO save the documents to the cloud & connect them to the class model
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def class_report(request):
+    class_id = request.data.get('classID')  # Assuming the class ID is passed as a query parameter
+    if class_id is None:
+        return Response({"error": "classID is required"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        class_event = ClassEvent.objects.get(id=class_id)
+    except ClassEvent.DoesNotExist:
+        return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
+
     # Extract necessary information
     student_name = class_event.students.first()
     time_of_class = class_event.start_time
-    subject = class_event.subject
+    subject = class_event.subject.name
     duration = class_event.duration
 
     # Prepare the context for the LLM
-    class_summary = "We worked on the AQA GCSE Biology section about the nervous system."
+    class_summary = request.data.get("lesson_summary")
 
+    # Prepare the context for the LLM
+    class_summary = request.data.get("lesson_summary", "No summary provided")
+
+   
     context = f"""
     You are a teacher's digital assistant. After the teacher conducts each class, you should receive a summary of it and its content
     and then use that summary to create a formal report. You should also set a suitable 10-minute homework task based on the lesson contents.
-    
+    Your answer should contain two sections with heading as follows:
+    Summary: <summary>
+    Homework: <homework task>
+
     Student Name: {student_name}
     Time of Class: {time_of_class}
     Subject: {subject}
     Duration: {duration}
-    Class Summary: {class_summary}
+    Teacher's summary: {class_summary}  
     """
 
     # Initialize OpenAI client and request a completion
@@ -457,6 +488,27 @@ def open_api(request):
             {"role": "system", "content": context}
         ]
     )
+    # Split the text into summary and homework sections
+    summary_start = completion.choices[0].message.content.find("Summary:")
+    homework_start = completion.choices[0].message.content.find("Homework:")
+
+    summary = completion.choices[0].message.content[summary_start + len("Summary:"):homework_start].strip()
+    homework = completion.choices[0].message.content[homework_start + len("Homework:"):].strip()
+
+    # Create a new document
+    document = Document()
+    document.add_heading(f"{student_name}'s Class Report", 0)
+
+    table = document.add_table(rows=5, cols=1)
+    table.rows[0].cells[0].text = f"Course: {subject}"
+    table.rows[1].cells[0].text = f"Date: {time_of_class}"
+    table.rows[2].cells[0].text = f"Duration: {duration} minutes"
+    table.rows[3].cells[0].text = f"Class Summary: {summary}"
+    table.rows[4].cells[0].text = f"Homework: {homework}"
+
+
+    # Save the document
+    document.save('demo.docx')
 
     # Extract the message content correctly
     message_content = completion.choices[0].message.content
