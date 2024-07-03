@@ -4,7 +4,7 @@ import { IconContext } from 'react-icons';
 import { FaFolder } from 'react-icons/fa';
 import Login from './screens/login';
 import Signup from './screens/signup';
-import Dashboard from './screens/dashboard/dashboard';
+import Dashboard from './screens/dashboard';
 import Profile from './screens/profile';
 import PrivateRoutes from './components/privateRoute';
 import ToastNotification from './components/notification';
@@ -14,6 +14,8 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
 
 function App() {
@@ -21,6 +23,7 @@ function App() {
     
     return (
         <IconContext.Provider value={{ color: "blue", className: "global-class-name" }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
             <>
                 <Router>
                     <Routes>
@@ -37,6 +40,7 @@ function App() {
                 </Router>
                 <ToastNotification />
             </>
+            </LocalizationProvider>
         </IconContext.Provider>
     );
 }

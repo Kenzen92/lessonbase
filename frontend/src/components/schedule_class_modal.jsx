@@ -6,9 +6,10 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
+import FormControl from '@mui/material/FormControl'
+import BasicDateTimePicker from './dateTimePicker'
 
 const ScheduleClassModal = ({handleReloadData}) => {
-    const [showing, setShowing] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [duration, setDuration] = useState('');
     const [selectedStudents, setSelectedStudents] = useState([]);
@@ -187,23 +188,16 @@ const ScheduleClassModal = ({handleReloadData}) => {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h6" component="h2" sx={{color: 'black'}}>
-                    Text in a modal
-                </Typography>
-                <Typography id="modal-modal-description" sx={{ color: 'black', mt: 2 }}>
-                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                </Typography>
-                </Box>
-            </Modal>
-            {/* {showing ? (
-                <>
-                <div className="schedule-class-modal-inactive"> </div>
-                <div className="schedule-class-overlay">
-                    <div className="schedule-class-modal">
-                        <button className="close-modal" onClick={toggleModal}>
-                            Close
-                        </button>
-                        <form className="schedule-class-form" onSubmit={handleSubmit}>
+                    <Button onClick={handleClose}>
+                        Close
+                    </Button>
+                    <FormControl>
+                        <BasicDateTimePicker label="Basic date time picker" 
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        />
+                    </FormControl>
+                        {/* <form className="schedule-class-form" onSubmit={handleSubmit}>
                             <label className="form-label "htmlFor="start_time">Start Time:</label>
                             <input
                                 type="datetime-local"
@@ -233,7 +227,20 @@ const ScheduleClassModal = ({handleReloadData}) => {
 
                             <button type="submit">Schedule Class</button>
                         </form>
-                    </div>
+                    </div> */}
+                <Typography id="modal-modal-title" variant="h6" component="h2" sx={{color: 'black'}}>
+                    Text in a modal
+                </Typography>
+                <Typography id="modal-modal-description" sx={{ color: 'black', mt: 2 }}>
+                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
+                </Typography>
+                </Box>
+            </Modal>
+            {/* {showing ? (
+                <>
+                <div className="schedule-class-modal-inactive"> </div>
+                <div className="schedule-class-overlay">
+                    
                 </div>
                 </>
             ) : (

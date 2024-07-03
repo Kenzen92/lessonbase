@@ -3,7 +3,7 @@ import React from 'react';
 
 import MasterScreen from './masterScreen';
 import ClassDashboard from '../components/class_dashboard';
-import '../../styles/dashboard.css'
+import '../styles/dashboard.css'
 
 
 function Dashboard() {
