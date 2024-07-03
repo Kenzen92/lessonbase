@@ -76,6 +76,15 @@ const ClassDashboard = () => {
     return (
 
         <div className='main-content'>
+            <div className="previous-future-toggle-buttons">
+                <div className="class-event-previous-toggle">
+                    <button>Previous</button>
+                </div>
+                <div className="class-event-future-toggle">
+                    <button>Upcoming</button>
+                </div>
+            </div>
+            
             <div className="schedule-class-modal">
                 <ScheduleClassModal handleReloadData={handleReloadData}/>
             </div>

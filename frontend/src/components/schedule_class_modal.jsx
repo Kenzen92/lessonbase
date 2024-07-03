@@ -179,7 +179,7 @@ const ScheduleClassModal = ({handleReloadData}) => {
     
     return (
         <div>
-            <button onClick={handleOpen}>Open modal</button>
+            <button onClick={handleOpen}>Schedule Class</button>
             <Modal
                 open={open}
                 onClose={handleClose}
@@ -187,10 +187,10 @@ const ScheduleClassModal = ({handleReloadData}) => {
                 aria-describedby="modal-modal-description"
             >
                 <Box sx={style}>
-                <Typography id="modal-modal-title" variant="h6" component="h2">
+                <Typography id="modal-modal-title" variant="h6" component="h2" sx={{color: 'black'}}>
                     Text in a modal
                 </Typography>
-                <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                <Typography id="modal-modal-description" sx={{ color: 'black', mt: 2 }}>
                     Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
                 </Typography>
                 </Box>

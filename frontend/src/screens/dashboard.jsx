@@ -1,9 +1,8 @@
 // Login.js
-import React, { useState } from 'react';
-import { Link, Router, useNavigate } from 'react-router-dom';
+import React from 'react';
 
-import MasterScreen from '../masterScreen';
-import ClassDashboard from '../../components/class_dashboard';
+import MasterScreen from './masterScreen';
+import ClassDashboard from '../components/class_dashboard';
 import '../../styles/dashboard.css'
 
 
