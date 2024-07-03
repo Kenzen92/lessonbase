@@ -94,18 +94,19 @@ const ClassDashboard = () => {
 
     return (
         <div className='main-content'>
-            <div className="previous-future-toggle-buttons">
-                <div className="class-event-previous-toggle">
-                    <button onClick={() => setPrevious(true)}>Previous</button>
-                </div>
-                <div className="class-event-future-toggle">
-                    <button onClick={() => setPrevious(false)}>Upcoming</button>
-                </div>
-            </div>
-
             <div className="schedule-class-modal">
                 <ScheduleClassModal handleReloadData={handleReloadData} />
             </div>
+            <div className="previous-future-toggle-buttons">
+                <div className="class-event-previous-toggle">
+                    <button className={previous ? 'toggle-active' : null} onClick={() => setPrevious(true)}>Previous</button>
+                </div>
+                <div className="class-event-future-toggle">
+                    <button className={!previous ? 'toggle-active' : null} onClick={() => setPrevious(false)}>Upcoming</button>
+                </div>
+            </div>
+
+
             <div className={`cards-section ${previous ? 'previous-cards-section' : 'future-cards-section'}`}>
                 {/* Iterate over each date key */}
                 {Object.keys(filteredClassEvents).map(date => (

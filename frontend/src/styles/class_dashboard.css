@@ -16,3 +16,7 @@
 .class-event-future-toggle {
     margin: 1rem;
 }
+
+.toggle-active {
+    border-color: rgb(255, 255, 255);
+}
