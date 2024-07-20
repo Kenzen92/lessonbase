@@ -2,12 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/schedule_class_modal.css';
 import { toast } from 'react-toastify';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Modal from '@mui/material/Modal';
-import FormControl from '@mui/material/FormControl'
 import BasicDateTimePicker from './dateTimePicker'
+import BasicTimePicker from './timePicker'
+import { Box, Modal, Button, Typography, FormControl, InputLabel, Input, Select, MenuItem } from '@mui/material';
 
 const ScheduleClassModal = ({handleReloadData}) => {
     const [startTime, setStartTime] = useState('');
@@ -176,6 +173,10 @@ const ScheduleClassModal = ({handleReloadData}) => {
             </select>
         );
     };
+
+    const handleDurationChange = (event) => {
+        setDuration(event.target.value);
+    };
     
     
     return (
@@ -192,22 +193,35 @@ const ScheduleClassModal = ({handleReloadData}) => {
                         Close
                     </Button>
                     <FormControl>
-                        <BasicDateTimePicker label="Basic date time picker" 
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
+                        <BasicDateTimePicker 
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            label="Date"
                         />
+                        <BasicTimePicker 
+                            value={startTime}
+                            onChange={(e) => setStartTime(e.target.value)}
+                            label="Time"
+                        />
+                        <FormControl>
+                            <InputLabel htmlFor="duration-input">Duration</InputLabel>
+                            <Select
+                                id="duration-select"
+                                value={duration}
+                                onChange={handleDurationChange}
+                            >
+                                <MenuItem value={0}>0 minutes</MenuItem>
+                                <MenuItem value={15}>15 minutes</MenuItem>
+                                <MenuItem value={30}>30 minutes</MenuItem>
+                                <MenuItem value={45}>45 minutes</MenuItem>
+                                <MenuItem value={60}>60 minutes</MenuItem>
+                                <MenuItem value={75}>75 minutes</MenuItem>
+                                <MenuItem value={90}>90 minutes</MenuItem>
+                            </Select>
+                        </FormControl>
                     </FormControl>
                         {/* <form className="schedule-class-form" onSubmit={handleSubmit}>
-                            <label className="form-label "htmlFor="start_time">Start Time:</label>
-                            <input
-                                type="datetime-local"
-                                id="start_time"
-                                value={startTime}
-                                min={new Date().toISOString().slice(0, 16)}  // Minimum allowed datetime is current datetime
-                                onChange={(e) => setStartTime(e.target.value)}
-                                required
-                                className="form-input"
-                            />
+                          
 
                             <label className="form-label" htmlFor="duration">Duration (minutes):</label>
                             <input
