@@ -20,12 +20,12 @@ const ScheduleClassModal = ({handleReloadData}) => {
 
     const navigate = useNavigate();
     const toggleModal = () => {
-        setShowing(!showing);
+        handleClose()
     };
 
     const style = {
         position: 'absolute',
-        top: '20%',
+        top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '20rem',
@@ -245,7 +245,15 @@ const subjectSelector = () => {
                     </FormControl>
                     {studentSelector()}
                     {subjectSelector()}
-                    
+                    <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+                        <Button 
+                            variant="contained" 
+                            color="primary" 
+                            onClick={handleSubmit} // Call your submit handler function
+                        >
+                            Submit
+                        </Button>
+                    </Box>
                 </Box>
             </Modal>
         </div>

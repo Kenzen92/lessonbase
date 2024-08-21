@@ -131,10 +131,7 @@ function Profile() {
         }
         const data = await response.json();
         const newURL = data['profile_picture'];
-        if (!newURL) {
-            console.error('No new profile picture URL in response.');
-            return;
-        }
+
 
         let userData = await JSON.parse(window.sessionStorage.getItem("user"));
 
@@ -142,8 +139,7 @@ function Profile() {
             console.error('No user data found in session storage.');
             return;
         }
-
-        userData['profile_picture'] = newURL;
+        if (newURL) userData['profile_picture'] = newURL;
 
         await window.sessionStorage.setItem("user", JSON.stringify(userData));
         console.log('User data updated in session storage.');
