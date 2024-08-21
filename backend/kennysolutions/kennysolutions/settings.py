@@ -44,8 +44,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'channels',
+    'apps.subjects',
+    'apps.user_accounts',  
     'backend',
-    'storages'
+    'storages',  
 ]
 
 MIDDLEWARE = [
@@ -193,7 +195,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-AUTH_USER_MODEL = 'backend.CustomerAccount'
+AUTH_USER_MODEL = 'user_accounts.CustomerAccount'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
@@ -207,19 +209,19 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jamespeterkenny@gmail.com'  # Enter your Gmail email address
 EMAIL_HOST_PASSWORD = 'vxxd sduk srbp tdxv'  # Enter your Gmail password
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'backend', 'templates')],  # Add your template directories here
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [os.path.join(BASE_DIR, 'backend', 'templates')],  # Add your template directories here
+#         'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 'django.template.context_processors.debug',
+#                 'django.template.context_processors.request',
+#                 'django.contrib.auth.context_processors.auth',
+#                 'django.contrib.messages.context_processors.messages',
+#             ],
+#         },
+#     },
+# ]
 

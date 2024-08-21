@@ -1,6 +1,8 @@
 from datetime import datetime
 from rest_framework import serializers
-from .models import Subject, Teacher, Student, Staff, ClassEvent, Event, CustomerAccount
+from apps.subjects.models import Subject
+from apps.user_accounts.models import Teacher, Student, Staff
+from .models import ClassEvent, Event, CustomerAccount
 from django.contrib.auth import authenticate
 import logging
 from django.contrib.auth.hashers import make_password

@@ -2,7 +2,8 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
 def create_required_objects(sender, **kwargs):
-    from .models import Subject, Student, Teacher
+    from apps.subjects.models import Subject
+    from apps.user_accounts.models import Student, Teacher
     for name in Subject.reserved_names:
         Subject.objects.get_or_create(name=name)
 

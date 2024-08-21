@@ -4,7 +4,7 @@ import '../styles/schedule_class_modal.css';
 import { toast } from 'react-toastify';
 import BasicDateTimePicker from './dateTimePicker'
 import BasicTimePicker from './timePicker'
-import { Box, Modal, Button, Typography, FormControl, InputLabel, Input, Select, MenuItem } from '@mui/material';
+import { Box, Modal, Button, Typography, FormControl, InputLabel, Input, Select, MenuItem, Divider } from '@mui/material';
 
 const ScheduleClassModal = ({handleReloadData}) => {
     const [startTime, setStartTime] = useState('');
@@ -25,14 +25,15 @@ const ScheduleClassModal = ({handleReloadData}) => {
 
     const style = {
         position: 'absolute',
-        top: '50%',
+        top: '20%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: 400,
+        width: '20rem',
         bgcolor: 'background.paper',
         border: '2px solid #000',
         boxShadow: 24,
         p: 4,
+        padding: 5
       };
 
     // Define fetchClassEvents function
@@ -139,40 +140,52 @@ const ScheduleClassModal = ({handleReloadData}) => {
     const studentSelector = () => {
     
         return (
-            <select
+            <FormControl sx={{width: '100%', maxWidth: '15rem', marginTop: '1rem'}}>
+            <InputLabel id="demo-simple-select-label">Students</InputLabel>
+            <Select
                 id="students"
                 multiple
                 value={selectedStudents}
-                onChange={(e) => setSelectedStudents(Array.from(e.target.selectedOptions, (option) => option.value))}
+                onChange={(e) => setSelectedStudents(e.target.value)}
                 required
                 className="form-input"
             >
                 {allStudents.map((student) => (
-                    <option key={student.id} value={student.id}>
+                    <MenuItem key={student.id} value={student.id}>
                         {student.username}
-                    </option>
+                    </MenuItem>
+                    
                 ))}
-            </select>
+            </Select>
+            </FormControl>
         );
     };
 
-    const subjectSelector = () => {
-        return (
-            <select
+
+                        
+
+const subjectSelector = () => {
+    return (
+        <FormControl sx={{width: '100%', maxWidth: '15rem', marginTop: '1rem'}}>
+            <InputLabel id="subject-select-label">Subject</InputLabel>
+            <Select
                 id="subjects"
-                value={selectedSubject}  // Assuming selectedSubject is the ID
-                onChange={(e) => setSelectedSubject(e.target.value)}  // Set only the ID as the value
+                labelId="subject-select-label"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}  // Handle the selected subject ID
                 required
                 className="form-input"
             >
                 {allSubjects.map((subject) => (
-                    <option key={subject.id} value={subject.id}>
+                    <MenuItem key={subject.id} value={subject.id}>
                         {subject.name}
-                    </option>
+                    </MenuItem>
                 ))}
-            </select>
-        );
-    };
+            </Select>
+        </FormControl>
+    );
+};
+
 
     const handleDurationChange = (event) => {
         setDuration(event.target.value);
@@ -187,83 +200,54 @@ const ScheduleClassModal = ({handleReloadData}) => {
                 onClose={handleClose}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
+                className='schedule-class-overlay'
             >
                 <Box sx={style}>
-                    <Button onClick={handleClose}>
-                        Close
-                    </Button>
-                    <FormControl>
+                    <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2}}>
+                        <Typography id="modal-modal-title" variant="h6" component="h2" sx={{color: 'black'}}>
+                            Schedule class
+                        </Typography>
+                        <Button onClick={handleClose}>
+                            Close
+                        </Button>
+                    </Box>
+                   
+                    <FormControl sx={{ maxWidth: '15rem', marginTop: '1rem' }}>
                         <BasicDateTimePicker 
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
                             label="Date"
                         />
+                    </FormControl>
+                    <FormControl sx={{maxWidth: '15rem', marginTop: '1rem'}}>
                         <BasicTimePicker 
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
                             label="Time"
+                            fullWidth
                         />
-                        <FormControl>
-                            <InputLabel htmlFor="duration-input">Duration</InputLabel>
-                            <Select
-                                id="duration-select"
-                                value={duration}
-                                onChange={handleDurationChange}
-                            >
-                                <MenuItem value={0}>0 minutes</MenuItem>
-                                <MenuItem value={15}>15 minutes</MenuItem>
-                                <MenuItem value={30}>30 minutes</MenuItem>
-                                <MenuItem value={45}>45 minutes</MenuItem>
-                                <MenuItem value={60}>60 minutes</MenuItem>
-                                <MenuItem value={75}>75 minutes</MenuItem>
-                                <MenuItem value={90}>90 minutes</MenuItem>
-                            </Select>
-                        </FormControl>
                     </FormControl>
-                        {/* <form className="schedule-class-form" onSubmit={handleSubmit}>
-                          
-
-                            <label className="form-label" htmlFor="duration">Duration (minutes):</label>
-                            <input
-                                type="number"
-                                id="duration"
-                                value={duration}
-                                onChange={(e) => setDuration(e.target.value)}
-                                required
-                                className="form-input"
-                            />
-
-                            <label className="form-label" htmlFor="students">Select Students:</label>
-                            {studentSelector()}
-
-                            <label className="form-label" htmlFor="subject">Select Subject:</label>
-                            {subjectSelector()}
-
-                            <button type="submit">Schedule Class</button>
-                        </form>
-                    </div> */}
-                <Typography id="modal-modal-title" variant="h6" component="h2" sx={{color: 'black'}}>
-                    Text in a modal
-                </Typography>
-                <Typography id="modal-modal-description" sx={{ color: 'black', mt: 2 }}>
-                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                </Typography>
+                    <FormControl sx={{width: '100%', maxWidth: '15rem', marginTop: '1rem'}}>
+                        <InputLabel htmlFor="duration-input">Duration</InputLabel>
+                        <Select
+                            id="duration-select"
+                            value={duration}
+                            onChange={handleDurationChange}
+                        >
+                            <MenuItem value={0}>0 minutes</MenuItem>
+                            <MenuItem value={15}>15 minutes</MenuItem>
+                            <MenuItem value={30}>30 minutes</MenuItem>
+                            <MenuItem value={45}>45 minutes</MenuItem>
+                            <MenuItem value={60}>60 minutes</MenuItem>
+                            <MenuItem value={75}>75 minutes</MenuItem>
+                            <MenuItem value={90}>90 minutes</MenuItem>
+                        </Select>
+                    </FormControl>
+                    {studentSelector()}
+                    {subjectSelector()}
+                    
                 </Box>
             </Modal>
-            {/* {showing ? (
-                <>
-                <div className="schedule-class-modal-inactive"> </div>
-                <div className="schedule-class-overlay">
-                    
-                </div>
-                </>
-            ) : (
-                <div className="schedule-class-modal-inactive">
-                    <button className="new-class-button" onClick={toggleModal}>
-                        New Class
-                    </button>
-                </div>
-            )} */}
         </div>
 
     );
