@@ -13,10 +13,12 @@ from rest_framework.response import Response
 from rest_framework import permissions, status, generics
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
-from .models import ClassEvent,  Chat, Message
+from .models import Chat, Message
+from apps.classes.models import ClassEvent
 from apps.user_accounts.models import CustomerAccount, Staff, Student, Teacher
 from apps.subjects.models import Subject
-from .serializers import ClassEventSerializer, LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer, ChatSerializer, MessageSerializer
+from .serializers import LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer, ChatSerializer, MessageSerializer
+from apps.classes.serialisers import ClassEventSerializer
 from datetime import datetime
 from django.core.mail import send_mail
 from django.http import HttpResponse

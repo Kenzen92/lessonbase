@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'channels',
     'apps.subjects',
     'apps.user_accounts',  
+    'apps.classes',
     'backend',
     'storages',  
 ]

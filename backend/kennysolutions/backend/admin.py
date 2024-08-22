@@ -1,7 +1,7 @@
 from django.contrib import admin
 from apps.user_accounts.models import CustomUser, Student, Teacher, Staff
-from .models import ClassEvent
 from apps.subjects.models import Subject
+from apps.classes.models import ClassEvent
 # Register your models here.
 admin.site.register(CustomUser)
 admin.site.register(Student)

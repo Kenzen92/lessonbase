@@ -16,6 +16,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import Assignments from './screens/assignments';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/students" element={<Students />} />
+                            <Route path="/assignments" element={<Assignments />} />
                             <Route path="/chat/:roomName" element={<Chat />} />
                         </Route>
                     </Routes>
