@@ -21,5 +21,6 @@ urlpatterns = [
     path('chats/', views.ChatListCreateView.as_view(), name='chat-list-create'),
     path('chats/<int:chat_id>/messages/', views.MessageListCreateView.as_view(), name='message-list-create'),
     path('class_report', views.class_report, name="open-api"),
-    path('class_material', views.class_material, name="open-api")
+    path('class_material', views.class_material, name="open-api"),
+    path('homework', views.homework, name="homework-api")
 ]

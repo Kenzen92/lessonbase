@@ -14,11 +14,11 @@ from rest_framework import permissions, status, generics
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from .models import Chat, Message
-from apps.classes.models import ClassEvent
+from apps.classes.models import ClassEvent, Homework
 from apps.user_accounts.models import CustomerAccount, Staff, Student, Teacher
 from apps.subjects.models import Subject
 from .serializers import LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer, ChatSerializer, MessageSerializer
-from apps.classes.serialisers import ClassEventSerializer
+from apps.classes.serialisers import AssignHomeworkSerializer, ClassEventSerializer, HomeworkSerializer
 from datetime import datetime
 from django.core.mail import send_mail
 from django.http import HttpResponse
@@ -360,7 +360,6 @@ def confirm_account(request):
     elif request.method == 'POST':
         if request.data['username'] and request.data['password1']:
             token=request.data.get('token')
-            print(token ) 
             try:
                 account = CustomerAccount.objects.get(confirmation_token=token)
             except CustomerAccount.DoesNotExist:
@@ -517,3 +516,45 @@ def class_report(request):
     # Extract the message content correctly
     message_content = completion.choices[0].message.content
     return JsonResponse({"message": message_content})
+
+
+@api_view(['POST', 'GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def homework(request):
+    user = request.user
+
+    if request.method == "GET":
+        # Get the homework ID from the query parameters
+        homework_id = request.query_params.get('id', None)
+
+        if homework_id:
+            try:
+                # Retrieve specific homework by ID
+                homework_instance = Homework.objects.get(id=homework_id, teachers=user)
+                serializer = AssignHomeworkSerializer(homework_instance)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Homework.DoesNotExist:
+                return Response({"error": "Homework not found or you do not have access to it."}, status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            # Retrieve all homework tasks assigned to the authenticated user
+            homework_list = Homework.objects.filter(teachers=user)
+            print(homework_list )
+            serializer = HomeworkSerializer(homework_list, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    else:
+        serializer = AssignHomeworkSerializer(data=request.data)
+        if serializer.is_valid():
+            # Save the instance
+            homework_instance = serializer.save()
+
+            # Optionally, add the user who is creating the homework to the teachers
+            homework_instance.teachers.add(user)
+            print(homework_instance )
+            return Response({"success": "Homework instance created"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+
