@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/schedule_class_modal.css";
 import { toast } from "react-toastify";
-import BasicDateTimePicker from "./dateTimePicker";
-import BasicTimePicker from "./timePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import {
   Box,
   Modal,
@@ -11,15 +11,14 @@ import {
   Typography,
   FormControl,
   InputLabel,
-  Input,
   Select,
   MenuItem,
-  Divider,
+  TextField,
 } from "@mui/material";
 
 const ScheduleClassModal = ({ handleReloadData }) => {
-  const [startTime, setStartTime] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState(null);
+  const [startTime, setStartTime] = useState(null);
   const [duration, setDuration] = useState("");
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -27,13 +26,11 @@ const ScheduleClassModal = ({ handleReloadData }) => {
   const [allSubjects, setAllSubjects] = useState([]);
   const [error, setError] = useState(null);
   const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
 
   const navigate = useNavigate();
-  const toggleModal = () => {
-    handleClose();
-  };
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   const style = {
     position: "absolute",
@@ -48,7 +45,11 @@ const ScheduleClassModal = ({ handleReloadData }) => {
     padding: 5,
   };
 
-  // Define fetchClassEvents function
+  useEffect(() => {
+    fetchStudents();
+    fetchSubjects();
+  }, []);
+
   const fetchStudents = async () => {
     try {
       const auth = window.sessionStorage.getItem("token");
@@ -60,7 +61,7 @@ const ScheduleClassModal = ({ handleReloadData }) => {
         },
       });
 
-      if (response.status == 401) {
+      if (response.status === 401) {
         handleUnautherizedRequest(navigate);
       }
 
@@ -97,35 +98,46 @@ const ScheduleClassModal = ({ handleReloadData }) => {
     }
   };
 
-  useEffect(() => {
-    const now = new Date().toISOString().slice(0, 16);
-    setStartTime(now);
-    fetchStudents();
-    fetchSubjects();
-  }, []);
-
-  // Function to handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const url = "http://localhost:8000/class/";
-    // Construct the class object to be submitted
+
+    // Ensure startDate and startTime are valid before submission
+    if (!startDate || !startTime) {
+      toast.error("Please select a valid date and time.");
+      return;
+    }
+
+    const parsedDate = new Date(startDate);
+    const parsedTime = new Date(startTime);
+
+    if (isNaN(parsedDate.getTime()) || isNaN(parsedTime.getTime())) {
+      toast.error("Invalid date or time.");
+      return;
+    }
+
+    // Combine date and time into a single DateTime object
+    const combinedDateTime = new Date(
+      parsedDate.getFullYear(),
+      parsedDate.getMonth(),
+      parsedDate.getDate(),
+      parsedTime.getHours(),
+      parsedTime.getMinutes()
+    );
 
     const selectedSubjectObj = allSubjects.find(
       (subject) => subject.id === parseInt(selectedSubject)
     );
 
     const newClass = {
-      start_time: startTime,
-      start_date: startDate,
+      start_time: combinedDateTime.toISOString(),
       duration: duration,
       students: selectedStudents,
-      subject: selectedSubjectObj["name"],
+      subject: selectedSubjectObj ? selectedSubjectObj.name : "",
     };
-    console.log(newClass);
 
     try {
       const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(url, {
+      const response = await fetch("http://localhost:8000/class/", {
         method: "POST",
         headers: {
           Authorization: `Token ${auth}`,
@@ -136,59 +148,54 @@ const ScheduleClassModal = ({ handleReloadData }) => {
 
       const data = await response.json();
       console.log(data);
+      toast.success("The class event was scheduled");
+      handleReloadData();
+      handleClose();
     } catch (error) {
       console.log("Error: " + error.message);
+      toast.error("Failed to schedule class.");
     }
-
-    // Close the modal after submission
-    toast.success("The class event was scheduled");
-    handleReloadData();
-    toggleModal();
   };
 
-  const studentSelector = () => {
-    return (
-      <FormControl sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}>
-        <InputLabel id="demo-simple-select-label">Students</InputLabel>
-        <Select
-          id="students"
-          multiple
-          value={selectedStudents}
-          onChange={(e) => setSelectedStudents(e.target.value)}
-          required
-          className="form-input"
-        >
-          {allStudents.map((student) => (
-            <MenuItem key={student.id} value={student.id}>
-              {student.username}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    );
-  };
+  const studentSelector = () => (
+    <FormControl sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}>
+      <InputLabel id="demo-simple-select-label">Students</InputLabel>
+      <Select
+        id="students"
+        multiple
+        value={selectedStudents}
+        onChange={(e) => setSelectedStudents(e.target.value)}
+        required
+        className="form-input"
+      >
+        {allStudents.map((student) => (
+          <MenuItem key={student.id} value={student.id}>
+            {student.username}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 
-  const subjectSelector = () => {
-    return (
-      <FormControl sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}>
-        <InputLabel id="subject-select-label">Subject</InputLabel>
-        <Select
-          id="subjects"
-          labelId="subject-select-label"
-          value={selectedSubject}
-          onChange={(e) => setSelectedSubject(e.target.value)} // Handle the selected subject ID
-          required
-          className="form-input"
-        >
-          {allSubjects.map((subject) => (
-            <MenuItem key={subject.id} value={subject.id}>
-              {subject.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    );
-  };
+  const subjectSelector = () => (
+    <FormControl sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}>
+      <InputLabel id="subject-select-label">Subject</InputLabel>
+      <Select
+        id="subjects"
+        labelId="subject-select-label"
+        value={selectedSubject}
+        onChange={(e) => setSelectedSubject(e.target.value)}
+        required
+        className="form-input"
+      >
+        {allSubjects.map((subject) => (
+          <MenuItem key={subject.id} value={subject.id}>
+            {subject.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  );
 
   const handleDurationChange = (event) => {
     setDuration(event.target.value);
@@ -225,21 +232,23 @@ const ScheduleClassModal = ({ handleReloadData }) => {
           </Box>
 
           <FormControl sx={{ maxWidth: "15rem", marginTop: "1rem" }}>
-            <BasicDateTimePicker
+            <DatePicker
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
-              label="Date & Time"
+              label="Date"
+              renderInput={(params) => <TextField {...params} />}
             />
           </FormControl>
 
           <FormControl sx={{ maxWidth: "15rem", marginTop: "1rem" }}>
-            <BasicTimePicker
+            <TimePicker
               value={startTime}
               onChange={(newValue) => setStartTime(newValue)}
               label="Time"
-              fullWidth
+              renderInput={(params) => <TextField {...params} />}
             />
           </FormControl>
+
           <FormControl
             sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}
           >
@@ -267,11 +276,7 @@ const ScheduleClassModal = ({ handleReloadData }) => {
               marginTop: "2rem",
             }}
           >
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit} // Call your submit handler function
-            >
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
               Submit
             </Button>
           </Box>
