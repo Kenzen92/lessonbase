@@ -47,9 +47,7 @@ def createData(request):
             email=fake.email(),
             first_name=fake.first_name(),
             last_name=fake.last_name(),
-            subject=fake.job(),
             hire_date=fake.date_this_decade(),
-            is_teacher=True,
         )
 
     # Create 5 new students using faker
@@ -61,17 +59,15 @@ def createData(request):
             first_name=fake.first_name(),
             last_name=fake.last_name(),
             enrollment_date=fake.date_this_decade(),
-            is_student=True,
         )
 
     # Create 20 class events using faker
     for _ in range(20):
         class_event = ClassEvent.objects.create(
             name=fake.text(max_nb_chars=50),
-            date=fake.date_between(start_date='-30d', end_date='+30d'),
             start_time=fake.date_time(),
             duration=fake.random_int(min=1, max=6),
-            subject=fake.random_element(elements=('Math', 'Science', 'History', 'English')),
+            subject=Subject.objects.order_by('?').first()
         )
         # Add random students and teachers to the class event
         for _ in range(fake.random_int(min=1, max=5)):  # Add 1 to 5 random students
