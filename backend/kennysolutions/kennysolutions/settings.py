@@ -47,8 +47,8 @@ INSTALLED_APPS = [
     'apps.subjects',
     'apps.user_accounts',  
     'apps.classes',
+    'apps.storage',
     'backend',
-    'storages',  
 ]
 
 MIDDLEWARE = [
@@ -92,33 +92,29 @@ CHANNEL_LAYERS = {
     },
 }
 
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_S3_KEY')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_S3_PASS')
-AWS_STORAGE_BUCKET_NAME = 'kennysolutions'
-AWS_S3_REGION_NAME = 'eu-west-3'  # e.g., us-east-1
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+from urllib.parse import quote_plus
 
-# For serving static files directly from S3
-AWS_S3_URL_PROTOCOL = 'https:'
-AWS_S3_USE_SSL = True
-AWS_S3_VERIFY = True
+# MongoDB settings
+MONGO_DB_NAME = 'test'  # Use the database name from your connection string or another if needed
 
+# Encoded credentials (this step ensures any special characters in the password are correctly parsed)
+MONGO_USERNAME = quote_plus('jameskenny')
+MONGO_PASSWORD = quote_plus('hXZZqSAk1B3bBs3b')
 
+# Full MongoDB connection string
+MONGO_URI = os.getenv('MONGO_URI')
 
-# # Static and media file configuration
-# STATIC_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/static/'
-# # STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# If using MongoEngine (optional):
+from mongoengine import connect
+connect(db=MONGO_DB_NAME, host=MONGO_URI)
 
-# MEDIA_URL = f'{AWS_S3_URL_PROTOCOL}://{AWS_S3_CUSTOM_DOMAIN}/media/'
-STORAGES = {
-    "default": {
-        "BACKEND": 'storages.backends.s3boto3.S3Boto3Storage'
-    },
-    'staticfiles': {
-        'BACKEND': 'your_project_name.storages_backends.StaticStorage',
-    },
-}
-AWS_QUERYSTRING_AUTH = False
+# If using pymongo with a custom storage backend
+MONGO_HOST = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.mongodb.net"
+MONGO_PORT = 27017  # Typically not needed with MongoDB Atlas (use srv)
+MONGO_DB_NAME = 'test'
+
+# Use the custom GridFS storage backend for file storage
+DEFAULT_FILE_STORAGE = 'storage.storage_backends.GridFSStorage'
 
 
 
@@ -210,19 +206,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jamespeterkenny@gmail.com'  # Enter your Gmail email address
 EMAIL_HOST_PASSWORD = 'vxxd sduk srbp tdxv'  # Enter your Gmail password
 
-# TEMPLATES = [
-#     {
-#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-#         'DIRS': [os.path.join(BASE_DIR, 'backend', 'templates')],  # Add your template directories here
-#         'APP_DIRS': True,
-#         'OPTIONS': {
-#             'context_processors': [
-#                 'django.template.context_processors.debug',
-#                 'django.template.context_processors.request',
-#                 'django.contrib.auth.context_processors.auth',
-#                 'django.contrib.messages.context_processors.messages',
-#             ],
-#         },
-#     },
-# ]
 
