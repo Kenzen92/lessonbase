@@ -15,7 +15,7 @@ from rest_framework import permissions, status, generics
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from .models import Chat, Message
-from apps.classes.models import ClassEvent, Homework
+from apps.classes.models import ClassEvent, Homework, TeachingResource
 from apps.user_accounts.models import CustomerAccount, Staff, Student, Teacher
 from apps.subjects.models import Subject
 from .serializers import LoginSerializer, CustomerAccountSerializer, StudentSerializer, SubjectSerializer, TeacherSerializer, ChatSerializer, MessageSerializer
@@ -28,6 +28,7 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse
 from openai import OpenAI
 from docx import Document
+from django.core.exceptions import ValidationError
 
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
@@ -437,19 +438,61 @@ class MessageListCreateView(generics.ListCreateAPIView):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def class_material(request):
-    class_id = request.data.get('classID')  # Assuming the class ID is passed as a query parameter
+    class_id = request.data.get('classID')
     if class_id is None:
         return Response({"error": "classID is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
     try:
         class_event = ClassEvent.objects.get(id=class_id)
     except ClassEvent.DoesNotExist:
         return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
     
-     # Handling file upload
+    # Extract file and URL from the request
     uploaded_file = request.FILES.get('file', None)
-    file_purpose = request.data.get('filePurpose', 'unknown')
+    url = request.data.get('url', None)
+    name = request.data.get('name', 'Unnamed Resource')
+    description = request.data.get('description', '')
+    subject_id = request.data.get('subjectID')
 
-    #TODO save the documents to the cloud & connect them to the class model
+    # Check if subject exists
+    try:
+        subject = Subject.objects.get(id=subject_id)
+    except Subject.DoesNotExist:
+        return Response({"error": "Subject not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Validate that either a file or URL is provided, but not both
+    if uploaded_file and url:
+        return Response({"error": "Please provide only a file or a URL, not both."}, status=status.HTTP_400_BAD_REQUEST)
+    if not uploaded_file and not url:
+        return Response({"error": "Either a file or a URL must be provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Handle file upload and save to GridFS if a file is provided
+    file_url = None
+    if uploaded_file:
+        # Create a GridFSStorage instance
+        gridfs_storage = GridFSStorage()
+        # Save the file to GridFS
+        file_name = gridfs_storage._save(uploaded_file.name, uploaded_file, context='teaching_resource')
+        file_url = gridfs_storage.url(file_name)
+
+
+    
+    # Create a new TeachingResource instance
+    teaching_resource = TeachingResource(
+        name=name,
+        description=description,
+        file_url=file_url,
+        url=url,
+        subject=subject
+    )
+    
+    try:
+        teaching_resource.clean()  # Validate the instance
+        teaching_resource.save()
+    except ValidationError as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"message": "Teaching resource created successfully"}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
