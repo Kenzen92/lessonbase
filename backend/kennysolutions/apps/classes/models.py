@@ -4,13 +4,14 @@ from django.utils import timezone
 from apps.subjects.models import Subject
 from apps.user_accounts.models import CustomUser
 from django.core.exceptions import ValidationError
-
+from apps.storage.storage_backends import GridFSStorage  # Ensure this is your GridFS storage backend
 
 class Event(models.Model):
     name = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return self.name
+
 
 class ClassEvent(Event):
     start_time = models.DateTimeField(null=False)
@@ -38,6 +39,10 @@ class TeachingResource(models.Model):
     url = models.URLField(blank=True, null=True, help_text="URL to an online resource.")
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, help_text="The subject to which this resource belongs.")
     upload_date = models.DateTimeField(auto_now_add=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._meta.get_field('file').storage = GridFSStorage()
 
     def __str__(self):
         return self.name
@@ -82,4 +87,3 @@ class Homework(Assignment):
 
     def __str__(self):
         return f"{self.title} for {self.class_event.name}"
-

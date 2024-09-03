@@ -279,7 +279,6 @@ def all_subjects(request):
 def profile(request):
     if request.method == 'GET':
         user = request.user.get_real_instance()
-        print(user.polymorphic_ctype.name)
         if user.polymorphic_ctype.name == "teacher":
             serializer = TeacherSerializer(instance=user)
         else:
@@ -289,18 +288,13 @@ def profile(request):
     elif request.method == 'POST':
         user = request.user.get_real_instance()
         files = request.FILES
-        print("files: ", files )
-        print(request.data )
         if user.polymorphic_ctype.name == "teacher":
-            print("ubdating teacher!")
             serializer = TeacherSerializer(instance=user, data=request.data)
         else:
-            print("updating student?!")
             serializer = StudentSerializer(instance=user, data=request.data)
         
         if serializer.is_valid():
             serializer.save()
-            print("sdata! " ,serializer.data)
             return Response(serializer.data)
         else:
             print(serializer.errors)
