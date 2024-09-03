@@ -1,4 +1,4 @@
-/* .student-info-card {
+.student-info-card {
     display: inline-block;
     background: rgb(196,196,196);
     background: linear-gradient(155deg, rgba(196,196,196,0.8248794510385756) 0%, rgba(255,255,255,1) 100%);
@@ -49,8 +49,4 @@
     align-items: center;
 }
 
-.subject-icon, .student-icon {
-    margin: 1rem;
-    padding: 1rem;
-    font-size: 1.5rem;
-} */
+

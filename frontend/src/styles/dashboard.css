@@ -36,3 +36,28 @@
     cursor: pointer;
 }
 
+.class-event-toggle {
+    width: 100%;
+
+}
+
+.previous-future-toggle-buttons {
+    width: 100%;
+    display: flex;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.toggle-active {
+    border-color: rgb(255, 255, 255);
+}
+
+.cards-section {
+    text-align: center;
+}
+
+.toggle-button {
+    width: -webkit-fill-available;
+}
+
+

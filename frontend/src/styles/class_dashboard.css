@@ -1,22 +1,4 @@
-.cards-section {
-    text-align: center;
-}
 
-.previous-future-toggle-buttons {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    padding: 1rem;
-}
 
-.class-event-previous-toggle {
-    margin: 1rem;
-}
 
-.class-event-future-toggle {
-    margin: 1rem;
-}
 
-.toggle-active {
-    border-color: rgb(255, 255, 255);
-}

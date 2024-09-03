@@ -25,7 +25,14 @@ import {
   Select,
   InputLabel,
   FormControl,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import AvatarGroup from "@mui/material/AvatarGroup";
 
 const subjectIconMap = {
   Mathematics: FaCalculator,
@@ -43,8 +50,10 @@ const subjectIconMap = {
 const ClassEventCard = ({ eventData, handleReloadData }) => {
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [homeworkModalOpen, setHomeworkModalOpen] = useState(false);
+  const [resourcesModalOpen, setResourcesModalOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [filePurpose, setFilePurpose] = useState("");
@@ -70,7 +79,15 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
   let studentsList = [];
 
   eventData.students.forEach((student, index) => {
-    studentsList.push(<h4 key={index}>{student.username}</h4>);
+    studentsList.push(
+      <Avatar
+        alt={student.username}
+        src={student.profile_picture}
+        className="student-profile-icon"
+      >
+        {student.username ? student.username[0] : null}
+      </Avatar>
+    );
   });
 
   const style = {
@@ -83,10 +100,6 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-  };
-
-  const handleEditClick = () => {
-    console.log("edit");
   };
 
   const handleFileChange = (event) => {
@@ -114,32 +127,35 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Success:", data);
-        handleClose(); // Close the modal on success
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
 
-  const handleCancelClick = async (eventID) => {
+  const handleConfirmCancel = async () => {
     try {
       const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(`http://localhost:8000/class/${eventID}/`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `http://localhost:8000/class/${eventData.id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Token ${auth}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       if (response.status === 204) {
         setError(null);
         handleReloadData();
       } else {
-        // Error
         throw new Error("Failed to delete class event");
       }
     } catch (error) {
       setError(error.message);
+    } finally {
+      setCancelConfirmOpen(false);
     }
   };
 
@@ -148,7 +164,6 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
       <div>
         <Modal
           open={open}
-          onClose={handleClose}
           aria-labelledby="modal-modal-title"
           aria-describedby="modal-modal-description"
         >
@@ -195,43 +210,101 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             </Button>
           </Box>
         </Modal>
+
+        {/* Cancel Confirmation Dialog */}
+        <Dialog
+          open={cancelConfirmOpen}
+          onClose={() => setCancelConfirmOpen(false)}
+        >
+          <DialogTitle>Confirm Cancellation</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to cancel this class event?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCancelConfirmOpen(false)}>No</Button>
+            <Button onClick={handleConfirmCancel} color="secondary">
+              Yes, Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Edit Class Modal */}
+        <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+          <Box sx={style}>
+            <Typography variant="h6">Edit Class</Typography>
+            <p>Implement your edit form here.</p>
+          </Box>
+        </Modal>
+
+        {/* Homework Modal */}
+        <Modal
+          open={homeworkModalOpen}
+          onClose={() => setHomeworkModalOpen(false)}
+        >
+          <Box sx={style}>
+            <Typography variant="h6">Homework</Typography>
+            <p>Homework content goes here.</p>
+          </Box>
+        </Modal>
+
+        {/* Resources Modal */}
+        <Modal
+          open={resourcesModalOpen}
+          onClose={() => setResourcesModalOpen(false)}
+        >
+          <Box sx={style}>
+            <Typography variant="h6">Resources</Typography>
+            <p>Resource content goes here.</p>
+          </Box>
+        </Modal>
       </div>
       <div className="class-event-card">
-        <div className="class-event-card-content">
+        <div className="class-event-card-top">
           <div className="class-event-card-info">
             <div className="start-time">
-              <FaClock className="class-clock-icon"></FaClock>
+              <FaClock className="class-clock-icon" />
               <h4>{formattedTime}</h4>
             </div>
             <div className="students-list">
               <FaGraduationCap className="student-icon" />
-              {studentsList}
+              <AvatarGroup max={3}>{studentsList}</AvatarGroup>
             </div>
             <div className="subject-section">
               <IconComponent className="subject-icon" />
               <h4 className="subject">{eventData.subject}</h4>
             </div>
           </div>
-
-          <div className="homework-resource-section">
-            <button className="view-resource-modal">Resources</button>
-            <button className="view-homework-modal">Homework</button>
+          <div className="class-event-card-actions-vertical">
+            <button className="start-class-event">Start</button>
           </div>
-
-          <div className="class-event-card-actions">
-            <button className="start-class-event" onClick={handleOpen}>
-              START
-            </button>
-            <button className="edit-class-event" onClick={handleEditClick}>
-              EDIT
-            </button>
-            <button
-              className="cancel-class-event"
-              onClick={() => handleCancelClick(eventData.id)}
-            >
-              CANCEL
-            </button>
-          </div>
+        </div>
+        <div className="class-event-card-bottom">
+          <button
+            className="view-resource-modal"
+            onClick={() => setResourcesModalOpen(true)}
+          >
+            Resources
+          </button>
+          <button
+            className="view-homework-modal"
+            onClick={() => setHomeworkModalOpen(true)}
+          >
+            Homework
+          </button>
+          <button
+            className="edit-class-event"
+            onClick={() => setEditModalOpen(true)}
+          >
+            Edit
+          </button>
+          <button
+            className="cancel-class-event"
+            onClick={() => setCancelConfirmOpen(true)}
+          >
+            Cancel
+          </button>
         </div>
         {error && <p>{error}</p>}
       </div>
