@@ -1,5 +1,6 @@
 # storage/storage_backends.py
 
+import sys
 import gridfs
 from pymongo import MongoClient
 from django.core.files.storage import Storage
@@ -17,14 +18,22 @@ class GridFSStorage(Storage):
         self.fs = gridfs.GridFS(self.db, collection=self.collection)
 
     def _open(self, name, mode='rb'):
+        print(f"DEBUG: Opening file with name: {name}", file=sys.stderr)
         grid_out = self.fs.get_last_version(filename=name)
         return ContentFile(grid_out.read())
 
-    def _save(self, name, content):
-        grid_in = self.fs.new_file(filename=name)
-        grid_in.write(content.read())
-        grid_in.close()
-        return name
+    def _save(self, name, content, context=None):
+            # Extract content type from uploaded file or default to application/octet-stream
+            content_type = getattr(content, 'content_type', 'application/octet-stream')
+            
+            # Debug print statement
+            print(f"DEBUG: Saving file with name: {name}, content type: {content_type}", file=sys.stderr)
+            
+            grid_in = self.fs.new_file(filename=name, content_type=content_type)
+            grid_in.write(content.read())
+            grid_in.close()
+            
+            return name
 
     def exists(self, name):
         return self.fs.exists({"filename": name})
@@ -38,7 +47,14 @@ class GridFSStorage(Storage):
         return grid_out.length
 
     def url(self, name):
-        return f'/media/{name}'
+        # Ensure self.collection is a string and name is a string
+        collection = str(self.collection)
+        name = str(name)
+        
+        # Print URL for debugging
+        print(f"DEBUG: Generating URL for file: {name}", file=sys.stderr)
+        
+        return f'{settings.BASE_URL}/media/{self.collection}/{name}'
 
     def get_available_name(self, name, max_length=None):
         if not self.exists(name):

@@ -16,6 +16,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+BASE_URL = 'http://localhost:8000'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -94,28 +95,23 @@ CHANNEL_LAYERS = {
 
 from urllib.parse import quote_plus
 
-# MongoDB settings
-MONGO_DB_NAME = 'test'  # Use the database name from your connection string or another if needed
-
 # Encoded credentials (this step ensures any special characters in the password are correctly parsed)
 MONGO_USERNAME = quote_plus('jameskenny')
 MONGO_PASSWORD = quote_plus('hXZZqSAk1B3bBs3b')
 
 # Full MongoDB connection string
-MONGO_URI = os.getenv('MONGO_URI')
+MONGO_URI = "mongodb+srv://jameskenny:hXZZqSAk1B3bBs3b@cluster0.vihugpn.mongodb.net/?retryWrites=true&w=majority&authSource=admin"
 
-# If using MongoEngine (optional):
-from mongoengine import connect
-connect(db=MONGO_DB_NAME, host=MONGO_URI)
+
 
 # If using pymongo with a custom storage backend
 MONGO_HOST = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.mongodb.net"
 MONGO_PORT = 27017  # Typically not needed with MongoDB Atlas (use srv)
-MONGO_DB_NAME = 'test'
+MONGO_DB_NAME = 'kennysolutions'
 
 # Use the custom GridFS storage backend for file storage
-DEFAULT_FILE_STORAGE = 'storage.storage_backends.GridFSStorage'
-
+DEFAULT_FILE_STORAGE = 'apps.storage.storage_backends.GridFSStorage'
+GRIDFS_COLLECTION = 'files'
 
 
 # Database

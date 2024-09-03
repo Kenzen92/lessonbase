@@ -1,7 +1,7 @@
 from django.db import models
+from apps.storage.storage_backends import GridFSStorage
 from polymorphic.models import PolymorphicModel
 from polymorphic.managers import PolymorphicManager
-from django.contrib.auth.models import BaseUserManager
 import uuid
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -41,6 +41,11 @@ class CustomerAccount(PolymorphicModel, CustomUser):
     premium_account = models.BooleanField(null=False, default=False)
     confirmation_token = models.UUIDField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+            if self.profile_picture:
+                self.profile_picture.storage = GridFSStorage(collection='profile_pictures')
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.username} is a {self.polymorphic_ctype}"

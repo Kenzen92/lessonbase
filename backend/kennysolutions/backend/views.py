@@ -1,5 +1,6 @@
 import uuid
 from django.shortcuts import render
+from apps.storage.storage_backends import GridFSStorage
 from faker import Faker
 import logging
 logger = logging.getLogger(__name__)
@@ -285,20 +286,36 @@ def profile(request):
             serializer = StudentSerializer(instance=user)
         
         return Response(serializer.data)
+    
     elif request.method == 'POST':
         user = request.user.get_real_instance()
         files = request.FILES
+        
+        # Adjust serializer to handle files
         if user.polymorphic_ctype.name == "teacher":
             serializer = TeacherSerializer(instance=user, data=request.data)
         else:
             serializer = StudentSerializer(instance=user, data=request.data)
         
         if serializer.is_valid():
-            serializer.save()
+            # Save the user instance
+            user = serializer.save()
+            
+            # Handle file uploads and save to GridFS
+            for file_key in files:
+                uploaded_file = files[file_key]
+                
+                # Create a GridFSStorage instance
+                gridfs_storage = GridFSStorage()  # Pass parameters if necessary
+                
+                # Save the file to GridFS
+                gridfs_storage._save(uploaded_file.name, uploaded_file, context="profile_picture")
+            
             return Response(serializer.data)
         else:
             print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         
 
 @api_view(['POST'])

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from apps.storage.views import serve_mongo_file
 
 urlpatterns = [
     path('', views.getData),
@@ -22,5 +23,6 @@ urlpatterns = [
     path('chats/<int:chat_id>/messages/', views.MessageListCreateView.as_view(), name='message-list-create'),
     path('class_report', views.class_report, name="open-api"),
     path('class_material', views.class_material, name="open-api"),
-    path('homework', views.homework, name="homework-api")
+    path('homework', views.homework, name="homework-api"),
+    path('media/fs/<str:collection>/<str:filename>/', serve_mongo_file, name='serve_mongo_file'),
 ]
