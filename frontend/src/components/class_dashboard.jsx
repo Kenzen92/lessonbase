@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ClassEventCard from "./class_event_card";
-import ScheduleClassModal from "./schedule_class_modal";
-
+import ScheduleClassModal from "./schedule_class_bar.jsx";
+import TeacherStatistics from "./../components/teacher_statistics.jsx";
 import "../styles/class_dashboard.css";
 
 import handleUnautherizedRequest from "./unautherized_request";
+import ScheduleClassBar from "./schedule_class_bar.jsx";
 
 const ClassDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
+  const [statistics, setStatistics] = useState(null);
   const [error, setError] = useState(null);
   const [previous, setPrevious] = useState(true); // Default to true for initial render
   const navigate = useNavigate(); // Initialize useNavigate hook
@@ -60,8 +62,34 @@ const ClassDashboard = () => {
     }
   };
 
+  const fetchStatistics = async () => {
+    try {
+      const auth = window.sessionStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/teacher-statistics", {
+        method: "GET",
+        headers: {
+          Authorization: `Token ${auth}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.status === 401) {
+        handleUnautherizedRequest(navigate);
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch class events");
+      }
+
+      const data = await response.json();
+      setStatistics(data.data);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchClassEvents();
+    fetchStatistics();
   }, []);
 
   // Callback function to force re-render of ClassDashboard after item deletion
@@ -69,6 +97,7 @@ const ClassDashboard = () => {
     console.log("Handling");
     // Call fetchClassEvents to fetch updated data
     fetchClassEvents();
+    fetchStatistics();
   };
 
   // Utility function to check if a date is in the past
@@ -99,30 +128,29 @@ const ClassDashboard = () => {
 
   return (
     <div className="main-content">
-      <div className="previous-future-toggle-buttons">
-        <div className="class-event-toggle">
-          <button
-            className={
-              previous ? "toggle-button toggle-active" : "toggle-button"
-            }
-            onClick={() => setPrevious(true)}
-          >
-            Previous
-          </button>
-        </div>
-        <div className="class-event-toggle">
-          <button
-            className={
-              !previous ? "toggle-button toggle-active" : "toggle-button"
-            }
-            onClick={() => setPrevious(false)}
-          >
-            Upcoming
-          </button>
-        </div>
+      <div className="statistics-section">
+        <TeacherStatistics statistics={statistics} />
       </div>
+
       <div className="schedule-class-modal">
-        <ScheduleClassModal handleReloadData={handleReloadData} />
+        <ScheduleClassBar handleReloadData={handleReloadData} />
+      </div>
+
+      <div className="previous-future-toggle-buttons">
+        <button
+          className={previous ? "toggle-button toggle-active" : "toggle-button"}
+          onClick={() => setPrevious(true)}
+        >
+          Previous
+        </button>
+        <button
+          className={
+            !previous ? "toggle-button toggle-active" : "toggle-button"
+          }
+          onClick={() => setPrevious(false)}
+        >
+          Upcoming
+        </button>
       </div>
 
       <div

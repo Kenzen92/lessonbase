@@ -1,4 +1,6 @@
 from django.urls import path
+
+from apps.classes.views import teacher_statistics
 from . import views
 from apps.storage.views import serve_mongo_file
 
@@ -25,4 +27,5 @@ urlpatterns = [
     path('class_material', views.class_material, name="open-api"),
     path('homework', views.homework, name="homework-api"),
     path('media/fs/<str:collection>/<str:filename>/', serve_mongo_file, name='serve_mongo_file'),
+    path('teacher-statistics', teacher_statistics, name='teacher_statistics')
 ]

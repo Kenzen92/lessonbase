@@ -1,0 +1,30 @@
+.statistics-bar {
+    display: flex;
+    /* Use flexbox for horizontal alignment */
+    justify-content: space-around;
+    /* Spread out content evenly */
+    align-items: center;
+    /* Center content vertically */
+    background-color: #1a1a1a;
+    /* Set background color for the bar */
+    padding: 1rem;
+    /* Add padding to the bar */
+    color: white;
+    /* Set text color to white */
+}
+
+.statistics-class-count,
+.statistics-class-duration,
+.statistics-student-count {
+    display: flex;
+    /* Align icon and text horizontally */
+    align-items: center;
+    /* Center icon and text vertically */
+}
+
+.statistics-class-count .MuiTypography-root,
+.statistics-class-duration .MuiTypography-root,
+.statistics-student-count .MuiTypography-root {
+    margin-left: 0.5rem;
+    /* Add space between the icon and the text */
+}

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/schedule_class_modal.css";
+import "../styles/schedule_class_bar.css";
 import { toast } from "react-toastify";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
 import {
   Box,
   Modal,
@@ -15,8 +15,9 @@ import {
   MenuItem,
   TextField,
 } from "@mui/material";
+import { FaPlus } from "react-icons/fa";
 
-const ScheduleClassModal = ({ handleReloadData }) => {
+const ScheduleClassBar = ({ handleReloadData }) => {
   const [startDate, setStartDate] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [duration, setDuration] = useState("");
@@ -28,22 +29,6 @@ const ScheduleClassModal = ({ handleReloadData }) => {
   const [open, setOpen] = React.useState(false);
 
   const navigate = useNavigate();
-
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "20rem",
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-    padding: 5,
-  };
 
   useEffect(() => {
     fetchStudents();
@@ -150,7 +135,6 @@ const ScheduleClassModal = ({ handleReloadData }) => {
       console.log(data);
       toast.success("The class event was scheduled");
       handleReloadData();
-      handleClose();
     } catch (error) {
       console.log("Error: " + error.message);
       toast.error("Failed to schedule class.");
@@ -167,6 +151,7 @@ const ScheduleClassModal = ({ handleReloadData }) => {
         onChange={(e) => setSelectedStudents(e.target.value)}
         required
         className="form-input"
+        label="Students"
       >
         {allStudents.map((student) => (
           <MenuItem key={student.id} value={student.id}>
@@ -187,6 +172,7 @@ const ScheduleClassModal = ({ handleReloadData }) => {
         onChange={(e) => setSelectedSubject(e.target.value)}
         required
         className="form-input"
+        label="Subject"
       >
         {allSubjects.map((subject) => (
           <MenuItem key={subject.id} value={subject.id}>
@@ -202,88 +188,70 @@ const ScheduleClassModal = ({ handleReloadData }) => {
   };
 
   return (
-    <div>
-      <button onClick={handleOpen}>Schedule Class</button>
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        className="schedule-class-overlay"
-      >
-        <Box sx={style}>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 2,
-            }}
-          >
-            <Typography
-              id="modal-modal-title"
-              variant="h6"
-              component="h2"
-              sx={{ color: "black" }}
-            >
-              Schedule class
-            </Typography>
-            <Button onClick={handleClose}>Close</Button>
-          </Box>
+    <div className="schedule-class-bar-container">
+      <div className="schedule-class-bar-form">
+        <FormControl sx={{ maxWidth: "15rem", marginTop: "1rem" }}>
+          <DatePicker
+            value={startDate}
+            onChange={(newValue) => setStartDate(newValue)}
+            label="Date"
+            renderInput={(params) => <TextField {...params} />}
+            theme="light"
+          />
+        </FormControl>
 
-          <FormControl sx={{ maxWidth: "15rem", marginTop: "1rem" }}>
-            <DatePicker
-              value={startDate}
-              onChange={(newValue) => setStartDate(newValue)}
-              label="Date"
-              renderInput={(params) => <TextField {...params} />}
-            />
-          </FormControl>
+        <FormControl sx={{ width: "15rem", marginTop: "1rem" }}>
+          <MobileTimePicker
+            value={startTime}
+            onChange={(newValue) => setStartTime(newValue)}
+            label="Time"
+            renderInput={(params) => <TextField {...params} />}
+          />
+        </FormControl>
 
-          <FormControl sx={{ maxWidth: "15rem", marginTop: "1rem" }}>
-            <TimePicker
-              value={startTime}
-              onChange={(newValue) => setStartTime(newValue)}
-              label="Time"
-              renderInput={(params) => <TextField {...params} />}
-            />
-          </FormControl>
+        <FormControl
+          sx={{
+            width: "100%",
+            maxWidth: "15rem",
+            marginTop: "1rem",
+          }}
+        >
+          <InputLabel htmlFor="duration-input">Duration</InputLabel>
+          <Select
+            id="duration-select"
+            value={duration}
+            onChange={handleDurationChange}
+            label="Duration"
+          >
+            <MenuItem value={0}>0 minutes</MenuItem>
+            <MenuItem value={15}>15 minutes</MenuItem>
+            <MenuItem value={30}>30 minutes</MenuItem>
+            <MenuItem value={45}>45 minutes</MenuItem>
+            <MenuItem value={60}>60 minutes</MenuItem>
+            <MenuItem value={75}>75 minutes</MenuItem>
+            <MenuItem value={90}>90 minutes</MenuItem>
+          </Select>
+        </FormControl>
 
-          <FormControl
-            sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}
-          >
-            <InputLabel htmlFor="duration-input">Duration</InputLabel>
-            <Select
-              id="duration-select"
-              value={duration}
-              onChange={handleDurationChange}
-            >
-              <MenuItem value={0}>0 minutes</MenuItem>
-              <MenuItem value={15}>15 minutes</MenuItem>
-              <MenuItem value={30}>30 minutes</MenuItem>
-              <MenuItem value={45}>45 minutes</MenuItem>
-              <MenuItem value={60}>60 minutes</MenuItem>
-              <MenuItem value={75}>75 minutes</MenuItem>
-              <MenuItem value={90}>90 minutes</MenuItem>
-            </Select>
-          </FormControl>
-          {studentSelector()}
-          {subjectSelector()}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "2rem",
-            }}
-          >
-            <Button variant="contained" color="primary" onClick={handleSubmit}>
-              Submit
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
+        {studentSelector()}
+        {subjectSelector()}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "2rem",
+          }}
+        ></Box>
+      </div>
+      <button className="schedule-class-button" onClick={handleSubmit}>
+        <FaPlus
+          className="schedule-class-icon"
+          style={{ color: "white", marginRight: "1rem" }}
+        />
+        Submit
+      </button>
     </div>
   );
 };
 
-export default ScheduleClassModal;
+export default ScheduleClassBar;

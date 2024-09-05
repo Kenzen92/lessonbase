@@ -10,6 +10,12 @@
     scrollbar-width: none;
 }
 
+.main-content {
+    margin: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+}
+
 /* Hide scrollbar for WebKit browsers (Chrome, Safari) */
 .dashboard-container::-webkit-scrollbar {
     display: none;
@@ -38,14 +44,14 @@
 
 .class-event-toggle {
     width: 100%;
-
 }
 
 .previous-future-toggle-buttons {
+    margin-top: 2rem;
     width: 100%;
     display: flex;
-    margin-left: 1rem;
-    margin-right: 1rem;
+    justify-content: center;
+    gap: 1rem;
 }
 
 .toggle-active {
@@ -57,7 +63,8 @@
 }
 
 .toggle-button {
-    width: -webkit-fill-available;
+    width: 45%;
+    justify-self: center;
 }
 
 
