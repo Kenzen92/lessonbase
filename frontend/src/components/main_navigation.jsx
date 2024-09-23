@@ -1,147 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import '../styles/main_navigation.css';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/main_navigation.css";
 import { toast } from "react-toastify";
-import handleUnauthorizedRequest from './unautherized_request';
-import Avatar from '@mui/material/Avatar';
-
+import handleUnauthorizedRequest from "./unautherized_request";
 
 const Navigation = () => {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-    const [isHovering, setIsHovering] = useState(false);
-    const [userProfileURL, setProfileURL] = useState(null);
-    const [userName, setName] = useState(null);
+  // useEffect to call loadUserData when the component mounts
+  useEffect(() => {}, []); // Empty dependency array means this runs once on mount
 
-    const handleAvatarClick = () => {
-    navigate('/profile');
-    };
+  async function handleLogout() {
+    const url = "http://localhost:8000/logout/";
+    const auth = window.sessionStorage.getItem("token");
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${auth}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    const handleMouseEnter = () => {
-    setIsHovering(true);
-    };
+      if (response.status == 401) {
+        handleUnauthorizedRequest(navigate);
+      }
 
-    const handleMouseLeave = () => {
-    setIsHovering(false);
-    };
+      if (!response.ok) {
+        toast.error("Couldn't logout");
+        return;
+      }
 
-    const loadUserData = () => {
-        const userData = window.sessionStorage.getItem("user")
-
-        if (userData) {
-            // Parse the JSON string to get the JavaScript object
-            const user = JSON.parse(userData);
-            setName(user.first_name);
-            setProfileURL(user.profile_picture);
-        }
+      await window.sessionStorage.removeItem("Token");
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+      toast.error("Connection error. Please try again later.");
     }
+  }
 
-    // useEffect to call loadUserData when the component mounts
-    useEffect(() => {
-        loadUserData();
-        // Add a storage event listener
-        const handleStorageChange = () => {
-            console.log("Storage event detected");
-            loadUserData();
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-
-        // Clean up the event listener on component unmount
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, []); // Empty dependency array means this runs once on mount
-
-    async function handleLogout() {
-        const url = 'http://localhost:8000/logout/';
-        const auth = window.sessionStorage.getItem("token");
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Token ${auth}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.status == 401) {
-                handleUnauthorizedRequest(navigate);
-             }
-
-            if (!response.ok) {
-                toast.error("Couldn't logout")
-                return;
-            }
-
-            await window.sessionStorage.removeItem("Token");
-            navigate('/login');
-        } catch (error) {
-            console.log(error)
-            toast.error("Connection error. Please try again later.")
-        }
-    };
-
-    return (
-        <>
-            <div className="nav-container">
-                <nav className='navigation'>
-                    <ul className='navigation-list'>
-                        <li>
-                            <Link to="/dashboard">
-                                <button className='nav-element'>Dashboard</button>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/calendar">
-                                <button className='nav-element'>Calendar</button>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/students">
-                                <button className='nav-element'>Students</button>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/assignments">
-                                <button className='nav-element'>Assignments</button>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link to="/profile">
-                            <button className='nav-element'>Settings</button>
-                            </Link>
-                            
-                        </li>
-                        <li>
-                            <Link to="/">
-                                <button className='nav-element' onClick={handleLogout}>Logout</button>
-                            </Link>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            <div className="profile-bar">
-                <div className="avatar-container">
-                    <Avatar 
-                        alt={userName} 
-                        src={userProfileURL} 
-                        className="profile-icon"
-                        onClick={handleAvatarClick}
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    >
-                        {userName? userName[0] : null}
-                    </Avatar>
-                    {isHovering && (
-                        <div className="hover-bubble">
-                            <p>{userName}</p>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </>
-    );
-}
+  return (
+    <>
+      <div className="nav-container">
+        <nav className="navigation">
+          <ul className="navigation-list">
+            <li>
+              <Link to="/dashboard">
+                <button className="nav-element">Dashboard</button>
+              </Link>
+            </li>
+            <li>
+              <Link to="/calendar">
+                <button className="nav-element">Calendar</button>
+              </Link>
+            </li>
+            <li>
+              <Link to="/students">
+                <button className="nav-element">Students</button>
+              </Link>
+            </li>
+            <li>
+              <Link to="/assignments">
+                <button className="nav-element">Assignments</button>
+              </Link>
+            </li>
+            <li>
+              <Link to="/profile">
+                <button className="nav-element">Settings</button>
+              </Link>
+            </li>
+            <li>
+              <Link to="/">
+                <button className="nav-element" onClick={handleLogout}>
+                  Logout
+                </button>
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </>
+  );
+};
 
 export default Navigation;

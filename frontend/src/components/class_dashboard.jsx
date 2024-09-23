@@ -7,13 +7,14 @@ import "../styles/class_dashboard.css";
 
 import handleUnautherizedRequest from "./unautherized_request";
 import ScheduleClassBar from "./schedule_class_bar.jsx";
+import { Typography } from "@mui/material";
 
 const ClassDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [error, setError] = useState(null);
-  const [previous, setPrevious] = useState(true); // Default to true for initial render
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  const [previous, setPrevious] = useState(false);
+  const navigate = useNavigate();
 
   // Define fetchClassEvents function
   const fetchClassEvents = async () => {
@@ -36,6 +37,7 @@ const ClassDashboard = () => {
       }
 
       const data = await response.json();
+      console.log(data);
       let dateClassMap = {};
 
       // Loop through each event in the data array
@@ -158,18 +160,14 @@ const ClassDashboard = () => {
           previous ? "previous-cards-section" : "future-cards-section"
         }`}
       >
-        {/* Iterate over each date key */}
         {Object.keys(filteredClassEvents).map((date) => (
           <div key={date}>
-            {/* Render date inside a <p> tag */}
-            <p>{date}</p>
-            {/* Iterate over all class events for this date */}
+            <Typography>{date}</Typography>
             {filteredClassEvents[date].map((classEvent, index) => (
-              // Pass class event data into your custom <ClassEventCard /> component
               <ClassEventCard
                 key={index}
                 eventData={classEvent}
-                handleReloadData={handleReloadData} // Pass the callback function
+                handleReloadData={handleReloadData}
               />
             ))}
           </div>

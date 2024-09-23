@@ -1,54 +1,71 @@
 /* profile.css */
 
-  .profile-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
 
-  .profile-header {
-    margin-top: 3rem;
-    margin-bottom: 2rem;
-  }
-  .form-container {
-    /* display: flex;
+.profile-header {
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+}
+.form-container {
+  /* display: flex;
     justify-content: center; */
-  }
-  .profile-form {
-    width:auto;
-    max-width: 30rem;/* Adjust width as needed */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px; /* Adjust gap between columns */
-    text-align: center;
-  }
-  
-  .profile-form label {
-    font-weight: bold;
-  }
-  
-  .profile-form input {
-    width: 90%;
-    padding: 8px;
-    margin-top: 4px;
-  }
-  
-  .profile-form ul {
-    margin: 0;
-    padding: 0;
-  }
-  
-  .profile-form ul li {
-    list-style-type: none;
-  }
-  
-  .submit-button {
-    grid-column: span 2; /* Make the button span across both columns */
-    width: 60%; /* Ensure the button takes full width of the spanned columns */
-    margin-top: 1rem;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  /* Additional styling if needed */
-  
+}
+.profile-form {
+  width: auto;
+  max-width: 30rem; /* Adjust width as needed */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px; /* Adjust gap between columns */
+  text-align: center;
+}
+
+.profile-form label {
+  font-weight: bold;
+}
+
+.profile-form input {
+  width: 90%;
+  padding: 8px;
+  margin-top: 4px;
+}
+
+.profile-form ul {
+  margin: 0;
+  padding: 0;
+}
+
+.profile-form ul li {
+  list-style-type: none;
+}
+
+.submit-button {
+  grid-column: span 2; /* Make the button span across both columns */
+  width: 60%; /* Ensure the button takes full width of the spanned columns */
+  margin-top: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile-bar {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.avatar-container {
+  position: relative;
+  display: block;
+  margin-right: 0;
+}
+
+.profile-icon {
+  margin-top: 2rem;
+  margin-right: 4rem;
+  cursor: pointer;
+}

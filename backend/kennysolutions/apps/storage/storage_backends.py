@@ -47,14 +47,15 @@ class GridFSStorage(Storage):
         return grid_out.length
 
     def url(self, name):
-        # Ensure self.collection is a string and name is a string
-        collection = str(self.collection)
-        name = str(name)
-        
-        # Print URL for debugging
+        # Ensure that name is just the filename, not a full URL
+        if name.startswith(settings.BASE_URL):
+            # If the name already contains the base URL, return it as-is
+            return name
+
+        # Otherwise, generate the correct URL
         print(f"DEBUG: Generating URL for file: {name}", file=sys.stderr)
-        
         return f'{settings.BASE_URL}/media/{self.collection}/{name}'
+
 
     def get_available_name(self, name, max_length=None):
         if not self.exists(name):

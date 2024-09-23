@@ -5,8 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background: rgb(2,0,36);
-  background: linear-gradient(155deg, rgba(2,0,36,1) 0%, rgba(2,2,91,1) 51%, rgba(0,64,77,1) 100%);
+  background: #3e3c3c;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -17,7 +16,7 @@ body {
   margin: 0px;
 }
 
-.app-container{
+.app-container {
   display: flex;
   height: 100vh;
 }
@@ -31,12 +30,12 @@ a:hover {
   color: #535bf2;
 }
 
-
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
 
+/* General button styles */
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -44,15 +43,38 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
 }
-button:hover {
+
+/* Primary button (default look) */
+.btn-primary {
+  background-color: #1a1a1a;
+  color: white;
+}
+
+.btn-primary:hover {
   border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
+
+.btn-primary:focus,
+.btn-primary:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Secondary button (inverted) */
+.btn-secondary {
+  background-color: white;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+}
+
+.btn-secondary:hover {
+  border-color: #646cff;
+}
+
+.btn-secondary:focus,
+.btn-secondary:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
@@ -66,5 +88,23 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+
+  .btn-primary {
+    background-color: #f9f9f9;
+    color: #213547;
+  }
+
+  .btn-primary:hover {
+    border-color: #747bff;
+  }
+
+  .btn-secondary {
+    background-color: #213547;
+    color: #f9f9f9;
+  }
+
+  .btn-secondary:hover {
+    border-color: #747bff;
   }
 }

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "../styles/ClassEventCard.css";
-import { Link, Router, useNavigate } from "react-router-dom";
 import {
   FaDna,
   FaAtom,
@@ -33,6 +32,10 @@ import {
 } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
+import ScheduleClassBar from "./schedule_class_bar";
+import Dropzone from "./dropzone";
+import { toast } from "react-toastify";
+import ClassResources from "./class_resources";
 
 const subjectIconMap = {
   Mathematics: FaCalculator,
@@ -48,32 +51,29 @@ const subjectIconMap = {
 };
 
 const ClassEventCard = ({ eventData, handleReloadData }) => {
+  console.log("event data: ", eventData);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [homeworkModalOpen, setHomeworkModalOpen] = useState(false);
-  const [resourcesModalOpen, setResourcesModalOpen] = useState(false);
+
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [filePurpose, setFilePurpose] = useState("");
 
-  const navigate = useNavigate();
-  // Convert the start_time string to a Date object
   const startTime = new Date(eventData.start_time);
 
   const IconComponent = subjectIconMap[eventData.subject];
 
-  // Define options for formatting time
   const options = {
     hour: "numeric",
     minute: "numeric",
     hour12: false, // Use 24-hour clock
   };
-  // Create a formatter instance using Intl.DateTimeFormat
+
   const timeFormatter = new Intl.DateTimeFormat("en-US", options);
 
-  // Format the datetime to just the time
   const formattedTime = timeFormatter.format(startTime);
 
   let studentsList = [];
@@ -84,6 +84,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
         alt={student.username}
         src={student.profile_picture}
         className="student-profile-icon"
+        key={index}
       >
         {student.username ? student.username[0] : null}
       </Avatar>
@@ -100,10 +101,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     border: "2px solid #000",
     boxShadow: 24,
     p: 4,
-  };
-
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    color: "black",
   };
 
   const handleSubmit = (event) => {
@@ -126,9 +124,11 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     })
       .then((response) => response.json())
       .then((data) => {
+        toast.success("File uploaded successfully!");
         console.log("Success:", data);
       })
       .catch((error) => {
+        toast.error("Error uploading file.");
         console.error("Error:", error);
       });
   };
@@ -192,12 +192,11 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             </FormControl>
             <Button
               variant="contained"
-              component="label"
               fullWidth
               margin="normal"
+              onClick={() => setResourcesModalOpen(true)}
             >
-              Upload File
-              <input type="file" hidden onChange={handleFileChange} />
+              Select File
             </Button>
             <Button
               type="submit"
@@ -234,7 +233,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
         <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
           <Box sx={style}>
             <Typography variant="h6">Edit Class</Typography>
-            <p>Implement your edit form here.</p>
+            <ScheduleClassBar classData={eventData} />
           </Box>
         </Modal>
 
@@ -246,17 +245,6 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
           <Box sx={style}>
             <Typography variant="h6">Homework</Typography>
             <p>Homework content goes here.</p>
-          </Box>
-        </Modal>
-
-        {/* Resources Modal */}
-        <Modal
-          open={resourcesModalOpen}
-          onClose={() => setResourcesModalOpen(false)}
-        >
-          <Box sx={style}>
-            <Typography variant="h6">Resources</Typography>
-            <p>Resource content goes here.</p>
           </Box>
         </Modal>
       </div>
@@ -281,12 +269,12 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
           </div>
         </div>
         <div className="class-event-card-bottom">
-          <button
-            className="view-resource-modal"
-            onClick={() => setResourcesModalOpen(true)}
-          >
-            Resources
-          </button>
+          {/* Resources Modal */}
+          <ClassResources
+            classId={eventData.id}
+            existing_resources={eventData.resources}
+            handleReloadData={handleReloadData}
+          />
           <button
             className="view-homework-modal"
             onClick={() => setHomeworkModalOpen(true)}

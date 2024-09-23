@@ -1,23 +1,31 @@
 from datetime import datetime, timezone
-from backend.serializers import StudentSerializer, TeacherClassEventSerializer
+from backend.serializers import TeacherClassEventSerializer
+from apps.user_accounts.serializers import StudentSerializer
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.user_accounts.models import CustomUser, CustomerAccount, Teacher, Student, Staff
-from apps.classes.models import ClassEvent, Homework
+from apps.classes.models import ClassEvent, Homework, TeachingResource
 from django.contrib.auth import authenticate
 import logging
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
 
 
+# Define a serializer for the TeachingResource model
+class TeachingResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeachingResource
+        fields = ['file', 'class_event', 'name']
+
 class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = serializers.SlugRelatedField(slug_field='name', queryset=Subject.objects.all())
+    resources = TeachingResourceSerializer(many=True, read_only=True)
 
     class Meta:
         model = ClassEvent
-        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers']
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
         read_only_fields = ['id']
 
 class HomeworkSerializer(serializers.ModelSerializer):

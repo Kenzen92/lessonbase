@@ -16,8 +16,9 @@ import {
   TextField,
 } from "@mui/material";
 import { FaPlus } from "react-icons/fa";
+import dayjs from "dayjs"; // Dayjs import
 
-const ScheduleClassBar = ({ handleReloadData }) => {
+const ScheduleClassBar = ({ handleReloadData, classData }) => {
   const [startDate, setStartDate] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [duration, setDuration] = useState("");
@@ -33,7 +34,26 @@ const ScheduleClassBar = ({ handleReloadData }) => {
   useEffect(() => {
     fetchStudents();
     fetchSubjects();
-  }, []);
+  }, []); // Fetch data only on the initial mount
+
+  useEffect(() => {
+    // Initialize form with classData if provided and if allSubjects is populated
+    if (classData && allSubjects.length > 0) {
+      const parsedStartDate = dayjs(classData.start_time); // Use Dayjs to parse the date string
+      setStartDate(parsedStartDate);
+      setStartTime(parsedStartDate);
+      setDuration(classData.duration);
+      setSelectedStudents(classData.students.map((student) => student.id));
+
+      // Find subject ID by matching subject name
+      const subject = allSubjects.find(
+        (subject) => subject.name === classData.subject
+      );
+      if (subject) {
+        setSelectedSubject(subject.id); // Set the selected subject ID
+      }
+    }
+  }, [classData, allSubjects.length]); // Fetch data on component mount and reinitialize form when classData changes
 
   const fetchStudents = async () => {
     try {
@@ -123,7 +143,7 @@ const ScheduleClassBar = ({ handleReloadData }) => {
     try {
       const auth = window.sessionStorage.getItem("token");
       const response = await fetch("http://localhost:8000/class/", {
-        method: "POST",
+        method: classData ? "PUT" : "POST", // Update if classData exists, else create
         headers: {
           Authorization: `Token ${auth}`,
           "Content-Type": "application/json",
@@ -235,21 +255,15 @@ const ScheduleClassBar = ({ handleReloadData }) => {
 
         {studentSelector()}
         {subjectSelector()}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "2rem",
-          }}
-        ></Box>
+
+        <button className="schedule-class-button" onClick={handleSubmit}>
+          <FaPlus
+            className="schedule-class-icon"
+            style={{ color: "white", marginRight: "1rem" }}
+          />
+          Submit
+        </button>
       </div>
-      <button className="schedule-class-button" onClick={handleSubmit}>
-        <FaPlus
-          className="schedule-class-icon"
-          style={{ color: "white", marginRight: "1rem" }}
-        />
-        Submit
-      </button>
     </div>
   );
 };

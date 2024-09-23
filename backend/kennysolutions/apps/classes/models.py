@@ -33,12 +33,12 @@ class TeachingResource(models.Model):
     A teaching resource represents a file or URL link to a resource related to a subject.
     Teachers upload these resources for their students to access.
     """
-    name = models.CharField(max_length=200, help_text="Name of the resource.")
-    description = models.TextField(max_length=500, blank=True, help_text="Brief description of the resource.")
+    name = models.CharField(max_length=200, help_text="Name of the resource.", null=True)
+    description = models.TextField(max_length=500, blank=True, help_text="Brief description of the resource.", null=True)
     file = models.FileField(upload_to='resources/', blank=True, null=True, help_text="Upload a file for the resource.")
-    url = models.URLField(blank=True, null=True, help_text="URL to an online resource.")
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, help_text="The subject to which this resource belongs.")
     upload_date = models.DateTimeField(auto_now_add=True)
+    class_event = models.ForeignKey(ClassEvent, on_delete=models.CASCADE, related_name='resources')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -46,12 +46,6 @@ class TeachingResource(models.Model):
 
     def __str__(self):
         return self.name
-
-    def clean(self):
-        if not self.file and not self.url:
-            raise ValidationError("Either a file or a URL must be provided for the resource.")
-        if self.file and self.url:
-            raise ValidationError("Please provide only a file or a URL, not both.")
 
 
 class Assignment(models.Model):
