@@ -25,18 +25,17 @@
   list-style-type: none;
 }
 
-.navigation li {
-  height: 100%;
-}
-
 .nav-element {
   width: 100%;
-  height: 100%;
   border-radius: 0px;
+  height: 7rem;
+  border: 2px solid transparent; /* Added default border style */
 }
 
-a {
-  height: 98%;
-  background-color: #181717;
-  text-decoration: none; /* Optional: remove underline from links */
+.nav-element:hover {
+  border-color: blueviolet;
+}
+
+.navigation button {
+  background-color: #141312;
 }

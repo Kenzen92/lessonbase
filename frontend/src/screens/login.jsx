@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import "../styles/login.css";
+import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [error, setError] = useState("");
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
@@ -36,13 +35,8 @@ function Login() {
       }
 
       const data = await response.json();
-      console.log(data);
       await window.sessionStorage.setItem("token", data["token"]);
       await window.sessionStorage.setItem("user", JSON.stringify(data["user"]));
-      console.log(
-        "set the user profile url to: ",
-        JSON.stringify(data["user"]["profile_picture"])
-      );
       navigate("/dashboard");
     } catch (error) {
       toast.error("Connection error. Please try again later.");
@@ -50,63 +44,99 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-header">
-        <h1>Kenny Solutions</h1>
-        <h2>A teaching solution for all.</h2>
-      </div>
-      <div className="login-form-action-container">
-        {showForm ? (
-          <div className="login-form">
-            <form onSubmit={handleLogin} className="login-form">
-              <input
-                type="text"
-                placeholder="username"
+    <Grid container sx={{ minHeight: "100vh" }}>
+      <Grid
+        item
+        xs={12}
+        md={6}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background:
+            "linear-gradient(0deg, rgba(0,28,91,1) 0%, rgba(9,85,121,1) 52%, rgba(0,212,255,1) 100%)",
+          color: "white",
+        }}
+      >
+        <Box textAlign="center">
+          <Typography variant="h3" component="h1">
+            Kenny Solutions
+          </Typography>
+          <Typography variant="h6">A teaching solution for all.</Typography>
+        </Box>
+      </Grid>
+      <Grid
+        item
+        xs={12}
+        md={6}
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Box textAlign="center" width="80%" maxWidth="400px">
+          {showForm ? (
+            <form onSubmit={handleLogin}>
+              <TextField
+                fullWidth
+                label="Username"
+                variant="outlined"
+                margin="normal"
                 value={username}
                 onChange={(e) => {
                   setUsername(e.target.value);
                   setUsernameError(false);
                 }}
-                className={usernameError ? "error" : ""}
+                error={usernameError}
               />
-              <input
+              <TextField
+                fullWidth
+                label="Password"
+                variant="outlined"
                 type="password"
-                placeholder="password"
+                margin="normal"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setPasswordError(false);
                 }}
-                className={passwordError ? "error" : ""}
+                error={passwordError}
               />
-              <button type="submit" className="btn-primary">
-                Login
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div className="login-action-container">
-            <div className="signin-button">
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => setShowForm(true)}
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                color="primary"
+                sx={{ mt: 2 }}
               >
-                Sign in
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="create-account-button">
-          <p className="signup-button-section">
-            Don't have an account?{" "}
-            <Link to="/signup">
-              <button className="btn-secondary">Sign up here</button>
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
+                Login
+              </Button>
+            </form>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setShowForm(true)}
+            >
+              Sign In
+            </Button>
+          )}
+          {!showForm && (
+            <Box mt={2}>
+              <Typography variant="body2">
+                Don't have an account?{" "}
+                <Link to="/signup" style={{ textDecoration: "none" }}>
+                  <Button variant="text" color="secondary">
+                    Sign Up Here
+                  </Button>
+                </Link>
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </Grid>
+    </Grid>
   );
 }
 

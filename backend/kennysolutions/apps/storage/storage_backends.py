@@ -8,9 +8,9 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 
 class GridFSStorage(Storage):
-    def __init__(self, db_name=None, collection='fs'):
+    def __init__(self, db_name=None, collection='fs'):  # Provide a default collection name 'fs'
         self.db_name = db_name or settings.MONGO_DB_NAME
-        self.collection = collection
+        self.collection = collection or 'fs'
 
         # Initialize the MongoDB client using the full URI
         self.client = MongoClient(settings.MONGO_URI)
@@ -18,17 +18,12 @@ class GridFSStorage(Storage):
         self.fs = gridfs.GridFS(self.db, collection=self.collection)
 
     def _open(self, name, mode='rb'):
-        print(f"DEBUG: Opening file with name: {name}", file=sys.stderr)
         grid_out = self.fs.get_last_version(filename=name)
         return ContentFile(grid_out.read())
 
     def _save(self, name, content, context=None):
             # Extract content type from uploaded file or default to application/octet-stream
-            content_type = getattr(content, 'content_type', 'application/octet-stream')
-            
-            # Debug print statement
-            print(f"DEBUG: Saving file with name: {name}, content type: {content_type}", file=sys.stderr)
-            
+            content_type = getattr(content, 'content_type', 'application/octet-stream')            
             grid_in = self.fs.new_file(filename=name, content_type=content_type)
             grid_in.write(content.read())
             grid_in.close()
@@ -53,8 +48,10 @@ class GridFSStorage(Storage):
             return name
 
         # Otherwise, generate the correct URL
-        print(f"DEBUG: Generating URL for file: {name}", file=sys.stderr)
-        return f'{settings.BASE_URL}/media/{self.collection}/{name}'
+        if "profile_pictures" in name:
+            return f'{settings.BASE_URL}/media/{name}'
+        else:
+            return f'{settings.BASE_URL}/media/{self.collection}/{name}'
 
 
     def get_available_name(self, name, max_length=None):

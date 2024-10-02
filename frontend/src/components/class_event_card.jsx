@@ -63,6 +63,9 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
   const [filePurpose, setFilePurpose] = useState("");
 
   const startTime = new Date(eventData.start_time);
+  const currentTime = new Date();
+
+  const isPastEvent = startTime < currentTime;
 
   const IconComponent = subjectIconMap[eventData.subject];
 
@@ -265,11 +268,12 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             </div>
           </div>
           <div className="class-event-card-actions-vertical">
-            <button className="start-class-event">Start</button>
+            {!isPastEvent && (
+              <button className="start-class-event">Start</button>
+            )}
           </div>
         </div>
         <div className="class-event-card-bottom">
-          {/* Resources Modal */}
           <ClassResources
             classId={eventData.id}
             existing_resources={eventData.resources}
@@ -284,12 +288,14 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
           <button
             className="edit-class-event"
             onClick={() => setEditModalOpen(true)}
+            disabled={isPastEvent} // Disable edit button if event is in the past
           >
             Edit
           </button>
           <button
             className="cancel-class-event"
             onClick={() => setCancelConfirmOpen(true)}
+            disabled={isPastEvent} // Disable cancel button if event is in the past
           >
             Cancel
           </button>

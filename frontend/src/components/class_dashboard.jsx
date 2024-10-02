@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ClassEventCard from "./class_event_card";
-import ScheduleClassModal from "./schedule_class_bar.jsx";
 import TeacherStatistics from "./../components/teacher_statistics.jsx";
-import "../styles/class_dashboard.css";
-
 import handleUnautherizedRequest from "./unautherized_request";
 import ScheduleClassBar from "./schedule_class_bar.jsx";
 import { Typography } from "@mui/material";
@@ -134,7 +131,7 @@ const ClassDashboard = () => {
         <TeacherStatistics statistics={statistics} />
       </div>
 
-      <div className="schedule-class-modal">
+      <div className="schedule-class-bar">
         <ScheduleClassBar handleReloadData={handleReloadData} />
       </div>
 

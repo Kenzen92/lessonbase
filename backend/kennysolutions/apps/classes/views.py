@@ -77,6 +77,70 @@ def class_events(request, class_id=None):
         return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
+
+@api_view(['GET', 'POST', 'DELETE', 'PUT', 'PATCH'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def class_events_for_student(request, student_id=None):
+    if request.method == 'GET':
+        class_events = ClassEvent.objects.filter(students=student_id)
+        serializer = ClassEventSerializer(class_events, many=True)
+        return Response(serializer.data)
+
+    # elif request.method == 'DELETE':
+    #     try:
+    #         class_event = ClassEvent.objects.get(id=class_id)
+    #         class_event.delete()
+    #         return Response({'message': 'Class event deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    #     except ClassEvent.DoesNotExist:
+    #         return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # elif request.method == 'POST':
+    #     teacher_ids = [request.user.pk]
+    #     student_ids = request.data.get('students', [])
+
+    #     teachers = Teacher.objects.filter(pk__in=teacher_ids)
+    #     students = Student.objects.filter(pk__in=student_ids)
+    #     serializer = ClassEventSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         class_event = serializer.save()
+    #         class_event.teachers.set(teachers)
+    #         class_event.students.set(students)
+    #         return Response({"message": "Class event created successfully"}, status=status.HTTP_201_CREATED)
+    #     else:
+    #         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # elif request.method in ['PUT', 'PATCH']:
+    #     if not class_id:
+    #         return Response({"error": "Class event ID is required for updating"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    #     try:
+    #         class_event = ClassEvent.objects.get(id=class_id)
+    #     except ClassEvent.DoesNotExist:
+    #         return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    #     teacher_ids = [request.user.pk]
+    #     student_ids = request.data.get('students', [])
+
+    #     teachers = Teacher.objects.filter(pk__in=teacher_ids)
+    #     students = Student.objects.filter(pk__in=student_ids)
+
+    #     # Use partial updates with PATCH, full update with PUT
+    #     partial = request.method == 'PATCH'
+    #     serializer = ClassEventSerializer(class_event, data=request.data, partial=partial)
+
+    #     if serializer.is_valid():
+    #         class_event = serializer.save()
+    #         class_event.teachers.set(teachers)
+    #         class_event.students.set(students)
+    #         return Response({"message": "Class event updated successfully"}, status=status.HTTP_200_OK)
+    #     else:
+    #         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    # else:
+    #     return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -120,7 +184,7 @@ def class_material(request):
     # Process each file individually
     for uploaded_file in files:
         # Create a GridFSStorage instance and save the file
-        gridfs_storage = GridFSStorage()  # Pass parameters if necessary
+        gridfs_storage = GridFSStorage(collection="fs")  # Pass parameters if necessary
         file_name = gridfs_storage._save(uploaded_file.name, uploaded_file, context='teaching_resource')
         file_url = gridfs_storage.url(file_name)
 
