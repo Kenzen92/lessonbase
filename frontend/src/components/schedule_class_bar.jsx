@@ -14,7 +14,6 @@ import {
   Box,
   Grid,
 } from "@mui/material";
-import { FaPlus } from "react-icons/fa";
 import dayjs from "dayjs";
 
 const ScheduleClassBar = ({ handleReloadData, classData }) => {
@@ -153,57 +152,16 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
       const data = await response.json();
       console.log(data);
       toast.success("The class event was scheduled");
+      setStartDate(null);
+      setStartTime(null);
+      setDuration(null);
+      setSelectedStudents([]);
+      setSelectedSubject(null);
       handleReloadData();
     } catch (error) {
       console.log("Error: " + error.message);
       toast.error("Failed to schedule class.");
     }
-  };
-
-  const studentSelector = () => (
-    <FormControl sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}>
-      <InputLabel id="demo-simple-select-label">Students</InputLabel>
-      <Select
-        id="students"
-        multiple
-        value={selectedStudents}
-        onChange={(e) => setSelectedStudents(e.target.value)}
-        required
-        className="form-input"
-        label="Students"
-      >
-        {allStudents.map((student) => (
-          <MenuItem key={student.id} value={student.id}>
-            {student.username}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-
-  const subjectSelector = () => (
-    <FormControl sx={{ width: "100%", maxWidth: "15rem", marginTop: "1rem" }}>
-      <InputLabel id="subject-select-label">Subject</InputLabel>
-      <Select
-        id="subjects"
-        labelId="subject-select-label"
-        value={selectedSubject}
-        onChange={(e) => setSelectedSubject(e.target.value)}
-        required
-        className="form-input"
-        label="Subject"
-      >
-        {allSubjects.map((subject) => (
-          <MenuItem key={subject.id} value={subject.id}>
-            {subject.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-
-  const handleDurationChange = (event) => {
-    setDuration(event.target.value);
   };
 
   return (
@@ -212,7 +170,9 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
         bgcolor: "background.paper",
         p: 2,
         borderRadius: 2,
-        maxWidth: "100%",
+        maxWidth: "1600px",
+        marginLeft: "auto",
+        marginRight: "auto",
         width: { xs: "100%", md: "auto" },
         boxShadow: 3,
       }}
@@ -226,29 +186,31 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
       <Grid
         container
         spacing={2}
-        justifyContent="center"
+        justifyContent="flex-start"
         alignItems="center"
         direction={{ xs: "column", sm: "row" }}
       >
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} lg={2}>
           <DatePicker
             value={startDate}
             onChange={(newValue) => setStartDate(newValue)}
             label="Date"
+            sx={{ minWidth: "100%" }}
             renderInput={(params) => <TextField {...params} fullWidth />}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} lg={2}>
           <MobileTimePicker
             value={startTime}
             onChange={(newValue) => setStartTime(newValue)}
             label="Time"
+            sx={{ minWidth: "100%" }}
             renderInput={(params) => <TextField {...params} fullWidth />}
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "14rem" }}>
           <FormControl fullWidth>
             <InputLabel htmlFor="duration-input">Duration</InputLabel>
             <Select
@@ -266,7 +228,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "14rem" }}>
           <FormControl fullWidth>
             <InputLabel id="student-select-label">Students</InputLabel>
             <Select
@@ -286,7 +248,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "14rem" }}>
           <FormControl fullWidth>
             <InputLabel id="subject-select-label">Subject</InputLabel>
             <Select
@@ -304,18 +266,26 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
             </Select>
           </FormControl>
         </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            startIcon={<FaPlus />}
-            onClick={handleSubmit}
-          >
-            Submit
-          </Button>
-        </Grid>
+      </Grid>
+      <Grid
+        item
+        xs={12}
+        sm={6}
+        md={3}
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          minWidth: "14rem",
+        }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          sx={{ minWidth: "14rem", marginTop: "0.5rem" }}
+        >
+          Submit
+        </Button>
       </Grid>
     </Box>
   );
