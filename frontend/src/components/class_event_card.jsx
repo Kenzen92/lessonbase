@@ -282,14 +282,20 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             </Button>
             <Button
               variant="contained"
+              color="secondary"
               onClick={() => setEditModalOpen(true)}
               disabled={isPastEvent}
             >
               Edit
             </Button>
+            <ClassResources
+              classId={eventData.id}
+              existing_resources={eventData.resources}
+              handleReloadData={handleReloadData}
+            />
             <Button
               variant="contained"
-              color="secondary"
+              color="error"
               onClick={() => setCancelConfirmOpen(true)}
               disabled={isPastEvent}
             >

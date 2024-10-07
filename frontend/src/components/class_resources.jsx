@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Box, Typography, Button, Link } from "@mui/material";
+import { motion } from "framer-motion"; // Import motion
 import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
 
@@ -39,7 +40,6 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
       formData.append("file", file);
     });
 
-    // Hardcoded class ID for now
     formData.append("class_id", classId);
     const auth = window.sessionStorage.getItem("token");
     fetch("http://localhost:8000/class_material", {
@@ -61,14 +61,24 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
       });
   };
 
+  // Wrap the Box with motion
+  const MotionBox = motion(Box);
+
   return (
     <>
       <Modal
         open={resourcesModalOpen}
         onClose={() => setResourcesModalOpen(false)}
       >
-        <Box sx={style} component="form" onSubmit={handleSubmit}>
-          <Typography variant="h6">Upload Resources </Typography>
+        <MotionBox
+          sx={style}
+          component="form"
+          onSubmit={handleSubmit}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <Typography variant="h6">Upload Resources</Typography>
           <Dropzone onDrop={handleFileDrop} />
           {existing_resources.map((resource, index) => (
             <Typography key={index} variant="body1">
@@ -95,7 +105,7 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
                 marginTop: "0.5rem",
               }}
             >
-              <Typography variant="h8" sx={{ flexGrow: 1 }}>
+              <Typography variant="body2" sx={{ flexGrow: 1 }}>
                 {file.name}
               </Typography>
               <Button
@@ -116,9 +126,11 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
           >
             Submit
           </Button>
-        </Box>
+        </MotionBox>
       </Modal>
-      <button
+      <Button
+        variant="contained"
+        color="secondary"
         className="view-resource-modal"
         onClick={() => setResourcesModalOpen(true)}
       >
@@ -126,7 +138,7 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
         {existing_resources.length > 0
           ? `(${existing_resources.length})`
           : null}
-      </button>
+      </Button>
     </>
   );
 };
