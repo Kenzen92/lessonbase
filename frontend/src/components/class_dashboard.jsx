@@ -4,7 +4,7 @@ import ClassEventCard from "./class_event_card";
 import TeacherStatistics from "./../components/teacher_statistics.jsx";
 import handleUnautherizedRequest from "./unautherized_request";
 import ScheduleClassBar from "./schedule_class_bar.jsx";
-import { Typography } from "@mui/material";
+import { Typography, Box, Button } from "@mui/material";
 
 const ClassDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
@@ -122,55 +122,86 @@ const ClassDashboard = () => {
   );
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <Typography color="error">Error: {error}</Typography>;
   }
 
   return (
-    <div className="main-content">
-      <div className="statistics-section">
+    <Box
+      sx={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflowY: "auto",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+      }}
+    >
+      <Box sx={{ mb: 4 }}>
         <TeacherStatistics statistics={statistics} />
-      </div>
+      </Box>
 
-      <div className="schedule-class-bar">
+      <Box sx={{ mb: 4 }}>
         <ScheduleClassBar handleReloadData={handleReloadData} />
-      </div>
+      </Box>
 
-      <div className="previous-future-toggle-buttons">
-        <button
-          className={previous ? "toggle-button toggle-active" : "toggle-button"}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "1rem",
+          mb: 4,
+        }}
+      >
+        <Button
+          variant={previous ? "contained" : "outlined"}
           onClick={() => setPrevious(true)}
+          sx={{ width: "15%" }}
         >
           Previous
-        </button>
-        <button
-          className={
-            !previous ? "toggle-button toggle-active" : "toggle-button"
-          }
+        </Button>
+        <Button
+          variant={!previous ? "contained" : "outlined"}
           onClick={() => setPrevious(false)}
+          sx={{ width: "15%" }}
         >
           Upcoming
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      <div
-        className={`cards-section ${
-          previous ? "previous-cards-section" : "future-cards-section"
-        }`}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        }}
       >
         {Object.keys(filteredClassEvents).map((date) => (
-          <div key={date}>
-            <Typography>{date}</Typography>
-            {filteredClassEvents[date].map((classEvent, index) => (
-              <ClassEventCard
-                key={index}
-                eventData={classEvent}
-                handleReloadData={handleReloadData}
-              />
-            ))}
-          </div>
+          <Box key={date} sx={{ display: "flex", flexDirection: "column" }}>
+            <Typography sx={{ marginLeft: "2rem" }}>{date}</Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "16px",
+              }}
+            >
+              {filteredClassEvents[date].map((classEvent, index) => (
+                <ClassEventCard
+                  key={index}
+                  eventData={classEvent}
+                  handleReloadData={handleReloadData}
+                />
+              ))}
+            </Box>
+          </Box>
         ))}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 

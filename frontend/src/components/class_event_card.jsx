@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "../styles/ClassEventCard.css";
 import {
   FaDna,
   FaAtom,
@@ -33,9 +32,9 @@ import {
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import ScheduleClassBar from "./schedule_class_bar";
-import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
 import ClassResources from "./class_resources";
+import { motion } from "framer-motion";
 
 const subjectIconMap = {
   Mathematics: FaCalculator,
@@ -51,61 +50,32 @@ const subjectIconMap = {
 };
 
 const ClassEventCard = ({ eventData, handleReloadData }) => {
-  console.log("event data: ", eventData);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [homeworkModalOpen, setHomeworkModalOpen] = useState(false);
-
   const [description, setDescription] = useState("");
   const [file, setFile] = useState(null);
   const [filePurpose, setFilePurpose] = useState("");
 
   const startTime = new Date(eventData.start_time);
   const currentTime = new Date();
-
   const isPastEvent = startTime < currentTime;
-
   const IconComponent = subjectIconMap[eventData.subject];
 
-  const options = {
+  const timeFormatter = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "numeric",
-    hour12: false, // Use 24-hour clock
-  };
-
-  const timeFormatter = new Intl.DateTimeFormat("en-US", options);
-
+    hour12: false,
+  });
   const formattedTime = timeFormatter.format(startTime);
 
-  let studentsList = [];
-
-  eventData.students.forEach((student, index) => {
-    studentsList.push(
-      <Avatar
-        alt={student.username}
-        src={student.profile_picture}
-        className="student-profile-icon"
-        key={index}
-      >
-        {student.username ? student.username[0] : null}
-      </Avatar>
-    );
-  });
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-    color: "black",
-  };
+  let studentsList = eventData.students.map((student, index) => (
+    <Avatar alt={student.username} src={student.profile_picture} key={index}>
+      {student.username ? student.username[0] : null}
+    </Avatar>
+  ));
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -116,7 +86,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
       formData.append("file", file);
       if (filePurpose) formData.append("filePurpose", filePurpose);
     }
-    console.log(formData);
+
     const auth = window.sessionStorage.getItem("token");
     fetch("http://localhost:8000/class_report", {
       method: "POST",
@@ -126,13 +96,11 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
       body: formData,
     })
       .then((response) => response.json())
-      .then((data) => {
+      .then(() => {
         toast.success("File uploaded successfully!");
-        console.log("Success:", data);
       })
-      .catch((error) => {
+      .catch(() => {
         toast.error("Error uploading file.");
-        console.error("Error:", error);
       });
   };
 
@@ -162,146 +130,175 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     }
   };
 
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 400,
+    border: "2px solid #000",
+    boxShadow: 24,
+    p: 4,
+    color: "black",
+  };
+
   return (
     <>
-      <div>
-        <Modal
-          open={open}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
+      <Modal open={open}>
+        <Box
+          sx={{
+            ...style,
+          }}
+          component="form"
+          onSubmit={handleSubmit}
         >
-          <Box sx={style} component="form" onSubmit={handleSubmit}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Class Content Submission
-            </Typography>
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Description"
-              variant="outlined"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="file-purpose-label">File Purpose</InputLabel>
-              <Select
-                labelId="file-purpose-label"
-                value={filePurpose}
-                onChange={(e) => setFilePurpose(e.target.value)}
-              >
-                <MenuItem value="teaching">Teaching Material</MenuItem>
-                <MenuItem value="homework">Homework</MenuItem>
-              </Select>
-            </FormControl>
-            <Button
-              variant="contained"
-              fullWidth
-              margin="normal"
-              onClick={() => setResourcesModalOpen(true)}
-            >
-              Select File
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ mt: 2 }}
-            >
-              Submit
-            </Button>
-          </Box>
-        </Modal>
-
-        {/* Cancel Confirmation Dialog */}
-        <Dialog
-          open={cancelConfirmOpen}
-          onClose={() => setCancelConfirmOpen(false)}
-        >
-          <DialogTitle>Confirm Cancellation</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Are you sure you want to cancel this class event?
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setCancelConfirmOpen(false)}>No</Button>
-            <Button onClick={handleConfirmCancel} color="secondary">
-              Yes, Cancel
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Edit Class Modal */}
-        <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
-          <Box sx={style}>
-            <Typography variant="h6">Edit Class</Typography>
-            <ScheduleClassBar classData={eventData} />
-          </Box>
-        </Modal>
-
-        {/* Homework Modal */}
-        <Modal
-          open={homeworkModalOpen}
-          onClose={() => setHomeworkModalOpen(false)}
-        >
-          <Box sx={style}>
-            <Typography variant="h6">Homework</Typography>
-            <p>Homework content goes here.</p>
-          </Box>
-        </Modal>
-      </div>
-      <div className="class-event-card">
-        <div className="class-event-card-top">
-          <div className="class-event-card-info">
-            <div className="start-time">
-              <FaClock className="class-clock-icon" />
-              <h4>{formattedTime}</h4>
-            </div>
-            <div className="students-list">
-              <FaGraduationCap className="student-icon" />
-              <AvatarGroup max={3}>{studentsList}</AvatarGroup>
-            </div>
-            <div className="subject-section">
-              <IconComponent className="subject-icon" />
-              <h4 className="subject">{eventData.subject}</h4>
-            </div>
-          </div>
-          <div className="class-event-card-actions-vertical">
-            {!isPastEvent && (
-              <button className="start-class-event">Start</button>
-            )}
-          </div>
-        </div>
-        <div className="class-event-card-bottom">
-          <ClassResources
-            classId={eventData.id}
-            existing_resources={eventData.resources}
-            handleReloadData={handleReloadData}
+          <Typography variant="h6">Class Content Submission</Typography>
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Description"
+            variant="outlined"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
-          <button
-            className="view-homework-modal"
-            onClick={() => setHomeworkModalOpen(true)}
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="file-purpose-label">File Purpose</InputLabel>
+            <Select
+              labelId="file-purpose-label"
+              value={filePurpose}
+              onChange={(e) => setFilePurpose(e.target.value)}
+            >
+              <MenuItem value="teaching">Teaching Material</MenuItem>
+              <MenuItem value="homework">Homework</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={() => setResourcesModalOpen(true)}
           >
-            Homework
-          </button>
-          <button
-            className="edit-class-event"
-            onClick={() => setEditModalOpen(true)}
-            disabled={isPastEvent} // Disable edit button if event is in the past
+            Select File
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
           >
-            Edit
-          </button>
-          <button
-            className="cancel-class-event"
-            onClick={() => setCancelConfirmOpen(true)}
-            disabled={isPastEvent} // Disable cancel button if event is in the past
+            Submit
+          </Button>
+        </Box>
+      </Modal>
+
+      <Dialog
+        open={cancelConfirmOpen}
+        onClose={() => setCancelConfirmOpen(false)}
+      >
+        <DialogTitle>Confirm Cancellation</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to cancel this class event?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelConfirmOpen(false)}>No</Button>
+          <Button onClick={handleConfirmCancel} color="secondary">
+            Yes, Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}>
+        <Box sx={{ ...style, width: 500 }}>
+          <Typography variant="h6">Edit Class</Typography>
+          <ScheduleClassBar classData={eventData} />
+        </Box>
+      </Modal>
+
+      <Modal
+        open={homeworkModalOpen}
+        onClose={() => setHomeworkModalOpen(false)}
+      >
+        <Box sx={style}>
+          <Typography variant="h6">Homework</Typography>
+          <p>Homework content goes here.</p>
+        </Box>
+      </Modal>
+
+      <motion.div
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <Box
+          sx={{
+            p: 2,
+            mb: 3,
+            boxShadow: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            backgroundColor: "#292929",
+            borderRadius: "15px",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
           >
-            Cancel
-          </button>
-        </div>
-        {error && <p>{error}</p>}
-      </div>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <FaClock />
+              <Typography>{formattedTime}</Typography>
+            </Box>
+            <AvatarGroup max={3}>{studentsList}</AvatarGroup>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <IconComponent />
+              <Typography>{eventData.subject}</Typography>
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+            }}
+          >
+            {!isPastEvent && (
+              <Button variant="contained" color="primary">
+                Start
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => setHomeworkModalOpen(true)}
+            >
+              Homework
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => setEditModalOpen(true)}
+              disabled={isPastEvent}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => setCancelConfirmOpen(true)}
+              disabled={isPastEvent}
+            >
+              Cancel
+            </Button>
+          </Box>
+          {error && <Typography color="error">{error}</Typography>}
+        </Box>
+      </motion.div>
     </>
   );
 };

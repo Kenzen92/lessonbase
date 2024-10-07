@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Button, Grid, TextField, Typography, Box } from "@mui/material";
+import { motion } from "framer-motion";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -58,12 +59,18 @@ function Login() {
           color: "white",
         }}
       >
-        <Box textAlign="center">
-          <Typography variant="h3" component="h1">
-            Kenny Solutions
-          </Typography>
-          <Typography variant="h6">A teaching solution for all.</Typography>
-        </Box>
+        <motion.div
+          initial={{ opacity: 0.1 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2 }}
+        >
+          <Box textAlign="center">
+            <Typography variant="h3" component="h1">
+              Kenny Solutions
+            </Typography>
+            <Typography variant="h6">A teaching solution for all.</Typography>
+          </Box>
+        </motion.div>
       </Grid>
       <Grid
         item
@@ -77,42 +84,53 @@ function Login() {
       >
         <Box textAlign="center" width="80%" maxWidth="400px">
           {showForm ? (
-            <form onSubmit={handleLogin}>
-              <TextField
-                fullWidth
-                label="Username"
-                variant="outlined"
-                margin="normal"
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  setUsernameError(false);
-                }}
-                error={usernameError}
-              />
-              <TextField
-                fullWidth
-                label="Password"
-                variant="outlined"
-                type="password"
-                margin="normal"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setPasswordError(false);
-                }}
-                error={passwordError}
-              />
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                color="primary"
-                sx={{ mt: 2 }}
-              >
-                Login
-              </Button>
-            </form>
+            <motion.div
+              initial={{ opacity: 0, x: -500 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <form onSubmit={handleLogin}>
+                <TextField
+                  fullWidth
+                  label="Username"
+                  variant="outlined"
+                  InputLabelProps={{
+                    style: { color: "#fff" },
+                  }}
+                  margin="normal"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setUsernameError(false);
+                  }}
+                  error={usernameError}
+                />
+                <TextField
+                  fullWidth
+                  label="Password"
+                  variant="outlined"
+                  InputLabelProps={{
+                    style: { color: "#fff" },
+                  }}
+                  type="password"
+                  margin="normal"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setPasswordError(false);
+                  }}
+                  error={passwordError}
+                />
+                <Button
+                  fullWidth
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  sx={{ mt: 2 }}
+                >
+                  Login
+                </Button>
+              </form>
+            </motion.div>
           ) : (
             <Button
               variant="contained"

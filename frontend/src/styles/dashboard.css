@@ -34,8 +34,20 @@
 }
 
 .cards-section {
-  text-align: center;
-  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Adjust as needed for spacing between rows */
+}
+
+.day-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.events-row {
+  display: flex;
+  flex-wrap: wrap; /* Ensures events wrap if they overflow */
+  gap: 16px; /* Adjust as needed for spacing between events */
 }
 
 .toggle-button {

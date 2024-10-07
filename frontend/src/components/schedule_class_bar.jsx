@@ -210,7 +210,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           />
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "14rem" }}>
+        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
           <FormControl fullWidth>
             <InputLabel htmlFor="duration-input">Duration</InputLabel>
             <Select
@@ -228,7 +228,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "14rem" }}>
+        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
           <FormControl fullWidth>
             <InputLabel id="student-select-label">Students</InputLabel>
             <Select
@@ -248,7 +248,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "14rem" }}>
+        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
           <FormControl fullWidth>
             <InputLabel id="subject-select-label">Subject</InputLabel>
             <Select
@@ -266,23 +266,11 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
             </Select>
           </FormControl>
         </Grid>
-      </Grid>
-      <Grid
-        item
-        xs={12}
-        sm={6}
-        md={3}
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          minWidth: "14rem",
-        }}
-      >
         <Button
           variant="contained"
           color="primary"
           onClick={handleSubmit}
-          sx={{ minWidth: "14rem", marginTop: "0.5rem" }}
+          sx={{ marginLeft: "2rem", minWidth: "10rem", marginTop: "0.5rem" }}
         >
           Submit
         </Button>
