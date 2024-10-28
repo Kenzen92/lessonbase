@@ -167,114 +167,187 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
   return (
     <Box
       sx={{
-        bgcolor: "background.paper",
-        p: 2,
-        borderRadius: 2,
-        maxWidth: "1600px",
         marginLeft: "auto",
         marginRight: "auto",
-        width: { xs: "100%", md: "auto" },
-        boxShadow: 3,
+        maxWidth: "1600px",
       }}
     >
-      <Typography
-        variant={"h6"}
-        sx={{ color: "text.primary", textAlign: "center", mb: 2 }}
+      <Box
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          marginLeft: "0.5rem",
+          marginRight: "0.5rem",
+          width: { xs: "100%", md: "auto" },
+          boxShadow: 5,
+          border: 2,
+          borderColor: "#333",
+        }}
       >
-        Schedule your next class
-      </Typography>
-      <Grid
-        container
-        spacing={2}
-        justifyContent="flex-start"
-        alignItems="center"
-        direction={{ xs: "column", sm: "row" }}
-      >
-        <Grid item xs={12} sm={6} md={3} lg={2}>
-          <DatePicker
-            value={startDate}
-            onChange={(newValue) => setStartDate(newValue)}
-            label="Date"
-            sx={{ minWidth: "100%" }}
-            renderInput={(params) => <TextField {...params} fullWidth />}
-          />
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3} lg={2}>
-          <MobileTimePicker
-            value={startTime}
-            onChange={(newValue) => setStartTime(newValue)}
-            label="Time"
-            sx={{ minWidth: "100%" }}
-            renderInput={(params) => <TextField {...params} fullWidth />}
-          />
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
-          <FormControl fullWidth>
-            <InputLabel htmlFor="duration-input">Duration</InputLabel>
-            <Select
-              id="duration-select"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              label="Duration"
-            >
-              {[0, 15, 30, 45, 60, 75, 90].map((dur) => (
-                <MenuItem key={dur} value={dur}>
-                  {dur} minutes
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
-          <FormControl fullWidth>
-            <InputLabel id="student-select-label">Students</InputLabel>
-            <Select
-              labelId="student-select-label"
-              id="students"
-              multiple
-              value={selectedStudents}
-              onChange={(e) => setSelectedStudents(e.target.value)}
-              label="Students"
-            >
-              {allStudents.map((student) => (
-                <MenuItem key={student.id} value={student.id}>
-                  {student.username}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
-          <FormControl fullWidth>
-            <InputLabel id="subject-select-label">Subject</InputLabel>
-            <Select
-              id="subjects"
-              labelId="subject-select-label"
-              value={selectedSubject}
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              label="Subject"
-            >
-              {allSubjects.map((subject) => (
-                <MenuItem key={subject.id} value={subject.id}>
-                  {subject.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          sx={{ marginLeft: "2rem", minWidth: "10rem", marginTop: "0.5rem" }}
+        <Typography
+          variant={"h5"}
+          sx={{ color: "#fff", textAlign: "center", mb: 2 }}
         >
-          Submit
-        </Button>
-      </Grid>
+          Schedule your next class
+        </Typography>
+        <Grid
+          container
+          spacing={2}
+          justifyContent="flex-start"
+          alignItems="center"
+          direction={{ xs: "column", sm: "row" }}
+        >
+          <Grid item xs={12} sm={6} md={3} lg={2}>
+            <DatePicker
+              value={startDate}
+              onChange={(newValue) => setStartDate(newValue)}
+              label="Date"
+              sx={{ minWidth: "100%" }}
+              slots={{
+                textField: (params) => (
+                  <TextField
+                    {...params}
+                    fullWidth
+                    InputLabelProps={{
+                      style: { color: "#fff" }, // Label color
+                    }}
+                    InputProps={{
+                      style: { color: "#fff" }, // Text color
+                    }}
+                  />
+                ),
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3} lg={2}>
+            <MobileTimePicker
+              value={startTime}
+              onChange={(newValue) => setStartTime(newValue)}
+              label="Time"
+              sx={{ minWidth: "100%" }}
+              slots={{
+                textField: (params) => (
+                  <TextField
+                    {...params}
+                    fullWidth
+                    InputLabelProps={{
+                      style: { color: "#fff" }, // Label color
+                    }}
+                    InputProps={{
+                      style: { color: "#fff" }, // Text color
+                    }}
+                  />
+                ),
+              }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
+            <FormControl fullWidth>
+              <InputLabel htmlFor="duration-select" sx={{ color: "#fff" }}>
+                Duration
+              </InputLabel>
+              <Select
+                id="duration-select"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                label="Duration"
+                sx={{
+                  color: "#fff", // Selected text color
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#333", // Background color of the dropdown menu
+                      color: "#fff", // Text color in the dropdown menu
+                    },
+                  },
+                }}
+              >
+                {[0, 15, 30, 45, 60, 75, 90].map((dur) => (
+                  <MenuItem key={dur} value={dur}>
+                    {dur} minutes
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
+            <FormControl fullWidth>
+              <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
+                Students
+              </InputLabel>
+              <Select
+                labelId="student-select-label"
+                id="students"
+                multiple
+                value={selectedStudents}
+                onChange={(e) => setSelectedStudents(e.target.value)}
+                label="Students"
+                sx={{
+                  color: "#fff", // Selected text color
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#333", // Background color of the dropdown menu
+                      color: "#fff", // Text color in the dropdown menu
+                    },
+                  },
+                }}
+              >
+                {allStudents.map((student) => (
+                  <MenuItem key={student.id} value={student.id}>
+                    {student.username}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
+            <FormControl fullWidth>
+              <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
+                Subject
+              </InputLabel>
+              <Select
+                id="subjects"
+                labelId="subject-select-label"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                label="Subject"
+                sx={{
+                  color: "#fff", // Selected text color
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#333", // Background color of the dropdown menu
+                      color: "#fff", // Text color in the dropdown menu
+                    },
+                  },
+                }}
+              >
+                {allSubjects.map((subject) => (
+                  <MenuItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            sx={{ marginLeft: "2rem", minWidth: "10rem", marginTop: "0.5rem" }}
+          >
+            Submit
+          </Button>
+        </Grid>
+      </Box>
     </Box>
   );
 };

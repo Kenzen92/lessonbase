@@ -96,6 +96,9 @@ function Login() {
                   InputLabelProps={{
                     style: { color: "#fff" },
                   }}
+                  InputProps={{
+                    style: { color: "#fff" },
+                  }}
                   margin="normal"
                   value={username}
                   onChange={(e) => {
@@ -109,6 +112,9 @@ function Login() {
                   label="Password"
                   variant="outlined"
                   InputLabelProps={{
+                    style: { color: "#fff" },
+                  }}
+                  InputProps={{
                     style: { color: "#fff" },
                   }}
                   type="password"
