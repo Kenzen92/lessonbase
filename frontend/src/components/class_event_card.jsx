@@ -251,14 +251,14 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             }}
           >
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-              <FaClock />
+              <FaClock color="#fff" size={24}/>
               <Typography>{formattedTime}</Typography>
             </Box>
-            <AvatarGroup max={3}>{studentsList}</AvatarGroup>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-              <IconComponent />
+              <IconComponent color="#fff" size={24} />
               <Typography>{eventData.subject}</Typography>
             </Box>
+            <AvatarGroup max={3}>{studentsList}</AvatarGroup>
           </Box>
 
           <Box
