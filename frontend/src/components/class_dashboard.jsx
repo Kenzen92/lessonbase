@@ -178,6 +178,7 @@ const ClassDashboard = () => {
           display: "flex",
           flexDirection: "column",
           gap: "16px",
+          alignItems: "center",
         }}
       >
         {Object.keys(filteredClassEvents).map((date) => (

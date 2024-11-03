@@ -248,17 +248,20 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              marginBottom: "3rem",
             }}
           >
             <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-              <FaClock color="#fff" size={24}/>
+              <FaClock color="#fff" size={24} />
               <Typography>{formattedTime}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconComponent color="#fff" size={24} />
               <Typography>{eventData.subject}</Typography>
             </Box>
-            <AvatarGroup max={3}>{studentsList}</AvatarGroup>
+            <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <AvatarGroup max={3}>{studentsList}</AvatarGroup>
+            </Box>
           </Box>
 
           <Box
@@ -269,13 +272,18 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             }}
           >
             {!isPastEvent && (
-              <Button variant="contained" color="primary">
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ width: "8rem" }}
+              >
                 Start
               </Button>
             )}
             <Button
               variant="contained"
               color="secondary"
+              sx={{ width: "8rem" }}
               onClick={() => setHomeworkModalOpen(true)}
             >
               Homework
@@ -283,6 +291,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             <Button
               variant="contained"
               color="secondary"
+              sx={{ width: "8rem" }}
               onClick={() => setEditModalOpen(true)}
               disabled={isPastEvent}
             >
@@ -296,6 +305,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             <Button
               variant="contained"
               color="error"
+              sx={{ width: "8rem" }}
               onClick={() => setCancelConfirmOpen(true)}
               disabled={isPastEvent}
             >

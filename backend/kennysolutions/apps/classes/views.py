@@ -20,6 +20,7 @@ def class_events(request, class_id=None):
     if request.method == 'GET':
         user = request.user
         class_events = ClassEvent.objects.filter(students=user) | ClassEvent.objects.filter(teachers=user)
+        print(class_event.students for class_event in class_events )
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
 

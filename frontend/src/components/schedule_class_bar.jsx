@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import {
   FormControl,
@@ -212,64 +213,59 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
               label="Date"
+              fullWidth
               sx={{
-                minWidth: "10rem",
+                width: "100%", // Ensures DatePicker occupies full width of Grid item
                 "& .MuiOutlinedInput-root": {
+                  color: "#fff", // Text color
                   "& fieldset": {
-                    borderColor: "#fff", // Default border color
+                    borderColor: "#fff", // Border color
                   },
                   "&:hover fieldset": {
                     borderColor: "#fff", // Hover border color
                   },
                 },
+                "& .MuiInputLabel-root": {
+                  color: "#fff", // Label color
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#fff", // Icon color
+                },
               }}
-              slots={{
-                textField: (params) => (
-                  <TextField
-                    {...params}
-                    fullWidth
-                    InputLabelProps={{
-                      style: { color: "#fff" }, // Label color
-                    }}
-                    InputProps={{
-                      style: { color: "#fff" }, // Text color
-                    }}
-                  />
-                ),
-              }}
+              renderInput={(params) => <TextField {...params} fullWidth />}
             />
           </Grid>
 
           <Grid item xs={12} sm={6} lg={4}>
-            <MobileTimePicker
+            <TimePicker
               value={startTime}
               onChange={(newValue) => setStartTime(newValue)}
               label="Time"
+              viewRenderers={{
+                hours: renderTimeViewClock,
+                minutes: renderTimeViewClock,
+                seconds: renderTimeViewClock,
+              }}
+              fullWidth
               sx={{
-                minWidth: "10rem",
+                width: "100%", // Ensures DatePicker occupies full width of Grid item
                 "& .MuiOutlinedInput-root": {
+                  color: "#fff", // Text color
                   "& fieldset": {
-                    borderColor: "#fff", // Default border color
+                    borderColor: "#fff", // Border color
                   },
                   "&:hover fieldset": {
                     borderColor: "#fff", // Hover border color
                   },
                 },
+                "& .MuiInputLabel-root": {
+                  color: "#fff", // Label color
+                },
+                "& .MuiSvgIcon-root": {
+                  color: "#fff", // Icon color
+                },
               }}
-              slots={{
-                textField: (params) => (
-                  <TextField
-                    {...params}
-                    fullWidth
-                    InputLabelProps={{
-                      style: { color: "#fff" }, // Label color
-                    }}
-                    InputProps={{
-                      style: { color: "#fff" }, // Text color
-                    }}
-                  />
-                ),
-              }}
+              renderInput={(params) => <TextField {...params} fullWidth />}
             />
           </Grid>
 
@@ -291,13 +287,8 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#fff", // Hover border color
                   },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: "#333", // Background color of the dropdown menu
-                      color: "#fff", // Text color in the dropdown menu
-                    },
+                  "& .MuiSelect-icon": {
+                    color: "#fff", // Caret color
                   },
                 }}
               >
@@ -329,13 +320,8 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#fff", // Hover border color
                   },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: "#333", // Background color of the dropdown menu
-                      color: "#fff", // Text color in the dropdown menu
-                    },
+                  "& .MuiSelect-icon": {
+                    color: "#fff", // Caret color
                   },
                 }}
               >
@@ -368,13 +354,8 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
                   "&:hover .MuiOutlinedInput-notchedOutline": {
                     borderColor: "#fff", // Hover border color
                   },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: "#333", // Background color of the dropdown menu
-                      color: "#fff", // Text color in the dropdown menu
-                    },
+                  "& .MuiSelect-icon": {
+                    color: "#fff", // Caret color
                   },
                 }}
               >
