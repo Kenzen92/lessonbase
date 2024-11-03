@@ -18,9 +18,12 @@ from .models import ClassEvent, Homework, TeachingResource
 @permission_classes([IsAuthenticated])
 def class_events(request, class_id=None):
     if request.method == 'GET':
-        user = request.user
-        class_events = ClassEvent.objects.filter(students=user) | ClassEvent.objects.filter(teachers=user)
-        print(class_event.students for class_event in class_events )
+        user = request.user.get_real_instance()
+        class_events = None
+        if isinstance(user, Teacher):
+            class_events = ClassEvent.objects.filter(teachers=user).distinct()
+        else:
+            class_events = ClassEvent.objects.filter(students=user).distinct()
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
 

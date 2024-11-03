@@ -271,15 +271,15 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
               gap: 2,
             }}
           >
-            {!isPastEvent && (
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ width: "8rem" }}
-              >
-                Start
-              </Button>
-            )}
+            <Button
+              variant="contained"
+              color="error"
+              sx={{ width: "8rem" }}
+              onClick={() => setCancelConfirmOpen(true)}
+              disabled={isPastEvent}
+            >
+              Cancel
+            </Button>
             <Button
               variant="contained"
               color="secondary"
@@ -302,15 +302,15 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
               existing_resources={eventData.resources}
               handleReloadData={handleReloadData}
             />
-            <Button
-              variant="contained"
-              color="error"
-              sx={{ width: "8rem" }}
-              onClick={() => setCancelConfirmOpen(true)}
-              disabled={isPastEvent}
-            >
-              Cancel
-            </Button>
+            {!isPastEvent && (
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ width: "8rem" }}
+              >
+                Start
+              </Button>
+            )}
           </Box>
           {error && <Typography color="error">{error}</Typography>}
         </Box>
