@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import {
   FormControl,
   InputLabel,
@@ -169,7 +170,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
       sx={{
         marginLeft: "auto",
         marginRight: "auto",
-        maxWidth: "1600px",
+        maxWidth: "80rem",
       }}
     >
       <Box
@@ -178,18 +179,27 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           borderRadius: 2,
           marginLeft: "0.5rem",
           marginRight: "0.5rem",
-          width: { xs: "100%", md: "auto" },
           boxShadow: 5,
           border: 2,
           borderColor: "#333",
         }}
       >
-        <Typography
-          variant={"h5"}
-          sx={{ color: "#fff", textAlign: "center", mb: 2 }}
+        {/* Title and Button Container */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
         >
-          Schedule your next class
-        </Typography>
+          <Typography variant="h4" sx={{ color: "#fff" }}>
+            Schedule Your Next Class
+          </Typography>
+          <Button variant="contained" color="primary" onClick={handleSubmit}>
+            Submit
+          </Button>
+        </Box>
         <Grid
           container
           spacing={2}
@@ -197,12 +207,22 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           alignItems="center"
           direction={{ xs: "column", sm: "row" }}
         >
-          <Grid item xs={12} sm={6} md={3} lg={2}>
+          <Grid item xs={12} sm={6} lg={4}>
             <DatePicker
               value={startDate}
               onChange={(newValue) => setStartDate(newValue)}
               label="Date"
-              sx={{ minWidth: "100%" }}
+              sx={{
+                minWidth: "10rem",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "#fff", // Default border color
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#fff", // Hover border color
+                  },
+                },
+              }}
               slots={{
                 textField: (params) => (
                   <TextField
@@ -220,12 +240,22 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} lg={2}>
+          <Grid item xs={12} sm={6} lg={4}>
             <MobileTimePicker
               value={startTime}
               onChange={(newValue) => setStartTime(newValue)}
               label="Time"
-              sx={{ minWidth: "100%" }}
+              sx={{
+                minWidth: "10rem",
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: "#fff", // Default border color
+                  },
+                  "&:hover fieldset": {
+                    borderColor: "#fff", // Hover border color
+                  },
+                },
+              }}
               slots={{
                 textField: (params) => (
                   <TextField
@@ -243,7 +273,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
+          <Grid item xs={12} sm={6} lg={4} sx={{ minWidth: "10rem" }}>
             <FormControl fullWidth>
               <InputLabel htmlFor="duration-select" sx={{ color: "#fff" }}>
                 Duration
@@ -255,6 +285,12 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
                 label="Duration"
                 sx={{
                   color: "#fff", // Selected text color
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff", // Default border color
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff", // Hover border color
+                  },
                 }}
                 MenuProps={{
                   PaperProps: {
@@ -274,40 +310,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
-            <FormControl fullWidth>
-              <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
-                Students
-              </InputLabel>
-              <Select
-                labelId="student-select-label"
-                id="students"
-                multiple
-                value={selectedStudents}
-                onChange={(e) => setSelectedStudents(e.target.value)}
-                label="Students"
-                sx={{
-                  color: "#fff", // Selected text color
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: "#333", // Background color of the dropdown menu
-                      color: "#fff", // Text color in the dropdown menu
-                    },
-                  },
-                }}
-              >
-                {allStudents.map((student) => (
-                  <MenuItem key={student.id} value={student.id}>
-                    {student.username}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3} lg={2} sx={{ minWidth: "10rem" }}>
+          <Grid item xs={12} sm={6} lg={4} sx={{ minWidth: "10rem" }}>
             <FormControl fullWidth>
               <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
                 Subject
@@ -320,6 +323,12 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
                 label="Subject"
                 sx={{
                   color: "#fff", // Selected text color
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff", // Default border color
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff", // Hover border color
+                  },
                 }}
                 MenuProps={{
                   PaperProps: {
@@ -338,14 +347,45 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
               </Select>
             </FormControl>
           </Grid>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            sx={{ marginLeft: "2rem", minWidth: "10rem", marginTop: "0.5rem" }}
-          >
-            Submit
-          </Button>
+
+          <Grid item xs={12} sm={12} lg={8} sx={{ minWidth: "10rem" }}>
+            <FormControl fullWidth>
+              <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
+                Students
+              </InputLabel>
+              <Select
+                labelId="student-select-label"
+                id="students"
+                multiple
+                value={selectedStudents}
+                onChange={(e) => setSelectedStudents(e.target.value)}
+                label="Students"
+                sx={{
+                  color: "#fff", // Selected text color
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff", // Default border color
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#fff", // Hover border color
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      backgroundColor: "#333", // Background color of the dropdown menu
+                      color: "#fff", // Text color in the dropdown menu
+                    },
+                  },
+                }}
+              >
+                {allStudents.map((student) => (
+                  <MenuItem key={student.id} value={student.id}>
+                    {student.username}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
         </Grid>
       </Box>
     </Box>

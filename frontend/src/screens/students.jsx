@@ -1,141 +1,163 @@
-// Login.js
-import React, { useState, useEffect } from 'react';
-import Navigation from '../components/main_navigation';
-import { toast } from 'react-toastify';
-import '../styles/dashboard.css'
-import '../styles/student.css'
-import StudentInfoCard from '../components/student_info_card';
+// Students.js
+import React, { useState, useEffect } from "react";
+import Navigation from "../components/main_navigation";
+import { toast } from "react-toastify";
+import StudentInfoCard from "../components/student_info_card";
+import {
+  Container,
+  Box,
+  Button,
+  Grid,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 function Students() {
-    const [showForm, setShowForm] = useState(false);
-    const [students, setstudents] = useState([]);
-    const [chats, setChats] = useState([])
-    const currentUserID = 1; // Hardcoded for now, replace with dynamic user ID later
+  const [showForm, setShowForm] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [chats, setChats] = useState([]);
+  const currentUserID = 1; // Hardcoded for now, replace with dynamic user ID later
 
-    const fetchStudents = async () => {
-        try {
-            const auth = window.sessionStorage.getItem("token");
-            const response = await fetch('http://localhost:8000/students-for-teacher', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Token ${auth}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch subjects');
-            }
-
-            const data = await response.json();
-            await setstudents(data);
-            console.log(data)
-        } catch (error) {
-            setError(error.message);
+  const fetchStudents = async () => {
+    try {
+      const auth = window.sessionStorage.getItem("token");
+      const response = await fetch(
+        "http://localhost:8000/students-for-teacher",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Token ${auth}`,
+            "Content-Type": "application/json",
+          },
         }
-    };
+      );
 
-    const fetchChats = async () => {
-        try {
-            const auth = window.sessionStorage.getItem("token");
-            const response = await fetch('http://localhost:8000/chats', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Token ${auth}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+      if (!response.ok) {
+        throw new Error("Failed to fetch subjects");
+      }
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch chats');
-            }
+      const data = await response.json();
+      setStudents(data);
+      console.log(data);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
 
-            const data = await response.json();
-            const processedChats = data.map(chat => {
-                return {
-                    ...chat,
-                    participants: chat.participants.filter(id => id !== currentUserID)
-                };
-            });
-            setChats(processedChats);
-        } catch (error) {
-            console.error(error.message);
-        }
-    };
+  const fetchChats = async () => {
+    try {
+      const auth = window.sessionStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/chats", {
+        method: "GET",
+        headers: {
+          Authorization: `Token ${auth}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-    useEffect(() => {
-        fetchStudents();
-        fetchChats();
-    }, []);
+      if (!response.ok) {
+        throw new Error("Failed to fetch chats");
+      }
 
-    // Function to handle form submission
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
-        setShowForm(!showForm);
-        
-        const url = 'http://localhost:8000/new-student/';
-        const payload = {
-            email: e.target.email.value
+      const data = await response.json();
+      const processedChats = data.map((chat) => {
+        return {
+          ...chat,
+          participants: chat.participants.filter((id) => id !== currentUserID),
         };
-        const auth = window.sessionStorage.getItem("token");
-        
-        try {
-            // Show a toast indicating that the email is being sent
-            toast.promise(
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Token ${auth}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                }),
-                {
-                    pending: 'Sending email...',
-                    success: 'Email sent successfully!',
-                    error: 'Failed to send email. Please try again later.'
-                }
-            );
-        } catch (error) {
-            console.error(error);
-            toast.error("Connection error. Please try again later.");
-        }
+      });
+      setChats(processedChats);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    fetchChats();
+  }, []);
+
+  // Function to handle form submission
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setShowForm(false);
+
+    const url = "http://localhost:8000/new-student/";
+    const payload = {
+      email: e.target.email.value,
     };
+    const auth = window.sessionStorage.getItem("token");
 
-    return (
-            <>
-                <Navigation />
-                <div className="student-container">
-                    {showForm ? 
-                        <form onSubmit={handleFormSubmit}>
-                            <label>
-                                Email:
-                                <input type="email" name="email" required />
-                            </label>
-                            <button type="submit">Send Invitation</button>
-                        </form>
-                    :
-                    <div>
-                        <button onClick={() => setShowForm(!showForm)}>Add New Student</button>
-                    </div>
-                    }
-                    <div className="cards-section">
-                    {students.map(student => {
-                        const chat = chats.find(chat => chat.participants.includes(student.id));
-                        const chatId = chat ? chat.id : null;
+    try {
+      toast.promise(
+        fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Token ${auth}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }),
+        {
+          pending: "Sending email...",
+          success: "Email sent successfully!",
+          error: "Failed to send email. Please try again later.",
+        }
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Connection error. Please try again later.");
+    }
+  };
 
-                        return (
-                            <StudentInfoCard
-                                key={student.id}
-                                student={student}
-                                chatId={chatId} // Pass the chat ID to the student card
-                            />
-                        );
-                    })}
-                    </div>
-                </div>
-            </>
-    );
+  return (
+    <>
+      <Navigation />
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        {showForm ? (
+          <Box component="form" onSubmit={handleFormSubmit} sx={{ mb: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              Add New Student
+            </Typography>
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              required
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <Button type="submit" variant="contained" color="primary">
+              Send Invitation
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setShowForm(true)}
+            sx={{ mb: 4 }}
+          >
+            Add New Student
+          </Button>
+        )}
+        <Grid container spacing={2} className="cards-section">
+          {students.map((student) => {
+            const chat = chats.find((chat) =>
+              chat.participants.includes(student.id)
+            );
+            const chatId = chat ? chat.id : null;
+
+            return (
+              <Grid item xs={12} sm={6} md={4} key={student.id}>
+                <StudentInfoCard student={student} chatId={chatId} />
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Container>
+    </>
+  );
 }
 
 export default Students;

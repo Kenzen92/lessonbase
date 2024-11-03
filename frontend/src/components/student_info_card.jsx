@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
-import "../styles/StudentInfoCard.css";
 import { Link, useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
 import ClassEventCard from "./class_event_card";
-import { Modal, Box, Typography } from "@mui/material";
+import {
+  Modal,
+  Box,
+  Typography,
+  Button,
+  Paper,
+  IconButton,
+} from "@mui/material";
 import ScheduleClassModal from "./schedule_class_modal";
+
 const StudentInfoCard = ({ student, chatId }) => {
   const [error, setError] = useState(null);
   const [previousClass, setPreviousClass] = useState(null);
@@ -44,8 +51,6 @@ const StudentInfoCard = ({ student, chatId }) => {
       const lastClass =
         pastClasses.length > 0 ? pastClasses[pastClasses.length - 1] : null;
       const upcomingClass = futureClasses.length > 0 ? futureClasses[0] : null;
-      console.log("upcoming class: ", upcomingClass);
-      console.log("previous class:", lastClass);
       setPreviousClass(lastClass);
       setNextClass(upcomingClass);
     } catch (error) {
@@ -57,12 +62,10 @@ const StudentInfoCard = ({ student, chatId }) => {
     fetchClassEvents();
   }, [student.id]);
 
-  // Callback function to force re-render of ClassDashboard after item deletion
   const handleReloadData = () => {
-    console.log("Handling");
-    // Call fetchClassEvents to fetch updated data
     fetchClassEvents();
   };
+
   const createChat = async () => {
     try {
       const auth = window.sessionStorage.getItem("token");
@@ -96,66 +99,110 @@ const StudentInfoCard = ({ student, chatId }) => {
     setSelectedClassEvent(null);
   };
 
-  const modalStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    boxShadow: 24,
-  };
-
   return (
-    <div className="student-info-card">
-      <div className="student-info-card-content">
-        <div className="student-info-card-info">
-          <div className="username-picture-row">
-            <Typography>{student.username}</Typography>
-            <Avatar
-              alt={student.username}
-              src={student.profile_picture}
-              className="student-profile-icon"
+    <Box
+      sx={{
+        p: 3,
+        boxShadow: 3,
+        borderRadius: 2,
+        maxWidth: "30rem",
+        boxShadow: 5,
+        border: 2,
+        borderColor: "#333",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+        <Avatar
+          alt={student.username}
+          src={student.profile_picture}
+          sx={{ width: 56, height: 56, mr: 2 }}
+        >
+          {student.username ? student.username[0] : null}
+        </Avatar>
+        <Typography variant="h6">{student.username}</Typography>
+        <Box sx={{ ml: "auto" }}>
+          {chatId ? (
+            <Button
+              component={Link}
+              to={`/chat/${chatId}`}
+              variant="outlined"
+              sx={{ ml: 2 }}
             >
-              {student.username ? student.username[0] : null}
-            </Avatar>
-            {chatId ? (
-              <Link to={`/chat/${chatId}`}>
-                <button className="chat-button">Chat</button>
-              </Link>
-            ) : (
-              <button className="chat-button" onClick={createChat}>
-                + Chat
-              </button>
-            )}
-          </div>
-          <div className="class-info">
-            <button
-              disabled={!previousClass}
-              onClick={() => handleOpenModal(previousClass)}
+              Chat
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={createChat}
+              sx={{ ml: 2 }}
             >
-              Previous Class:{" "}
-              {previousClass ? previousClass.subject : "No Previous Class"}
-            </button>
+              + Chat
+            </Button>
+          )}
+        </Box>
+      </Box>
 
-            {nextClass ? (
-              <button onClick={() => handleOpenModal(nextClass)}>
-                Next Class: {nextClass.subject}
-              </button>
-            ) : (
-              <ScheduleClassModal handleReloadData={handleReloadData} />
-            )}
-          </div>
-        </div>
-      </div>
-      {error && <p>{error}</p>}
+      <Box
+        sx={{
+          mt: 2,
+          p: 2,
+          borderRadius: 1,
+          border: "1px solid",
+          borderColor: "divider",
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+        }}
+      >
+        <Button
+          variant="contained"
+          disabled={!previousClass}
+          onClick={() => handleOpenModal(previousClass)}
+        >
+          {previousClass
+            ? `Previous Class:  ${previousClass.subject}`
+            : "No Previous Class"}
+        </Button>
 
-      {/* Modal for class event details */}
+        {nextClass ? (
+          <Button
+            variant="contained"
+            onClick={() => handleOpenModal(nextClass)}
+          >
+            Next Class: {nextClass.subject}
+          </Button>
+        ) : (
+          <ScheduleClassModal handleReloadData={handleReloadData} />
+        )}
+      </Box>
+
+      {error && (
+        <Typography color="error" sx={{ mt: 2 }}>
+          {error}
+        </Typography>
+      )}
+
       <Modal
         open={openModal}
         onClose={handleCloseModal}
         aria-labelledby="class-event-modal-title"
         aria-describedby="class-event-modal-description"
       >
-        <Box sx={modalStyle}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            p: 3,
+            borderRadius: 2,
+            boxShadow: 24,
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
           {selectedClassEvent && (
             <ClassEventCard
               eventData={selectedClassEvent}
@@ -167,7 +214,7 @@ const StudentInfoCard = ({ student, chatId }) => {
           )}
         </Box>
       </Modal>
-    </div>
+    </Box>
   );
 };
 

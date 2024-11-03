@@ -1,7 +1,6 @@
 // Login.js
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation";
-import "../styles/profile.css";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";

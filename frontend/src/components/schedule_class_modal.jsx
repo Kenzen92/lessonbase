@@ -206,8 +206,20 @@ const ScheduleClassModal = ({ handleReloadData }) => {
   };
 
   return (
-    <div>
-      <button onClick={handleOpen}>Schedule Next Class</button>
+    <Box
+      sx={{
+        mt: 2,
+        borderRadius: 1,
+        border: "1px solid",
+        borderColor: "divider",
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+      }}
+    >
+      <Button variant="contained" onClick={() => handleOpen()}>
+        Schedule Next Class
+      </Button>
       <Modal
         open={open}
         onClose={handleClose}
@@ -298,7 +310,7 @@ const ScheduleClassModal = ({ handleReloadData }) => {
           </Box>
         </Box>
       </Modal>
-    </div>
+    </Box>
   );
 };
 

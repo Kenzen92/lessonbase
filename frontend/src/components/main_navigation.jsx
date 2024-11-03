@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../styles/main_navigation.css";
 import { toast } from "react-toastify";
 import handleUnauthorizedRequest from "./unautherized_request";
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Typography,
+  Button,
+  Box,
+  Grid,
+} from "@mui/material";
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -39,47 +49,39 @@ const Navigation = () => {
     }
   }
 
+  const navItems = [
+    { label: "Dashboard", path: "/dashboard" },
+    { label: "Calendar", path: "/calendar" },
+    { label: "Students", path: "/students" },
+    { label: "Assignments", path: "/assignments" },
+    { label: "Settings", path: "/profile" },
+    { label: "Logout", path: "/", action: handleLogout },
+  ];
+
   return (
-    <>
-      <div className="nav-container">
-        <nav className="navigation">
-          <ul className="navigation-list">
-            <li>
-              <Link to="/dashboard">
-                <button className="nav-element">Dashboard</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/calendar">
-                <button className="nav-element">Calendar</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/students">
-                <button className="nav-element">Students</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/assignments">
-                <button className="nav-element">Assignments</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/profile">
-                <button className="nav-element">Settings</button>
-              </Link>
-            </li>
-            <li>
-              <Link to="/">
-                <button className="nav-element" onClick={handleLogout}>
-                  Logout
-                </button>
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </>
+    <Box
+      sx={{
+        height: "4rem",
+        width: "100%",
+      }}
+    >
+      <nav className="navigation">
+        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
+          {navItems.map((item) => (
+            <Button
+              key={item.label}
+              component={Link}
+              to={item.path}
+              onClick={item.action || null}
+              color="inherit"
+              sx={{ color: "#fff", textTransform: "none" }}
+            >
+              <Typography variant={"h6"}>{item.label}</Typography>
+            </Button>
+          ))}
+        </Box>
+      </nav>
+    </Box>
   );
 };
 
