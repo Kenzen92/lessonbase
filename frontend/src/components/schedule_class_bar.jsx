@@ -171,7 +171,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
       sx={{
         marginLeft: "auto",
         marginRight: "auto",
-        maxWidth: "80rem",
+        width: "100%",
       }}
     >
       <Box
@@ -190,13 +190,10 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             mb: 2,
           }}
         >
-          <Typography variant="h4" sx={{ color: "#fff" }}>
-            Schedule Your Next Class
-          </Typography>
           <Button variant="contained" color="primary" onClick={handleSubmit}>
             Submit
           </Button>

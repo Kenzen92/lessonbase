@@ -162,50 +162,58 @@ def teacher_statistics(request):
     
 
 
-@api_view(['POST'])
+@api_view(['POST', 'DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def class_material(request):
-    # Print the incoming request data for debugging
-    print(request.data)
-
-    # Ensure class_id is provided
-    class_id = request.data.get('class_id')
-    if class_id is None:
-        return Response({"error": "class_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Extract class event from class_id (assuming it's part of TeachingResourceSerializer)
-    try:
-        class_event = ClassEvent.objects.get(id=class_id)  # Replace with actual model query
-    except ClassEvent.DoesNotExist:
-        return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    # Handle file uploads
-    files = request.FILES.getlist('file')  # getlist to handle multiple files
-    if not files:
-        return Response({"error": "No files provided"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Process each file individually
-    for uploaded_file in files:
-        # Create a GridFSStorage instance and save the file
-        gridfs_storage = GridFSStorage(collection="fs")  # Pass parameters if necessary
-        file_name = gridfs_storage._save(uploaded_file.name, uploaded_file, context='teaching_resource')
-        file_url = gridfs_storage.url(file_name)
-
-        # Create a new TeachingResource instance
-        teaching_resource = TeachingResource(
-            name=file_name,
-            file=file_url,
-            subject=class_event.subject,
-            class_event=class_event
-        )
-
+    if request.method == 'POST':
+        # Ensure class_id is provided
+        class_id = request.data.get('class_id')
+        if class_id is None:
+            return Response({"error": "class_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Extract class event from class_id (assuming it's part of TeachingResourceSerializer)
         try:
-            teaching_resource.save()
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            class_event = ClassEvent.objects.get(id=class_id)  # Replace with actual model query
+        except ClassEvent.DoesNotExist:
+            return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Handle file uploads
+        files = request.FILES.getlist('file')  # getlist to handle multiple files
+        if not files:
+            return Response({"error": "No files provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Process each file individually
+        for uploaded_file in files:
+            # Create a GridFSStorage instance and save the file
+            gridfs_storage = GridFSStorage(collection="fs")  # Pass parameters if necessary
+            file_name = gridfs_storage._save(uploaded_file.name, uploaded_file, context='teaching_resource')
+            file_url = gridfs_storage.url(file_name)
+
+            # Create a new TeachingResource instance
+            teaching_resource = TeachingResource(
+                name=file_name,
+                file=file_url,
+                subject=class_event.subject,
+                class_event=class_event
+            )
+
+            try:
+                teaching_resource.save()
+            except ValidationError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"message": "Teaching resources created successfully"}, status=status.HTTP_201_CREATED)
     
-    return Response({"message": "Teaching resources created successfully"}, status=status.HTTP_201_CREATED)
+    else:
+        # Handle delete request 
+        file_url = request.data.get("file_url")
+        resource = TeachingResource.objects.filter(file=file_url).first()
+        if resource:
+            resource.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])

@@ -1,25 +1,10 @@
 import React, { useState } from "react";
-import { Modal, Box, Typography, Button, Link } from "@mui/material";
-import { motion } from "framer-motion"; // Import motion
+import { Box, Typography, Button, Link } from "@mui/material";
 import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
 
 const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
-  const [resourcesModalOpen, setResourcesModalOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    p: 4,
-    color: "black",
-  };
 
   const handleFileDrop = (files) => {
     setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -30,6 +15,33 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
       prevFiles.filter((file) => file !== fileToRemove)
     );
   };
+
+  const handleDeleteFile = (resourceURL) => {
+    const auth = window.sessionStorage.getItem("token");
+    const deleteBody = JSON.stringify({ file_url: resourceURL });
+  
+    fetch("http://localhost:8000/class_material", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${auth}`,
+        "Content-Type": "application/json",
+      },
+      body: deleteBody,
+    })
+      .then((response) => {
+        if (response.ok) {
+          toast.success("File deleted successfully");
+          handleReloadData();
+        } else {
+          toast.error("Failed to delete file");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        toast.error("An error occurred while deleting the file");
+      });
+  };
+  
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -53,93 +65,71 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
       .then((data) => {
         setSelectedFiles([]);
         toast.success("Resources uploaded successfully");
-        setResourcesModalOpen(false);
         handleReloadData();
       })
       .catch((error) => {
         console.error("Error:", error);
+        toast.error("An error occurred while uploading resources");
       });
   };
 
-  // Wrap the Box with motion
-  const MotionBox = motion(Box);
-
   return (
-    <>
-      <Modal
-        open={resourcesModalOpen}
-        onClose={() => setResourcesModalOpen(false)}
-      >
-        <MotionBox
-          sx={style}
-          component="form"
-          onSubmit={handleSubmit}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <Typography variant="h6">Upload Resources</Typography>
-          <Dropzone onDrop={handleFileDrop} />
-          {existing_resources.map((resource, index) => (
-            <Typography key={index} variant="body1">
-              <Link
-                href={resource.file}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  color: "black",
-                  background: "none",
-                  fontSize: "larger",
-                }}
-              >
-                {resource.name}
-              </Link>
-            </Typography>
-          ))}
-          {selectedFiles.map((file, index) => (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                marginTop: "0.5rem",
-              }}
+    <Box>
+      <Typography variant="h6" color={'#fff'}>Upload Resources</Typography>
+      <Dropzone onDrop={handleFileDrop} />
+      {existing_resources.map((resource, index) => (
+        <Box key={index} sx={{ display: "flex", alignItems: "center", marginTop: "0.5rem" }}>
+          <Typography variant="body1" color={'#fff'} sx={{ flexGrow: 1 }}>
+            <Link
+              href={resource.file}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ color: "#fff", fontSize: "larger" }}
             >
-              <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                {file.name}
-              </Typography>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => handleRemoveFile(file)}
-              >
-                Remove
-              </Button>
-            </Box>
-          ))}
+              {resource.name}
+            </Link>
+          </Typography>
           <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 2 }}
+            variant="outlined"
+            color="secondary"
+            onClick={() => handleDeleteFile(resource.file)}
           >
-            Submit
+            Remove
           </Button>
-        </MotionBox>
-      </Modal>
+        </Box>
+      ))}
+      {selectedFiles.map((file, index) => (
+        <Box
+          key={index}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            marginTop: "0.5rem",
+          }}
+        >
+          <Typography variant="body2" color={'#fff'} sx={{ flexGrow: 1 }}>
+            {file.name}
+          </Typography>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => handleRemoveFile(file)}
+          >
+            Remove
+          </Button>
+        </Box>
+      ))}
       <Button
+        type="submit"
         variant="contained"
-        color="secondary"
-        className="view-resource-modal"
-        onClick={() => setResourcesModalOpen(true)}
+        color="primary"
+        fullWidth
+        sx={{ mt: 2 }}
+        onClick={handleSubmit}
       >
-        Resources{" "}
-        {existing_resources.length > 0
-          ? `(${existing_resources.length})`
-          : null}
+        Submit
       </Button>
-    </>
+    </Box>
   );
 };
 
