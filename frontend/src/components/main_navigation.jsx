@@ -14,7 +14,7 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
+  DialogTitle,
 } from "@mui/material";
 
 const Navigation = () => {
@@ -58,7 +58,6 @@ const Navigation = () => {
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard" },
-    { label: "Calendar", path: "/calendar" },
     { label: "Students", path: "/students" },
     { label: "Assignments", path: "/assignments" },
     { label: "Settings", path: "/profile" },
@@ -72,7 +71,11 @@ const Navigation = () => {
           <Grid container spacing={2} alignItems="center">
             {navItems.map((item) => (
               <Grid item key={item.label}>
-                <Tooltip title={item.label === "Logout" ? "Sign out" : `Go to ${item.label}`}>
+                <Tooltip
+                  title={
+                    item.label === "Logout" ? "Sign out" : `Go to ${item.label}`
+                  }
+                >
                   <Button
                     component={item.label === "Logout" ? "button" : Link}
                     to={item.path}
@@ -81,10 +84,13 @@ const Navigation = () => {
                     sx={{
                       color: "#fff",
                       textTransform: "none",
-                      borderBottom: location.pathname === item.path ? "2px solid #fff" : "none",
+                      borderBottom:
+                        location.pathname === item.path
+                          ? "2px solid #fff"
+                          : "none",
                       ":hover": {
                         color: "#ffcc00",
-                      }
+                      },
                     }}
                   >
                     <Typography variant="h6">{item.label}</Typography>
@@ -102,7 +108,9 @@ const Navigation = () => {
       >
         <DialogTitle>Confirm Logout</DialogTitle>
         <DialogContent>
-          <DialogContentText>Are you sure you want to logout?</DialogContentText>
+          <DialogContentText>
+            Are you sure you want to logout?
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenLogoutDialog(false)} color="primary">

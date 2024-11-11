@@ -5,7 +5,16 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import Avatar from "@mui/material/Avatar";
-import { Box, FormControl, FormGroup, FormLabel, Input, Tooltip, Typography, Button } from "@mui/material";
+import {
+  Box,
+  FormControl,
+  FormGroup,
+  FormLabel,
+  Input,
+  Tooltip,
+  Typography,
+  Button,
+} from "@mui/material";
 
 function Profile() {
   const [profileData, setProfileData] = useState(null);
@@ -213,9 +222,23 @@ function Profile() {
   return (
     <>
       <Navigation />
-      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-
-        <Box sx={{ marginLeft: 'auto', marginRight: 'auto', flex: 1, justifyItems: 'center' }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <Box
+          sx={{
+            marginLeft: "auto",
+            marginRight: "auto",
+            flex: 1,
+            justifyItems: "center",
+          }}
+        >
           <Avatar
             alt={userName}
             src={userProfileURL}
@@ -226,27 +249,74 @@ function Profile() {
           >
             {userName ? userName[0] : null}
           </Avatar>
-          <Tooltip >
+          <Tooltip>
             <Typography sx={{}}>{userName}</Typography>
           </Tooltip>
         </Box>
-        <Typography variant={'h5'}>Your Profile</Typography>
+        <Typography variant={"h5"}>Your Profile</Typography>
         {profileData ? (
-            <form className="profile-form" onSubmit={handleSubmit}>
-              <Box sx={{ maxWidth: '40rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '40rem' }}>
-              <FormControl fullWidth>
-                <FormLabel htmlFor="username" sx={{ color: 'white', marginTop: '2rem' }}>Username</FormLabel>
+          <form className="profile-form" onSubmit={handleSubmit}>
+            <Box
+              sx={{
+                maxWidth: "40rem",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                minHeight: "40rem",
+                gap: "1.5rem", // Space between form elements
+              }}
+            >
+              <FormControl
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: "2rem",
+                  flexDirection: "row",
+                }}
+              >
+                <FormLabel
+                  htmlFor="username"
+                  sx={{
+                    color: "white",
+                    minWidth: "8rem",
+                    textAlign: "right",
+                  }}
+                >
+                  Username
+                </FormLabel>
                 <Input
                   type="text"
                   id="username"
                   name="username"
                   value={profileData["username"]}
                   onChange={handleChange}
-                  sx={{ color: 'white' }}
+                  sx={{
+                    color: "white",
+                    borderColor: "white",
+                    "& .MuiInputBase-input": { color: "white" }, // Ensure text is white
+                    "&:before": { borderColor: "white" }, // Focus border white
+                  }}
                 />
               </FormControl>
-              <FormControl>
-                <FormLabel htmlFor="subjects" sx={{ color: 'white' }}>Subjects:</FormLabel>
+
+              <FormControl
+                sx={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: "2rem",
+                  flexDirection: "row",
+                }}
+              >
+                <FormLabel
+                  htmlFor="subjects"
+                  sx={{
+                    color: "white",
+                    minWidth: "12rem",
+                    textAlign: "right",
+                  }}
+                >
+                  Subjects:
+                </FormLabel>
                 <Select
                   id="subjects"
                   defaultValue={selectedSubjects}
@@ -257,78 +327,129 @@ function Profile() {
                   styles={{
                     menu: (provided) => ({
                       ...provided,
-                      backgroundColor: "#333", // Change menu background color
+                      backgroundColor: "#333",
                     }),
-
                     option: (provided) => ({
                       ...provided,
-                      color: "#ccc", // Change option font color
+                      color: "#ccc",
+                    }),
+                    control: (provided) => ({
+                      ...provided,
+                      borderColor: "white",
+                      backgroundColor: "#222", // Adjust for contrast
+                      color: "white",
+                      padding: "0.5rem",
+                      minWidth: "16rem",
+                    }),
+                    multiValue: (provided) => ({
+                      ...provided,
+                      backgroundColor: "#444", // Background color for selected items
+                      color: "white",
+                    }),
+                    multiValueLabel: (provided) => ({
+                      ...provided,
+                      color: "white", // Text color for selected items
+                    }),
+                    multiValueRemove: (provided) => ({
+                      ...provided,
+                      color: "white", // Remove icon color
                     }),
                   }}
                 />
               </FormControl>
-              
-              <FormControl>
-              <FormLabel htmlFor="first_name"  sx={{ color: 'white' }}>First Name:</FormLabel>
-              <Input
-                type="text"
-                id="first_name"
-                name="first_name"
-                fullWidth={true}
-                value={profileData["first_name"]}
-                onChange={handleChange}
-                sx={{ color: 'white' }}
-              />
+
+              {["first_name", "last_name", "email"].map((field) => (
+                <FormControl
+                  key={field}
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-end",
+                    gap: "2rem",
+                    flexDirection: "row",
+                  }}
+                >
+                  <FormLabel
+                    htmlFor={field}
+                    sx={{
+                      color: "white",
+                      minWidth: "8rem",
+                      textAlign: "right",
+                    }}
+                  >
+                    {field
+                      .replace("_", " ")
+                      .replace(/\b\w/g, (char) => char.toUpperCase())}
+                    :
+                  </FormLabel>
+                  <Input
+                    type={field === "email" ? "email" : "text"}
+                    id={field}
+                    name={field}
+                    value={profileData[field]}
+                    onChange={handleChange}
+                    sx={{
+                      color: "white",
+                      borderColor: "white",
+                      "& .MuiInputBase-input": { color: "white" },
+                      "&:before": { borderColor: "white" },
+                    }}
+                  />
+                </FormControl>
+              ))}
+
+              <FormControl
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "flex-end",
+                  gap: "2rem",
+                }}
+              >
+                <FormLabel
+                  htmlFor="profile_picture"
+                  sx={{
+                    color: "white",
+                    minWidth: "8rem",
+                    textAlign: "right",
+                  }}
+                >
+                  Profile Picture:
+                </FormLabel>
+                <Input
+                  type="file"
+                  id="profile_picture"
+                  name="profile_picture"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  sx={{
+                    color: "white",
+                    borderColor: "white",
+                    "& .MuiInputBase-input": { color: "white" },
+                    "&:before": { borderColor: "white" },
+                  }}
+                />
               </FormControl>
 
-              <FormControl>
-              <FormLabel htmlFor="last_name" sx={{ color: 'white' }}>Last Name:</FormLabel>
-              <Input
-                type="text"
-                id="last_name"
-                name="last_name"
-                fullWidth={true}
-                value={profileData["last_name"]}
-                onChange={handleChange}
-                sx={{ color: 'white' }}
-              />
-              </FormControl>
-
-              <FormControl> 
-                <FormLabel htmlFor="email" sx={{ color: 'white' }}>Email:</FormLabel>
-              <Input
-                type="email"
-                id="email"
-                name="email"
-                value={profileData["email"]}
-                onChange={handleChange}
-                sx={{ color: 'white' }}
-              />
-              </FormControl>
-
-              <FormControl>
-              <FormLabel htmlFor="profile_picture" sx={{ color: 'white' }}>Profile Picture:</FormLabel>
-              <Input
-                type="file"
-                id="profile_picture"
-                name="profile_picture"
-                accept="image/*"
-                sx={{ color: 'white' }}
-                onChange={handleFileChange}
-              />
-              </FormControl>
-
-              <Button className="submit-button" type="submit">
+              <Button
+                className="submit-button"
+                type="submit"
+                sx={{
+                  color: "white",
+                  borderColor: "white",
+                  "&:hover": {
+                    backgroundColor: "#555", // Adjust hover color
+                  },
+                }}
+              >
                 Submit
               </Button>
-              </Box>
-            </form>
+            </Box>
+          </form>
         ) : (
           <div>
             <p>Loading...</p>
           </div>
         )}
-
       </Box>
     </>
   );
