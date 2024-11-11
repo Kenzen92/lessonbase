@@ -11,12 +11,15 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import Chat from "../components/chat";
 
 function Students() {
   const [showForm, setShowForm] = useState(false);
   const [students, setStudents] = useState([]);
   const [chats, setChats] = useState([]);
-  const currentUserID = 1; // Hardcoded for now, replace with dynamic user ID later
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatId, setChatId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const fetchStudents = async () => {
     try {
@@ -38,7 +41,7 @@ function Students() {
 
       const data = await response.json();
       setStudents(data);
-      console.log(data);
+      setCurrentUserId(window.sessionStorage.getItem("user").id);
     } catch (error) {
       console.error(error.message);
     }
@@ -63,7 +66,7 @@ function Students() {
       const processedChats = data.map((chat) => {
         return {
           ...chat,
-          participants: chat.participants.filter((id) => id !== currentUserID),
+          participants: chat.participants.filter((id) => id !== currentUserId),
         };
       });
       setChats(processedChats);
@@ -71,6 +74,12 @@ function Students() {
       console.error(error.message);
     }
   };
+
+  const handleSelectChat = (chatId) => {
+    console.log("selecting chat: ", chatId);
+    setChatId(chatId);
+    setChatOpen(true);
+  }
 
   useEffect(() => {
     fetchStudents();
@@ -150,12 +159,13 @@ function Students() {
 
             return (
               <Grid item xs={12} sm={6} md={4} key={student.id}>
-                <StudentInfoCard student={student} chatId={chatId} />
+                <StudentInfoCard student={student} chatId={chatId} handleSelectChat={handleSelectChat}/>
               </Grid>
             );
           })}
         </Grid>
       </Container>
+      {chatOpen && <Chat currentUserId={currentUserId} chatId={chatId}/>}
     </>
   );
 }

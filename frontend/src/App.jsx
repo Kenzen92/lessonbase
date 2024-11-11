@@ -9,7 +9,6 @@ import Profile from './screens/profile';
 import PrivateRoutes from './components/privateRoute';
 import ToastNotification from './components/notification';
 import Students from './screens/students';
-import Chat from './components/chat'
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
@@ -36,7 +35,6 @@ function App() {
                             <Route path="/profile" element={<Profile />} />
                             <Route path="/students" element={<Students />} />
                             <Route path="/assignments" element={<Assignments />} />
-                            <Route path="/chat/:roomName" element={<Chat />} />
                         </Route>
                     </Routes>
                 </Router>

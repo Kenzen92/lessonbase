@@ -2,27 +2,24 @@ import React, { useState, useEffect } from 'react';
 import WebSocketInstance from './web_socket_service';
 import { useParams } from 'react-router-dom';
 import Navigation from './main_navigation';
-import './../styles/chat.css'
 import moment from 'moment';
 
-const Chat = (studentName) => {
+const Chat = ({ studentName, chatId, chatOpen, setChatOpen, currentUserId }) => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
-    const { roomName } = useParams();
-    const [currentUserID, setCurrentUserID] = useState(null);
     const [isFocused, setIsFocused] = useState(false);
+    const [isOpen, setIsOpen] = useState(chatOpen);
 
     useEffect(() => {
         const auth = window.sessionStorage.getItem("token");
-        const user_id = window.sessionStorage.getItem("user_id")
-        setCurrentUserID(user_id);
-        WebSocketInstance.connect(roomName, auth);
+        console.log("trying to connect to: ", chatId)
+        WebSocketInstance.connect(chatId, auth);
         WebSocketInstance.addCallbacks(messageCallback);
 
         return () => {
             WebSocketInstance.socketRef.close();
         };
-    }, [roomName]);
+    }, [chatId]);
 
     const messageCallback = (parsedData) => {
         setMessages((prevMessages) => [...prevMessages, {message: parsedData.message, timestamp: parsedData.timestamp, sender: parsedData.sender}]);
@@ -45,7 +42,6 @@ const Chat = (studentName) => {
 
     return (
         <>
-            <Navigation />
             <div className="chat-container">
                 <p className="chat-room-name">Chat</p>
                 <div className="chat-messages">
@@ -53,7 +49,7 @@ const Chat = (studentName) => {
                         <div key={index} className="chat-message">
                         <p className="message-timestamp">{Timestamp(msg.timestamp)}</p>
                         <div className="message-sender-row">
-                        <p className="message-sender">{msg.sender.id != currentUserID ? msg.sender.username : null}</p>
+                        <p className="message-sender">{msg.sender.id != currentUserId ? msg.sender.username : null}</p>
                         <p className="message-text">{msg.message}</p>
                         </div>
                         </div>

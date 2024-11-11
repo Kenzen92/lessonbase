@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import ScheduleClassModal from "./schedule_class_modal";
 
-const StudentInfoCard = ({ student, chatId }) => {
+const StudentInfoCard = ({ student, chatId, handleSelectChat}) => {
   const [error, setError] = useState(null);
   const [previousClass, setPreviousClass] = useState(null);
   const [nextClass, setNextClass] = useState(null);
@@ -83,7 +83,8 @@ const StudentInfoCard = ({ student, chatId }) => {
       }
 
       const data = await response.json();
-      navigate(`/chat/${data.id}`);
+      console.log("got the new chat id: ", data.id);
+      handleSelectChat(data.id);
     } catch (error) {
       setError(error.message);
     }
@@ -123,10 +124,10 @@ const StudentInfoCard = ({ student, chatId }) => {
         <Box sx={{ ml: "auto" }}>
           {chatId ? (
             <Button
-              component={Link}
-              to={`/chat/${chatId}`}
-              variant="outlined"
-              sx={{ ml: 2 }}
+            variant="contained"
+            color="primary"
+            onClick={() => {console.log("selecting existing chat: ", chatId), handleSelectChat(chatId)}}
+            sx={{ ml: 2 }}
             >
               Chat
             </Button>
