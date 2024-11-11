@@ -36,12 +36,17 @@ class WebSocketService {
         };
     }
 
+    disconnect() {
+        if (this.socketRef) {
+            this.socketRef.close();
+            this.socketRef = null; // Ensure the connection is cleared
+            console.log("WebSocket connection closed manually");
+        }
+    }
+
     socketNewMessage(data) {
-        console.log("data: ", data)
         const parsedData = JSON.parse(data);
         const command = parsedData.command;
-        console.log(parsedData)
-        console.log(command)
         if (Object.keys(this.callbacks).length === 0) {
             return;
         }

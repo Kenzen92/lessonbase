@@ -1,74 +1,140 @@
 import React, { useState, useEffect } from 'react';
 import WebSocketInstance from './web_socket_service';
-import { useParams } from 'react-router-dom';
-import Navigation from './main_navigation';
+import { Box, Button, IconButton, Paper, TextField, Typography, Divider } from '@mui/material';
 import moment from 'moment';
 
 const Chat = ({ studentName, chatId, chatOpen, setChatOpen, currentUserId }) => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const [isFocused, setIsFocused] = useState(false);
-    const [isOpen, setIsOpen] = useState(chatOpen);
 
     useEffect(() => {
         const auth = window.sessionStorage.getItem("token");
-        console.log("trying to connect to: ", chatId)
         WebSocketInstance.connect(chatId, auth);
         WebSocketInstance.addCallbacks(messageCallback);
-
+    
         return () => {
-            WebSocketInstance.socketRef.close();
+            WebSocketInstance.disconnect();
         };
     }, [chatId]);
 
     const messageCallback = (parsedData) => {
-        setMessages((prevMessages) => [...prevMessages, {message: parsedData.message, timestamp: parsedData.timestamp, sender: parsedData.sender}]);
+        setMessages((prevMessages) => [
+            ...prevMessages, 
+            {
+                message: parsedData.message, 
+                timestamp: parsedData.timestamp, 
+                sender: parsedData.sender
+            }
+        ]);
     };
 
     const sendMessageHandler = (e) => {
         e.preventDefault();
-        const messageObject = {
-            message: message,
-            command: 'message',
-        };
-        WebSocketInstance.sendMessage(messageObject);
-        setMessage('');
+        if (message.trim()) {
+            const messageObject = {
+                message: message,
+                command: 'message',
+            };
+            WebSocketInstance.sendMessage(messageObject);
+            setMessage('');
+        }
     };
 
-    const Timestamp = ({ timestamp }) => {
-    return moment(timestamp).format('MMM Do [at] HH:mm');
+    const closeChat = () => {
+        WebSocketInstance.disconnect();
+        setChatOpen(false);
     };
 
+    const Timestamp = ({ timestamp }) => moment(timestamp).format('MMM Do [at] HH:mm');
 
     return (
-        <>
-            <div className="chat-container">
-                <p className="chat-room-name">Chat</p>
-                <div className="chat-messages">
+        <Box
+            sx={{
+                position: 'fixed',
+                bottom: 20,
+                right: 20,
+                width: 300,
+                bgcolor: 'background.paper',
+                boxShadow: 3,
+                borderRadius: 1,
+                overflow: 'hidden',
+            }}
+        >
+            <Paper elevation={3} sx={{ bgcolor: 'grey.900', color: 'white', padding: 2 }}>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Chat with {studentName}</Typography>
+                    <IconButton onClick={closeChat} color="inherit">
+                        Close
+                    </IconButton>
+                </Box>
+                <Divider sx={{ my: 1, bgcolor: 'grey.700' }} />
+                <Box
+                    sx={{
+                        maxHeight: 300,
+                        overflowY: 'auto',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        mb: 2,
+                    }}
+                >
                     {messages.map((msg, index) => (
-                        <div key={index} className="chat-message">
-                        <p className="message-timestamp">{Timestamp(msg.timestamp)}</p>
-                        <div className="message-sender-row">
-                        <p className="message-sender">{msg.sender.id != currentUserId ? msg.sender.username : null}</p>
-                        <p className="message-text">{msg.message}</p>
-                        </div>
-                        </div>
+                        <Box
+                            key={index}
+                            sx={{
+                                alignSelf: msg.sender.id === currentUserId ? 'flex-end' : 'flex-start',
+                                bgcolor: msg.sender.id === currentUserId ? 'primary.main' : 'grey.800',
+                                color: msg.sender.id === currentUserId ? 'white' : 'grey.300',
+                                px: 2,
+                                py: 1,
+                                borderRadius: 2,
+                                maxWidth: '80%',
+                            }}
+                        >
+                            <Typography variant="body2" sx={{ fontSize: '0.8rem', color: 'grey.500' }}>
+                                <Timestamp timestamp={msg.timestamp} />
+                            </Typography>
+                            {msg.sender.id !== currentUserId && (
+                                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                    {msg.sender.username}
+                                </Typography>
+                            )}
+                            <Typography variant="body1">{msg.message}</Typography>
+                        </Box>
                     ))}
-                </div>
-                <form onSubmit={sendMessageHandler} className="chat-form">
-                <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    className={`chat-input ${isFocused ? 'expanded' : ''}`}
-                    placeholder="Type your message here..."
-                    rows={isFocused ? 3 : 1}
-                />
-                    <button type="submit" className="chat-send-button">Send</button>
+                </Box>
+                <form onSubmit={sendMessageHandler}>
+                    <TextField
+                        fullWidth
+                        variant="outlined"
+                        placeholder="Type your message here..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        multiline
+                        rows={isFocused ? 2 : 1}
+                        sx={{
+                            bgcolor: 'grey.800',
+                            borderRadius: 1,
+                            mb: 1,
+                            '& .MuiOutlinedInput-root': {
+                                color: 'white',
+                            },
+                        }}
+                        InputProps={{
+                            sx: { color: 'white' },
+                            endAdornment: (
+                                <Button type="submit" variant="contained" color="primary" sx={{ ml: 1 }}>
+                                    Send
+                                </Button>
+                            ),
+                        }}
+                    />
                 </form>
-            </div>
-        </>
+            </Paper>
+        </Box>
     );
 };
 

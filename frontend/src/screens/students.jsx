@@ -165,7 +165,7 @@ function Students() {
           })}
         </Grid>
       </Container>
-      {chatOpen && <Chat currentUserId={currentUserId} chatId={chatId}/>}
+      {chatOpen && <Chat currentUserId={currentUserId} chatId={chatId} chatOpen={chatOpen} setChatOpen={setChatOpen}/>}
     </>
   );
 }
