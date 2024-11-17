@@ -4,7 +4,7 @@ from apps.user_accounts.serializers import StudentSerializer
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.user_accounts.models import CustomUser, CustomerAccount, Teacher, Student, Staff
-from apps.classes.models import ClassEvent, Homework, TeachingResource
+from apps.classes.models import Assignment, ClassEvent, TeachingResource
 from django.contrib.auth import authenticate
 import logging
 from django.contrib.auth.hashers import make_password
@@ -28,38 +28,16 @@ class ClassEventSerializer(serializers.ModelSerializer):
         fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
         read_only_fields = ['id']
 
-class HomeworkSerializer(serializers.ModelSerializer):
+
+
+class AssignmentSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
     class_event = serializers.PrimaryKeyRelatedField(queryset=ClassEvent.objects.all())
-    teachers = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
-    assigned_students = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
+    assigned_students = serializers.ManyRelatedField(queryset=CustomUser.objects.all(), many=True)
 
     class Meta:
-        model = Homework
-        fields = [
-            'title',
-            'description',
-            'subject',
-            'teachers',
-            'max_score',
-            'created_at',
-            'class_event',
-            'due_date',
-            'assigned_students',
-            'submission_instructions',
-            'is_mandatory'
-        ]
-    
-
-class AssignHomeworkSerializer(serializers.ModelSerializer):
-    # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
-    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
-    class_event = serializers.PrimaryKeyRelatedField(queryset=ClassEvent.objects.all())
-    assigned_students = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
-
-    class Meta:
-        model = Homework
+        model = Assignment
         fields = [
             'title',
             'description',

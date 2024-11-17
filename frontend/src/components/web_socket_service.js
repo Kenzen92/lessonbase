@@ -27,8 +27,6 @@ class WebSocketService {
 
         this.socketRef.onclose = () => {
             console.log('WebSocket closed');
-            const auth = window.sessionStorage.getItem("token");
-            this.connect(roomName, auth);
         };
 
         this.socketRef.onerror = e => {

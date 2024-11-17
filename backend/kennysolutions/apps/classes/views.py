@@ -1,17 +1,19 @@
 import datetime
+from django.db.models import Count, Sum, Q, Case, When, Value
 from apps.storage.storage_backends import GridFSStorage
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from apps.user_accounts.models import Student, Teacher
 from apps.subjects.models import Subject
-from apps.classes.serialisers import AssignHomeworkSerializer, ClassEventSerializer, HomeworkSerializer
+from apps.classes.serialisers import  ClassEventSerializer
 from django.core.exceptions import ValidationError
-from .serialisers import AssignHomeworkSerializer, ClassEventSerializer, HomeworkSerializer, TeachingResourceSerializer
-from .models import ClassEvent, Homework, TeachingResource
-
+from .serialisers import  AssignmentSerializer, ClassEventSerializer
+from .models import Assignment, ClassEvent,  TeachingResource
+from rest_framework import viewsets
+from django.utils import timezone
 
 @api_view(['GET', 'POST', 'DELETE', 'PUT', 'PATCH'])
 @authentication_classes([TokenAuthentication])
@@ -21,9 +23,9 @@ def class_events(request, class_id=None):
         user = request.user.get_real_instance()
         class_events = None
         if isinstance(user, Teacher):
-            class_events = ClassEvent.objects.filter(teachers=user).distinct()
+            class_events = ClassEvent.objects.filter(teachers=user).distinct().select_related('subject').prefetch_related('students')
         else:
-            class_events = ClassEvent.objects.filter(students=user).distinct()
+            class_events = ClassEvent.objects.filter(students=user).distinct().select_related('subject').prefetch_related('teachers')
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
 
@@ -91,72 +93,33 @@ def class_events_for_student(request, student_id=None):
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
 
-    # elif request.method == 'DELETE':
-    #     try:
-    #         class_event = ClassEvent.objects.get(id=class_id)
-    #         class_event.delete()
-    #         return Response({'message': 'Class event deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-    #     except ClassEvent.DoesNotExist:
-    #         return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    # elif request.method == 'POST':
-    #     teacher_ids = [request.user.pk]
-    #     student_ids = request.data.get('students', [])
-
-    #     teachers = Teacher.objects.filter(pk__in=teacher_ids)
-    #     students = Student.objects.filter(pk__in=student_ids)
-    #     serializer = ClassEventSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         class_event = serializer.save()
-    #         class_event.teachers.set(teachers)
-    #         class_event.students.set(students)
-    #         return Response({"message": "Class event created successfully"}, status=status.HTTP_201_CREATED)
-    #     else:
-    #         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # elif request.method in ['PUT', 'PATCH']:
-    #     if not class_id:
-    #         return Response({"error": "Class event ID is required for updating"}, status=status.HTTP_400_BAD_REQUEST)
-        
-    #     try:
-    #         class_event = ClassEvent.objects.get(id=class_id)
-    #     except ClassEvent.DoesNotExist:
-    #         return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    #     teacher_ids = [request.user.pk]
-    #     student_ids = request.data.get('students', [])
-
-    #     teachers = Teacher.objects.filter(pk__in=teacher_ids)
-    #     students = Student.objects.filter(pk__in=student_ids)
-
-    #     # Use partial updates with PATCH, full update with PUT
-    #     partial = request.method == 'PATCH'
-    #     serializer = ClassEventSerializer(class_event, data=request.data, partial=partial)
-
-    #     if serializer.is_valid():
-    #         class_event = serializer.save()
-    #         class_event.teachers.set(teachers)
-    #         class_event.students.set(students)
-    #         return Response({"message": "Class event updated successfully"}, status=status.HTTP_200_OK)
-    #     else:
-    #         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-    # else:
-    #     return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def teacher_statistics(request):
-    teacher = Teacher.objects.get(pk = request.user)    
     try:
+        teacher = Teacher.objects.get(pk=request.user.id)
         current_dateTime = datetime.datetime.now()
-        all_past_classes = ClassEvent.objects.filter(start_time__lt=current_dateTime)
-        class_count = all_past_classes.count()
-        class_duration_total = sum([each_class.duration for each_class in all_past_classes])
+        # Aggregate the count and total duration of past classes for the teacher
+        class_stats = ClassEvent.objects.filter(
+            teachers=teacher,
+            start_time__lt=current_dateTime
+        ).aggregate(
+            class_count=Count('id'),
+            class_duration_total=Sum('duration')
+        )
+        
+        # Count the number of students associated with the teacher
         student_count = teacher.students.count()
-        return Response({"data": {"class_count": class_count, "class_duration_total": class_duration_total, "student_count": student_count}}, status=status.HTTP_200_OK)
+        
+        return Response({
+            "data": {
+                "class_count": class_stats['class_count'],
+                "class_duration_total": class_stats['class_duration_total'] or 0,
+                "student_count": student_count
+            }
+        }, status=status.HTTP_200_OK)
     except Teacher.DoesNotExist:
         return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
     
@@ -290,43 +253,52 @@ def class_report(request):
     return JsonResponse({"message": message_content})
 
 
-@api_view(['POST', 'GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def homework(request):
-    user = request.user
+class HomeworkViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing homework assignments.
+    """
+    serializer_class = AssignmentSerializer
+    queryset = Assignment.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    if request.method == "GET":
-        # Get the homework ID from the query parameters
-        homework_id = request.query_params.get('id', None)
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Assignment.objects.filter(teachers=user)
+            .select_related('subject')
+            .prefetch_related('teachers', 'material')
+        )
 
-        if homework_id:
-            try:
-                # Retrieve specific homework by ID
-                homework_instance = Homework.objects.get(id=homework_id, teachers=user)
-                serializer = AssignHomeworkSerializer(homework_instance)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Homework.DoesNotExist:
-                return Response({"error": "Homework not found or you do not have access to it."}, status=status.HTTP_404_NOT_FOUND)
-
-        else:
-            # Retrieve all homework tasks assigned to the authenticated user
-            homework_list = Homework.objects.filter(teachers=user)
-            print(homework_list )
-            serializer = HomeworkSerializer(homework_list, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+    @action(detail=False, methods=['get'])
+    def categorized(self, request):
+        # Define the current time
+        now = timezone.now().date()
         
-    else:
-        serializer = AssignHomeworkSerializer(data=request.data)
-        if serializer.is_valid():
-            # Save the instance
-            homework_instance = serializer.save()
+        # Annotate each assignment with its category based on conditions
+        assignments = self.get_queryset().annotate(
+            category=Case(
+                When(Q(due_date__lt=now) & Q(marked=False), then=Value('Overdue')),
+                When(Q(marked=False) & Q(due_date__lt=now) & Q(due_date__gt=now), then=Value('To Mark')),
+                When(Q(created_at__date=now) & Q(due_date__gt=now), then=Value('Set')),
+                When(Q(due_date__gt=now) & Q(marked=False), then=Value('Upcoming')),
+                When(Q(marked=True), then=Value('Marked')),
+                default=Value('Other')
+            )
+        )
 
-            # Optionally, add the user who is creating the homework to the teachers
-            homework_instance.teachers.add(user)
-            print(homework_instance )
-            return Response({"success": "Homework instance created"}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        # Serialize assignments by category
+        categorized_data = {
+            "Overdue": [],
+            "To Mark": [],
+            "Set": [],
+            "Upcoming": [],
+            "Marked": [],
+        }
+
+        # Assign each annotated assignment to the appropriate category list
+        for assignment in assignments:
+            assignment_data = AssignmentSerializer(assignment).data
+            category = assignment.category
+            categorized_data[category].append(assignment_data)
         
-

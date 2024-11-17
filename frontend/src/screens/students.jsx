@@ -19,6 +19,7 @@ function Students() {
   const [chats, setChats] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
+  const [studentName, setStudentName] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
 
   const fetchStudents = async () => {
@@ -75,11 +76,12 @@ function Students() {
     }
   };
 
-  const handleSelectChat = (chatId) => {
+  const handleSelectChat = (chatId, username) => {
     console.log("selecting chat: ", chatId);
     setChatId(chatId);
     setChatOpen(true);
-  }
+    setStudentName(username);
+  };
 
   useEffect(() => {
     fetchStudents();
@@ -159,13 +161,25 @@ function Students() {
 
             return (
               <Grid item xs={12} sm={6} md={4} key={student.id}>
-                <StudentInfoCard student={student} chatId={chatId} handleSelectChat={handleSelectChat}/>
+                <StudentInfoCard
+                  student={student}
+                  chatId={chatId}
+                  handleSelectChat={handleSelectChat}
+                />
               </Grid>
             );
           })}
         </Grid>
       </Container>
-      {chatOpen && <Chat currentUserId={currentUserId} chatId={chatId} chatOpen={chatOpen} setChatOpen={setChatOpen}/>}
+      {chatOpen && (
+        <Chat
+          studentName={studentName}
+          currentUserId={currentUserId}
+          chatId={chatId}
+          chatOpen={chatOpen}
+          setChatOpen={setChatOpen}
+        />
+      )}
     </>
   );
 }

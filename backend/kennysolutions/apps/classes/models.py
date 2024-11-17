@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from apps.subjects.models import Subject
-from apps.user_accounts.models import CustomUser
+from apps.user_accounts.models import CustomUser, Student
 from django.core.exceptions import ValidationError
 from apps.storage.storage_backends import GridFSStorage  # Ensure this is your GridFS storage backend
 
@@ -48,6 +48,7 @@ class TeachingResource(models.Model):
         return self.name
 
 
+
 class Assignment(models.Model):
     """
     An assignment represents any work given by a teacher to students. Assignments are connected to a specific subject.
@@ -56,28 +57,34 @@ class Assignment(models.Model):
     description = models.TextField(max_length=1000, help_text="Detailed description of the assignment.")
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, help_text="The subject to which this assignment belongs.")
     teachers = models.ManyToManyField(CustomUser, related_name='assignments_as_teacher', help_text="Teachers assigning this work.")
+    students = models.ManyToManyField(Student, related_name='assignments_as_student', help_text="Students assigned to this work.")
     max_score = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text="Maximum score that can be achieved for this assignment."
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    material = models.ManyToManyField(TeachingResource, related_name="homework_resource")
+    due_date = models.DateTimeField(
+        help_text="The deadline for the homework.",
+        validators=[MinValueValidator(timezone.now())]  # Ensures the due date is in the future
+    )
+    marked = models.BooleanField(null=False, blank=False, default=False)
 
     def __str__(self):
         return f"{self.title} - {self.subject.name}"
 
 
-class Homework(Assignment):
+class Feedback(models.Model):
     """
-    Homework is a specific type of assignment tied to a particular class event. It is time-sensitive and associated with students.
+    Feedback is associated to an assignment
     """
-    class_event = models.ForeignKey(ClassEvent, on_delete=models.CASCADE, help_text="The class event associated with this homework.")
-    due_date = models.DateTimeField(
-        help_text="The deadline for the homework.",
-        validators=[MinValueValidator(timezone.now())]  # Ensures the due date is in the future
-    )
-    assigned_students = models.ManyToManyField(CustomUser, related_name='homework_assignments', blank=True)
-    submission_instructions = models.TextField(max_length=1000, blank=True, help_text="Instructions on how to submit the homework.")
-    is_mandatory = models.BooleanField(default=True, help_text="Indicates if the homework is mandatory.")
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="feedback_entries")
+    teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    text = models.TextField(max_length=2000, blank=True, help_text="Teacher's feedback text.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    score = models.SmallIntegerField(null=True, blank=False)
 
     def __str__(self):
-        return f"{self.title} for {self.class_event.name}"
+        return f"{self.teacher.get_full_name} - {self.score}"
+
+

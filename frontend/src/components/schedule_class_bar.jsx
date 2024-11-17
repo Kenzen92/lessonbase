@@ -185,19 +185,6 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           borderColor: "#333",
         }}
       >
-        {/* Title and Button Container */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            mb: 2,
-          }}
-        >
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Submit
-          </Button>
-        </Box>
         <Grid
           container
           spacing={2}
@@ -332,37 +319,54 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
           </Grid>
 
           <Grid item xs={12} sm={12} lg={8} sx={{ minWidth: "10rem" }}>
-            <FormControl fullWidth>
-              <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
-                Students
-              </InputLabel>
-              <Select
-                labelId="student-select-label"
-                id="students"
-                multiple
-                value={selectedStudents}
-                onChange={(e) => setSelectedStudents(e.target.value)}
-                label="Students"
-                sx={{
-                  color: "#fff", // Selected text color
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#fff", // Default border color
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#fff", // Hover border color
-                  },
-                  "& .MuiSelect-icon": {
-                    color: "#fff", // Caret color
-                  },
-                }}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                gap: "1rem",
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
+                  Students
+                </InputLabel>
+                <Select
+                  labelId="student-select-label"
+                  id="students"
+                  multiple
+                  value={selectedStudents}
+                  onChange={(e) => setSelectedStudents(e.target.value)}
+                  label="Students"
+                  sx={{
+                    color: "#fff", // Selected text color
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff", // Default border color
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff", // Hover border color
+                    },
+                    "& .MuiSelect-icon": {
+                      color: "#fff", // Caret color
+                    },
+                  }}
+                >
+                  {allStudents.map((student) => (
+                    <MenuItem key={student.id} value={student.id}>
+                      {student.username}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
               >
-                {allStudents.map((student) => (
-                  <MenuItem key={student.id} value={student.id}>
-                    {student.username}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                Submit
+              </Button>
+            </Box>
           </Grid>
         </Grid>
       </Box>
