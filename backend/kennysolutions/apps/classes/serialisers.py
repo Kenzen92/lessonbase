@@ -34,7 +34,7 @@ class AssignmentSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
     class_event = serializers.PrimaryKeyRelatedField(queryset=ClassEvent.objects.all())
-    assigned_students = serializers.ManyRelatedField(queryset=CustomUser.objects.all(), many=True)
+    teacher = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), many=True)
 
     class Meta:
         model = Assignment
@@ -42,20 +42,18 @@ class AssignmentSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'subject',
+            'teacher',
             'max_score',
             'created_at',
             'class_event',
             'due_date',
-            'assigned_students',
-            'submission_instructions',
-            'is_mandatory'
+            'students',
         ]
-    
+
     def validate_due_date(self, value):
         """
         Check that the due date is in the future.
         """
-        print(value )
         if value < datetime.now().astimezone():
             raise serializers.ValidationError("The due date must be in the future.")
         return value

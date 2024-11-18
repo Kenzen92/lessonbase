@@ -5,11 +5,12 @@ import { toast } from "react-toastify";
 import HomeworkCard from "../components/homework_card";
 import Navigation from "../components/main_navigation";
 import "../styles/dashboard.css";
-import { Grid, Box, Typography } from "@mui/material";
+import { Grid, Box, Typography, TextField, Button } from "@mui/material";
 
 function Assignments() {
   const [homeworks, setHomeworks] = useState([]);
   const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({ title: "", dueDate: "" });
   const navigate = useNavigate();
   const columns = [
     {
@@ -65,6 +66,32 @@ function Assignments() {
     }
   };
 
+  const handleCreateAssignment = async (e) => {
+    e.preventDefault();
+    const auth = window.sessionStorage.getItem("token");
+    try {
+      const response = await fetch("http://localhost:8000/assignment/", {
+        method: "POST",
+        headers: {
+          Authorization: `Token ${auth}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create assignment");
+      }
+
+      toast.success("Assignment created successfully!");
+      setFormData({ title: "", dueDate: "" }); // Reset form
+      fetchHomeworks(); // Refresh the list
+      setOpen(false);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchHomeworks();
   }, []);
@@ -78,8 +105,74 @@ function Assignments() {
       <Navigation />
       <Box
         className="homework-dashboard"
-        sx={{ height: "95vh", display: "flex", flexDirection: "column" }}
+        sx={{ height: "93vh", display: "flex", flexDirection: "column" }}
       >
+      <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "black",
+              border: "2px solid white",
+              borderRadius: 2,
+              boxShadow: 24,
+              p: 4,
+              color: "white",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Create New Assignment
+            </Typography>
+            <form onSubmit={handleCreateAssignment}>
+              <TextField
+                fullWidth
+                label="Title"
+                variant="outlined"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                InputLabelProps={{
+                  style: { color: "white" },
+                }}
+                InputProps={{
+                  style: { color: "white", borderColor: "white" },
+                }}
+                sx={{ mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Due Date"
+                type="date"
+                variant="outlined"
+                value={formData.dueDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, dueDate: e.target.value })
+                }
+                InputLabelProps={{
+                  shrink: true,
+                  style: { color: "white" },
+                }}
+                InputProps={{
+                  style: { color: "white", borderColor: "white" },
+                }}
+                sx={{ mb: 2 }}
+              />
+              <Button
+                type="submit"
+                variant="outlined"
+                sx={{
+                  color: "white",
+                  borderColor: "white",
+                  width: "100%",
+                }}
+              >
+                Submit
+              </Button>
+            </form>
+          </Box>
         <Grid container sx={{ height: "100%" }}>
           {columns.map((column, index) => (
             <Grid

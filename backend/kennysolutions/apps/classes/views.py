@@ -302,3 +302,11 @@ class HomeworkViewSet(viewsets.ModelViewSet):
             category = assignment.category
             categorized_data[category].append(assignment_data)
         
+
+    def create(self, request, *args, **kwargs):
+        request.data['teacher'] = request.user
+        response = super().create(request, *args, **kwargs)
+        
+        # Add any post-processing logic here if needed
+        
+        return response

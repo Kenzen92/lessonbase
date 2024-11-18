@@ -1,12 +1,15 @@
-from django.urls import path
+from django.urls import path, include
 
 from apps.classes.views import class_events, class_material, class_report, teacher_statistics, class_events_for_student, HomeworkViewSet
 from apps.user_accounts.views import confirm_account, connect_student_teacher, login, logout, new_student, profile, students, students_for_teacher, teachers, userRegister
 from apps.subjects.views import all_subjects, subjects
 from . import views
-
+from rest_framework.routers import DefaultRouter
 
 from apps.storage.views import serve_mongo_file
+
+router = DefaultRouter()
+router.register(r'assignment', HomeworkViewSet, basename='assignment')
 
 urlpatterns = [
     path('create_data', views.createData),
@@ -29,7 +32,8 @@ urlpatterns = [
     path('chats/<int:chat_id>/messages/', views.MessageListCreateView.as_view(), name='message-list-create'),
     path('class_report', class_report, name="open-api"),
     path('class_material', class_material, name="open-api"),
-    path('assignment', HomeworkViewSet.as_view(), name="homework-api"),
     path('media/<str:collection>/<str:filename>/', serve_mongo_file, name='serve_mongo_file'),
-    path('teacher-statistics', teacher_statistics, name='teacher_statistics')
+    path('teacher-statistics', teacher_statistics, name='teacher_statistics'),
+
+    path('', include(router.urls)),
 ]
