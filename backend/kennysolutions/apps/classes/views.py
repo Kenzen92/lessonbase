@@ -269,9 +269,19 @@ class HomeworkViewSet(viewsets.ModelViewSet):
             .select_related('subject')
             .prefetch_related('teachers', 'material')
         )
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data['teachers'] = [self.request.user.pk]  
+        # Pass the modified data to the serializer
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
 
-    @action(detail=False, methods=['get'])
-    def categorized(self, request):
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def list(self, request):
+        print("categorizing ")
         # Define the current time
         now = timezone.now().date()
         
@@ -302,11 +312,6 @@ class HomeworkViewSet(viewsets.ModelViewSet):
             category = assignment.category
             categorized_data[category].append(assignment_data)
         
-
-    def create(self, request, *args, **kwargs):
-        request.data['teacher'] = request.user
-        response = super().create(request, *args, **kwargs)
+        # Return the categorized response
+        return Response(categorized_data, status=status.HTTP_200_OK)
         
-        # Add any post-processing logic here if needed
-        
-        return response

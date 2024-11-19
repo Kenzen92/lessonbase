@@ -6,6 +6,7 @@ import HomeworkCard from "../components/homework_card";
 import Navigation from "../components/main_navigation";
 import "../styles/dashboard.css";
 import { Grid, Box, Typography, TextField, Button } from "@mui/material";
+import AssignmentCard from "../components/assignment_card";
 
 function Assignments() {
   const [homeworks, setHomeworks] = useState([]);
@@ -60,6 +61,7 @@ function Assignments() {
       }
 
       const data = await response.json();
+      console.log(data);
       setHomeworks(data); // Assuming the data is an array of homework objects
     } catch (error) {
       setError(error.message);
@@ -107,72 +109,68 @@ function Assignments() {
         className="homework-dashboard"
         sx={{ height: "93vh", display: "flex", flexDirection: "column" }}
       >
-      <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 400,
-              bgcolor: "black",
-              border: "2px solid white",
-              borderRadius: 2,
-              boxShadow: 24,
-              p: 4,
-              color: "white",
-            }}
-          >
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Create New Assignment
-            </Typography>
-            <form onSubmit={handleCreateAssignment}>
-              <TextField
-                fullWidth
-                label="Title"
-                variant="outlined"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                InputLabelProps={{
-                  style: { color: "white" },
-                }}
-                InputProps={{
-                  style: { color: "white", borderColor: "white" },
-                }}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                label="Due Date"
-                type="date"
-                variant="outlined"
-                value={formData.dueDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, dueDate: e.target.value })
-                }
-                InputLabelProps={{
-                  shrink: true,
-                  style: { color: "white" },
-                }}
-                InputProps={{
-                  style: { color: "white", borderColor: "white" },
-                }}
-                sx={{ mb: 2 }}
-              />
-              <Button
-                type="submit"
-                variant="outlined"
-                sx={{
-                  color: "white",
-                  borderColor: "white",
-                  width: "100%",
-                }}
-              >
-                Submit
-              </Button>
-            </form>
-          </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            border: "2px solid white",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+            color: "white",
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Create New Assignment
+          </Typography>
+          <form onSubmit={handleCreateAssignment}>
+            <TextField
+              fullWidth
+              label="Title"
+              variant="outlined"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              InputLabelProps={{
+                style: { color: "white" },
+              }}
+              InputProps={{
+                style: { color: "white", borderColor: "white" },
+              }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Due Date"
+              type="date"
+              variant="outlined"
+              value={formData.dueDate}
+              onChange={(e) =>
+                setFormData({ ...formData, dueDate: e.target.value })
+              }
+              InputLabelProps={{
+                shrink: true,
+                style: { color: "white" },
+              }}
+              InputProps={{
+                style: { color: "white", borderColor: "white" },
+              }}
+              sx={{ mb: 2 }}
+            />
+            <Button
+              type="submit"
+              variant="outlined"
+              sx={{
+                color: "white",
+                borderColor: "white",
+                width: "100%",
+              }}
+            >
+              Submit
+            </Button>
+          </form>
+        </Box>
         <Grid container sx={{ height: "100%" }}>
           {columns.map((column, index) => (
             <Grid
@@ -199,6 +197,16 @@ function Assignments() {
               <Box sx={{ flex: 1, overflowY: "auto" }}>
                 {/* Content for each column */}
                 <Typography>Content goes here...</Typography>
+
+                <Box>
+                  {homeworks && homeworks[column.name] ? (
+                    homeworks[column.name].map((assignment, index) => (
+                      <AssignmentCard assignment={assignment} key={index} handleReloadData={fetchHomeworks} />
+                    ))
+                  ) : (
+                    <Typography>No homeworks available</Typography>
+                  )}
+                </Box>
               </Box>
             </Grid>
           ))}
