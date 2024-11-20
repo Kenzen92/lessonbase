@@ -5,13 +5,22 @@ import { toast } from "react-toastify";
 import HomeworkCard from "../components/homework_card";
 import Navigation from "../components/main_navigation";
 import "../styles/dashboard.css";
-import { Grid, Box, Typography, TextField, Button } from "@mui/material";
+import { Grid, Box, Typography, TextField, Button, Modal, InputLabel, Select, MenuItem } from "@mui/material";
 import AssignmentCard from "../components/assignment_card";
+import { fetchStudents, fetchSubjects, fetchHomeworks } from "../utils/agent.js";
 
 function Assignments() {
   const [homeworks, setHomeworks] = useState([]);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({ title: "", dueDate: "" });
+  const [isOpen, setIsOpen] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [duration, setDuration] = useState("");
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [allStudents, setAllStudents] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
   const navigate = useNavigate();
   const columns = [
     {
@@ -40,35 +49,25 @@ function Assignments() {
       description: "Assignments that have been reviewed and marked.",
     },
   ];
-
-  const fetchHomeworks = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/assignment ", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
+  const inputStyle = {
+    "& .MuiOutlinedInput-root": {
+        color: "#fff", // Text color
+        "& fieldset": {
+            borderColor: "#fff", // Border color
         },
-      });
+        "&:hover fieldset": {
+            borderColor: "#fff", // Hover border color
+        },
+    },
+    "& .MuiInputLabel-root": {
+        color: "#fff", // Label color
+    },
+    "& .MuiSvgIcon-root": {
+        color: "#fff", // Icon color
+    },
+}
 
-      if (response.status === 401) {
-        handleUnautherizedRequest(navigate);
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch homework tasks");
-      }
-
-      const data = await response.json();
-      console.log(data);
-      setHomeworks(data); // Assuming the data is an array of homework objects
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const handleCreateAssignment = async (e) => {
+   const handleCreateAssignment = async (e) => {
     e.preventDefault();
     const auth = window.sessionStorage.getItem("token");
     try {
@@ -87,15 +86,24 @@ function Assignments() {
 
       toast.success("Assignment created successfully!");
       setFormData({ title: "", dueDate: "" }); // Reset form
-      fetchHomeworks(); // Refresh the list
-      setOpen(false);
+      setIsOpen(false);
     } catch (error) {
       toast.error(error.message);
     }
   };
 
   useEffect(() => {
-    fetchHomeworks();
+    const fetchData = async () => {
+      const students = await fetchStudents(navigate);
+      if (students) setAllStudents(students);
+
+      const subjects = await fetchSubjects(navigate);
+      if (subjects) setAllSubjects(subjects);
+
+      const homeworks = await fetchHomeworks(navigate);
+      if (homeworks) setHomeworks(homeworks);
+    }
+    fetchData();
   }, []);
 
   if (error) {
@@ -109,68 +117,137 @@ function Assignments() {
         className="homework-dashboard"
         sx={{ height: "93vh", display: "flex", flexDirection: "column" }}
       >
-        <Box
+        <Box sx={{ maxWidth: '20rem', marginTop: '1rem', marginBottom: '0.5rem', p: 1, marginLeft: 'auto' }}>
+          <Button
+            onClick={() => setIsOpen(true)}
+            variant="outlined"
+            sx={{
+              color: "white",
+              borderColor: "white",
+              width: "100%",
+            }}
+          >+ Add Assignment</Button>
+        </Box>
+
+        <Modal
+          open={isOpen}
+          onClose={() => setIsOpen(false)}
+          aria-labelledby="create-assignment-modal"
+          aria-describedby="form-to-create-assignment"
           sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            border: "2px solid white",
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Create New Assignment
-          </Typography>
-          <form onSubmit={handleCreateAssignment}>
-            <TextField
-              fullWidth
-              label="Title"
-              variant="outlined"
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              InputLabelProps={{
-                style: { color: "white" },
-              }}
-              InputProps={{
-                style: { color: "white", borderColor: "white" },
-              }}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              fullWidth
-              label="Due Date"
-              type="date"
-              variant="outlined"
-              value={formData.dueDate}
-              onChange={(e) =>
-                setFormData({ ...formData, dueDate: e.target.value })
-              }
-              InputLabelProps={{
-                shrink: true,
-                style: { color: "white" },
-              }}
-              InputProps={{
-                style: { color: "white", borderColor: "white" },
-              }}
-              sx={{ mb: 2 }}
-            />
-            <Button
-              type="submit"
-              variant="outlined"
-              sx={{
-                color: "white",
-                borderColor: "white",
-                width: "100%",
-              }}
-            >
-              Submit
-            </Button>
-          </form>
-        </Box>
+          <Box
+            sx={{
+              bgcolor: "#333",
+              padding: 4,
+              borderRadius: 2,
+              boxShadow: 24,
+              width: { xs: "90%", sm: "70%", md: "50%" },
+              color: "#fff",
+            }}
+          >
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Create New Assignment
+            </Typography>
+            <form onSubmit={handleCreateAssignment}>
+              <TextField
+                fullWidth
+                label="Title"
+                variant="outlined"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                sx={{ ...inputStyle, mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Description"
+                variant="outlined"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                sx={{ ...inputStyle, mb: 2 }}
+              />
+              <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
+                Subject
+              </InputLabel>
+              <Select
+                id="subjects"
+                labelId="subject-select-label"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                label="Subject"
+                sx={{ ...inputStyle, mb: 2 }}
+              >
+                {allSubjects.map((subject) => (
+                  <MenuItem key={subject.id} value={subject.id}>
+                    {subject.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
+                Students
+              </InputLabel>
+              <Select
+                id="students"
+                labelId="student-select-label"
+                multiple
+                value={selectedStudents}
+                onChange={(e) => setSelectedStudents(e.target.value)}
+                label="Students"
+                sx={{ ...inputStyle, mb: 2 }}
+              >
+                {allStudents.map((student) => (
+                  <MenuItem key={student.id} value={student.id}>
+                    {student.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField
+                fullWidth
+                label="Max Score"
+                type="number"
+                variant="outlined"
+                value={formData.max_score}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_score: e.target.value })
+                }
+                sx={{ ...inputStyle, mb: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Due Date"
+                type="datetime-local"
+                variant="outlined"
+                value={formData.due_date}
+                onChange={(e) =>
+                  setFormData({ ...formData, due_date: e.target.value })
+                }
+                InputLabelProps={{ shrink: true }}
+                sx={{ ...inputStyle, mb: 2 }}
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  width: "100%",
+                  bgcolor: "#fff",
+                  color: "darkgrey",
+                  "&:hover": {
+                    bgcolor: "#ddd",
+                  },
+                }}
+              >
+                Submit
+              </Button>
+            </form>
+          </Box>
+        </Modal>
+
         <Grid container sx={{ height: "100%" }}>
           {columns.map((column, index) => (
             <Grid
@@ -185,9 +262,9 @@ function Assignments() {
                 flex: 1,
                 overflowY: "auto",
                 border: "1px solid #ddd",
-                padding: 2,
                 display: "flex",
                 flexDirection: "column",
+                textAlign: 'center'
               }}
             >
               <Typography variant="h6">{column.name}</Typography>
@@ -195,9 +272,6 @@ function Assignments() {
                 {column.description}
               </Typography>
               <Box sx={{ flex: 1, overflowY: "auto" }}>
-                {/* Content for each column */}
-                <Typography>Content goes here...</Typography>
-
                 <Box>
                   {homeworks && homeworks[column.name] ? (
                     homeworks[column.name].map((assignment, index) => (

@@ -17,6 +17,8 @@ import {
   Grid,
 } from "@mui/material";
 import dayjs from "dayjs";
+import { fetchStudents, fetchSubjects } from "../utils/agent.js";
+
 
 const ScheduleClassBar = ({ handleReloadData, classData }) => {
   const [startDate, setStartDate] = useState(null);
@@ -37,6 +39,14 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
   }, []); // Fetch data only on the initial mount
 
   useEffect(() => {
+    const fetchData = async () => {
+      const students = await fetchStudents(navigate);
+      if (students) setAllStudents(students);
+
+      const subjects = await fetchSubjects(navigate);
+      if (subjects) setAllSubjects(subjects);
+    }
+    fetchData();
     // Initialize form with classData if provided and if allSubjects is populated
     if (classData && allSubjects.length > 0) {
       const parsedStartDate = dayjs(classData.start_time); // Use Dayjs to parse the date string
@@ -55,53 +65,7 @@ const ScheduleClassBar = ({ handleReloadData, classData }) => {
     }
   }, [classData, allSubjects.length]); // Fetch data on component mount and reinitialize form when classData changes
 
-  const fetchStudents = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/students", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
 
-      if (response.status === 401) {
-        handleUnautherizedRequest(navigate);
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch students");
-      }
-
-      const data = await response.json();
-      setAllStudents(data);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const fetchSubjects = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/subjects", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch subjects");
-      }
-
-      const data = await response.json();
-      setAllSubjects(data);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
