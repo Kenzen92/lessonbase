@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -64,8 +65,9 @@ class Assignment(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     material = models.ManyToManyField(TeachingResource, related_name="homework_resource")
-    due_date = models.DateTimeField(
-        help_text="The deadline for the homework."  # Ensures the due date is in the future
+    due_date = models.DateField(
+        help_text="The deadline for the homework.",
+        validators=[MinValueValidator(date.today())]
     )
     marked = models.BooleanField(null=False, blank=False, default=False)
 

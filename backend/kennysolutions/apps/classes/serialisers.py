@@ -47,11 +47,3 @@ class AssignmentSerializer(serializers.ModelSerializer):
             'due_date',
             'students',
         ]
-
-    def validate_due_date(self, value):
-        """
-        Check that the due date is in the future.
-        """
-        if value < datetime.now().astimezone():
-            raise serializers.ValidationError("The due date must be in the future.")
-        return value

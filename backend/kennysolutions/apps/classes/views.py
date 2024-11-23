@@ -281,19 +281,17 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def list(self, request):
-        print("categorizing ")
         # Define the current time
         now = timezone.now().date()
-        
+        print(now)
         # Annotate each assignment with its category based on conditions
         assignments = self.get_queryset().annotate(
             category=Case(
-                When(Q(due_date__lt=now) & Q(marked=False), then=Value('Overdue')),
+                When(Q(due_date__lte=now) & Q(marked=False), then=Value('Overdue')),
                 When(Q(marked=False) & Q(due_date__lt=now) & Q(due_date__gt=now), then=Value('To Mark')),
                 When(Q(created_at__date=now) & Q(due_date__gt=now), then=Value('Set')),
                 When(Q(due_date__gt=now) & Q(marked=False), then=Value('Upcoming')),
-                When(Q(marked=True), then=Value('Marked')),
-                default=Value('Other')
+                When(Q(marked=True), then=Value('Marked'))
             )
         )
 

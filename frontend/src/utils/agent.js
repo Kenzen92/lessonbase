@@ -78,6 +78,30 @@ export const fetchStudents = async (navigate) => {
       throw error;
     }
   };
+
+ 
+export const handleCreateAssignment = async (formData) => {
+  const auth = window.sessionStorage.getItem("token");
+  try {
+    const response = await fetch("http://localhost:8000/assignment/", {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${auth}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, message: errorData.detail || "Failed to create assignment" };
+    }
+
+    return { success: true, message: "Assignment created successfully!" };
+  } catch (error) {
+    return { success: false, message: error.message || "An error occurred" };
+  }
+};
   
   // Custom function for handling unauthorized requests
   export const handleUnauthorizedRequest = (navigate) => {
