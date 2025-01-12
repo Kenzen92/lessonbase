@@ -1,4 +1,3 @@
-from django.db import models
 from apps.storage.storage_backends import GridFSStorage
 from polymorphic.models import PolymorphicModel
 from polymorphic.managers import PolymorphicManager
@@ -72,3 +71,33 @@ class Staff(models.Model):
 
     def __str__(self):
         return self.user.username
+
+class ClassGroup(models.Model):
+    teachers = models.ManyToManyField(Teacher, related_name="class_groups")
+    students = models.ManyToManyField(Student, related_name="class_groups")
+    name = models.CharField(max_length=255, null=False)
+    description = models.TextField(null=True, blank=True)
+    subjects = models.ManyToManyField(Subject, related_name="class_groups")
+    location = models.CharField(max_length=255, null=True, blank=True)
+    class_code = models.CharField(max_length=50, unique=True)
+    max_students = models.PositiveIntegerField(null=True, blank=True)
+    symbol = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('canceled', 'Canceled'),
+        ('archived', 'Archived'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    year = models.IntegerField(null=True, blank=True)
+    term = models.CharField(max_length=20, null=True, blank=True)
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name="created_class_groups")
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.symbol:
+            self.symbol.storage = GridFSStorage(collection='profile_pictures')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name

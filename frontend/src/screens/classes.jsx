@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation";
 import { toast } from "react-toastify";
-import StudentInfoCard from "../components/student_info_card";
+import ClassInfoCard from "../components/student_info_card";
 import {
   Container,
   Box,
@@ -13,21 +13,21 @@ import {
 } from "@mui/material";
 import Chat from "../components/chat";
 
-function Students() {
-  const [showStudentForm, setshowStudentForm] = useState(false);
-  const [students, setStudents] = useState([]);
+function Classes() {
+  const [showClassForm, setshowClassForm] = useState(false);
+  const [classes, setClasses] = useState([]);
   const [chats, setChats] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
-  const [studentName, setStudentName] = useState(null);
+  const [studentName, setClassName] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [email, setEmail] = useState("");
 
-  const fetchStudents = async () => {
+  const fetchClasses = async () => {
     try {
       const auth = window.sessionStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:8000/students-for-teacher",
+        "http://localhost:8000/classes-for-teacher",
         {
           method: "GET",
           headers: {
@@ -38,11 +38,11 @@ function Students() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch students");
+        throw new Error("Failed to fetch classes");
       }
 
       const data = await response.json();
-      setStudents(data);
+      setClasses(data);
       setCurrentUserId(window.sessionStorage.getItem("user").id);
     } catch (error) {
       console.error(error.message);
@@ -80,18 +80,18 @@ function Students() {
   const handleSelectChat = (chatId, username) => {
     setChatId(chatId);
     setChatOpen(true);
-    setStudentName(username);
+    setClassName(username);
   };
 
   useEffect(() => {
-    fetchStudents();
+    fetchClasses();
     fetchChats();
   }, []);
 
   // Function to handle form submission
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setshowStudentForm(false);
+    setshowClassForm(false);
 
     const url = "http://localhost:8000/new-student/";
     const payload = { email };
@@ -127,14 +127,14 @@ function Students() {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => setshowStudentForm(true)}
+          onClick={() => setshowClassForm(true)}
           sx={{ mb: 4 }}
         >
-          Add New Student
+          Add New Class
         </Button>
 
         <Grid container spacing={2} className="cards-section">
-          {students.map((student) => {
+          {classes.map((student) => {
             const chat = chats.find((chat) =>
               chat.participants.includes(student.id)
             );
@@ -142,7 +142,7 @@ function Students() {
 
             return (
               <Grid item xs={12} sm={6} md={4} key={student.id}>
-                <StudentInfoCard
+                <ClassInfoCard
                   student={student}
                   chatId={chatId}
                   handleSelectChat={handleSelectChat}
@@ -154,8 +154,8 @@ function Students() {
       </Container>
 
       <Modal
-        open={showStudentForm}
-        onClose={() => setshowStudentForm(false)}
+        open={showClassForm}
+        onClose={() => setshowClassForm(false)}
         sx={{
           display: "flex",
           alignItems: "center",
@@ -175,7 +175,7 @@ function Students() {
           }}
         >
           <Typography variant="h6" gutterBottom>
-            Add New Student
+            Add New Class
           </Typography>
           <TextField
             label="Email"
@@ -206,4 +206,4 @@ function Students() {
   );
 }
 
-export default Students;
+export default Classes;

@@ -59,6 +59,7 @@ const Navigation = () => {
   const navItems = [
     { label: "Dashboard", path: "/dashboard" },
     { label: "Students", path: "/students" },
+    { label: "Classes", path: "/classes" },
     { label: "Assignments", path: "/assignments" },
     { label: "Settings", path: "/profile" },
     { label: "Logout", path: "/", action: () => setOpenLogoutDialog(true) },
