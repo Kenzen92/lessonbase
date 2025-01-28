@@ -70,7 +70,7 @@ const Navigation = () => {
         <Toolbar>
           <Grid container spacing={2} alignItems="center">
             {navItems.map((item) => (
-              <Grid item key={item.label}>
+              <Grid item key={item.label} sx={{ marginLeft: item.label === "Logout" ? 'auto' : null}}>
                 <Tooltip
                   title={
                     item.label === "Logout" ? "Sign out" : `Go to ${item.label}`
