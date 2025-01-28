@@ -1,4 +1,3 @@
-// Students.js
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation";
 import { toast } from "react-toastify";
@@ -10,17 +9,19 @@ import {
   Grid,
   TextField,
   Typography,
+  Modal,
 } from "@mui/material";
 import Chat from "../components/chat";
 
 function Students() {
-  const [showForm, setShowForm] = useState(false);
+  const [showStudentForm, setshowStudentForm] = useState(false);
   const [students, setStudents] = useState([]);
   const [chats, setChats] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
   const [studentName, setStudentName] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [email, setEmail] = useState("");
 
   const fetchStudents = async () => {
     try {
@@ -37,7 +38,7 @@ function Students() {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch subjects");
+        throw new Error("Failed to fetch students");
       }
 
       const data = await response.json();
@@ -77,7 +78,6 @@ function Students() {
   };
 
   const handleSelectChat = (chatId, username) => {
-    console.log("selecting chat: ", chatId);
     setChatId(chatId);
     setChatOpen(true);
     setStudentName(username);
@@ -91,12 +91,10 @@ function Students() {
   // Function to handle form submission
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setShowForm(false);
+    setshowStudentForm(false);
 
     const url = "http://localhost:8000/new-student/";
-    const payload = {
-      email: e.target.email.value,
-    };
+    const payload = { email };
     const auth = window.sessionStorage.getItem("token");
 
     try {
@@ -124,34 +122,17 @@ function Students() {
   return (
     <>
       <Navigation />
+
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        {showForm ? (
-          <Box component="form" onSubmit={handleFormSubmit} sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Add New Student
-            </Typography>
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              required
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            <Button type="submit" variant="contained" color="primary">
-              Send Invitation
-            </Button>
-          </Box>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setShowForm(true)}
-            sx={{ mb: 4 }}
-          >
-            Add New Student
-          </Button>
-        )}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setshowStudentForm(true)}
+          sx={{ mb: 4 }}
+        >
+          Add New Student
+        </Button>
+
         <Grid container spacing={2} className="cards-section">
           {students.map((student) => {
             const chat = chats.find((chat) =>
@@ -171,6 +152,47 @@ function Students() {
           })}
         </Grid>
       </Container>
+
+      <Modal
+        open={showStudentForm}
+        onClose={() => setshowStudentForm(false)}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          component="form"
+          onSubmit={handleFormSubmit}
+          sx={{
+            backgroundColor: "white",
+            padding: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+            width: "400px",
+            maxWidth: "90%",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Add New Student
+          </Typography>
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          <Button type="submit" variant="contained" color="primary" fullWidth>
+            Send Invitation
+          </Button>
+        </Box>
+      </Modal>
+
       {chatOpen && (
         <Chat
           studentName={studentName}

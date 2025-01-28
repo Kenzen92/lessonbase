@@ -94,6 +94,8 @@ function Assignments() {
                 display: "flex",
                 flexDirection: "column",
                 textAlign: "center",
+                marginTop: "1em",
+                minHeight: "15em",
               }}
             >
               <Typography variant="h6">{column.name}</Typography>

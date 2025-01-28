@@ -66,8 +66,7 @@ class Assignment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     material = models.ManyToManyField(TeachingResource, related_name="homework_resource")
     due_date = models.DateField(
-        help_text="The deadline for the homework.",
-        validators=[MinValueValidator(date.today())]
+        help_text="The deadline for the homework."
     )
     marked = models.BooleanField(null=False, blank=False, default=False)
 

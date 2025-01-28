@@ -1,4 +1,4 @@
-from apps.user_accounts.models import CustomerAccount, Teacher, Student, Staff
+from apps.user_accounts.models import ClassGroup, CustomerAccount, Teacher, Student, Staff
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.subjects.serializers import SubjectSerializer
@@ -6,10 +6,21 @@ from django.contrib.auth.models import AbstractUser
 
 userModel = CustomerAccount()
 
+class ClassGroupUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassGroup
+        fields = ['id', 'name']
+
+class ClassGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassGroup
+        fields = '__all__'
+
 class StudentSerializer(serializers.ModelSerializer):
+    class_groups = ClassGroupUserSerializer(many=True, read_only=True)
     class Meta:
         model = Student
-        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture']
+        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture', 'class_groups']
 
 class TeacherSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)

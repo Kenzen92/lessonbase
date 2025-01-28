@@ -9,12 +9,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.authtoken.models import Token
-from apps.user_accounts.models import CustomerAccount, Staff, Student, Teacher
-from .serializers import CustomerAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
+from apps.user_accounts.models import ClassGroup, CustomerAccount, Staff, Student, Teacher
+from .serializers import ClassGroupSerializer, CustomerAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
 from datetime import datetime
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
-# Create your views here.
+from rest_framework import viewsets
+
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
@@ -105,7 +106,7 @@ def teachers(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def students_for_teacher(request):
-    queryset = Student.objects.filter(teacher=request.user.id)
+    queryset = Student.objects.filter(teacher=request.user.id).prefetch_related('class_groups')
     serializer = StudentSerializer(queryset, many=True)
     return Response(serializer.data)
 
@@ -228,3 +229,51 @@ def confirm_account(request):
         else:
             return Response({"error": "No username or password"}, status=status.HTTP_400_BAD_REQUEST)
         
+
+# Create a class group API view here to use all the standard http actions directly mapped to the model
+class ClassGroupViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing homework assignments.
+    """
+    serializer_class = ClassGroupSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            ClassGroup.objects.filter(teachers=user)
+            .prefetch_related('teachers', 'students', 'subjects')
+        )
+    
+    def create(self, request, *args, **kwargs):
+
+        # Pass the modified data to the serializer
+        data = request.data.copy()
+        teacher_list = data.get("teachers")
+        if not teacher_list:
+            data['teachers'] = [self.request.user]
+        else:
+            data['teachers'].append(self.request.user.pk) if self.request.user.pk not in data['teachers'] else None
+        serializer = self.get_serializer(data=data)
+        if not serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_200_OK),
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def list(self, request, *Args, **kwargs):
+        """
+        Get the queryset of classes and return them
+        """
+        queryset = self.get_queryset()
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def patch(self, request, *args, **kwargs):
+        """
+        Not sure this is being called tbh
+        """
+        print(request.data) 
+        return Response(status=status.HTTP_200_OK)
+    

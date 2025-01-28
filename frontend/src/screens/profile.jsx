@@ -14,7 +14,9 @@ import {
   Tooltip,
   Typography,
   Button,
+  TextField,
 } from "@mui/material";
+import inputStyle from "../styles/input";
 
 function Profile() {
   const [profileData, setProfileData] = useState(null);
@@ -35,6 +37,7 @@ function Profile() {
       const user = JSON.parse(userData);
       setName(user.first_name);
       setProfileURL(user.profile_picture);
+      setSelectedSubjects(user.subjects);
     }
   };
 
@@ -229,6 +232,7 @@ function Profile() {
           justifyContent: "center",
           alignItems: "center",
           textAlign: "center",
+          mt: 3,
         }}
       >
         <Box
@@ -253,7 +257,9 @@ function Profile() {
             <Typography sx={{}}>{userName}</Typography>
           </Tooltip>
         </Box>
-        <Typography variant={"h5"}>Your Profile</Typography>
+        <Typography variant={"h5"} sx={{ mt: 2 }}>
+          Your Profile
+        </Typography>
         {profileData ? (
           <form className="profile-form" onSubmit={handleSubmit}>
             <Box
@@ -269,7 +275,7 @@ function Profile() {
               <FormControl
                 sx={{
                   display: "flex",
-                  alignItems: "flex-end",
+                  alignItems: "center",
                   gap: "2rem",
                   flexDirection: "row",
                 }}
@@ -284,17 +290,13 @@ function Profile() {
                 >
                   Username
                 </FormLabel>
-                <Input
-                  type="text"
+                <TextField
                   id="username"
                   name="username"
                   value={profileData["username"]}
                   onChange={handleChange}
                   sx={{
-                    color: "white",
-                    borderColor: "white",
-                    "& .MuiInputBase-input": { color: "white" }, // Ensure text is white
-                    "&:before": { borderColor: "white" }, // Focus border white
+                    ...inputStyle,
                   }}
                 />
               </FormControl>
@@ -302,7 +304,7 @@ function Profile() {
               <FormControl
                 sx={{
                   display: "flex",
-                  alignItems: "flex-end",
+                  alignItems: "center",
                   gap: "2rem",
                   flexDirection: "row",
                 }}
@@ -312,7 +314,7 @@ function Profile() {
                   sx={{
                     color: "white",
                     minWidth: "12rem",
-                    textAlign: "right",
+                    textAlign: "center",
                   }}
                 >
                   Subjects:
@@ -328,6 +330,7 @@ function Profile() {
                     menu: (provided) => ({
                       ...provided,
                       backgroundColor: "#333",
+                      marginLeft: -5,
                     }),
                     option: (provided) => ({
                       ...provided,
@@ -339,7 +342,7 @@ function Profile() {
                       backgroundColor: "#222", // Adjust for contrast
                       color: "white",
                       padding: "0.5rem",
-                      minWidth: "16rem",
+                      maxWidth: "30em",
                     }),
                     multiValue: (provided) => ({
                       ...provided,
@@ -363,7 +366,7 @@ function Profile() {
                   key={field}
                   sx={{
                     display: "flex",
-                    alignItems: "flex-end",
+                    alignItems: "center",
                     gap: "2rem",
                     flexDirection: "row",
                   }}
@@ -381,17 +384,14 @@ function Profile() {
                       .replace(/\b\w/g, (char) => char.toUpperCase())}
                     :
                   </FormLabel>
-                  <Input
+                  <TextField
                     type={field === "email" ? "email" : "text"}
                     id={field}
                     name={field}
                     value={profileData[field]}
                     onChange={handleChange}
                     sx={{
-                      color: "white",
-                      borderColor: "white",
-                      "& .MuiInputBase-input": { color: "white" },
-                      "&:before": { borderColor: "white" },
+                      ...inputStyle,
                     }}
                   />
                 </FormControl>
@@ -401,8 +401,9 @@ function Profile() {
                 sx={{
                   display: "flex",
                   flexDirection: "row",
-                  alignItems: "flex-end",
+                  alignItems: "center",
                   gap: "2rem",
+                  p: 1,
                 }}
               >
                 <FormLabel
@@ -422,10 +423,7 @@ function Profile() {
                   accept="image/*"
                   onChange={handleFileChange}
                   sx={{
-                    color: "white",
-                    borderColor: "white",
-                    "& .MuiInputBase-input": { color: "white" },
-                    "&:before": { borderColor: "white" },
+                    ...inputStyle,
                   }}
                 />
               </FormControl>
@@ -433,13 +431,7 @@ function Profile() {
               <Button
                 className="submit-button"
                 type="submit"
-                sx={{
-                  color: "white",
-                  borderColor: "white",
-                  "&:hover": {
-                    backgroundColor: "#555", // Adjust hover color
-                  },
-                }}
+                varient="outlined"
               >
                 Submit
               </Button>
