@@ -15,6 +15,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { toast } from "react-toastify";
+import inputStyle from "../styles/input";
 
 const TabPanel = ({ children, value, index }) => (
   <Box hidden={value !== index} sx={{ p: 2 }}>
@@ -31,23 +32,6 @@ const AssignmentCard = ({ assignment, handleReloadData }) => {
     max_score: assignment.max_score,
     due_date: assignment.due_date,
   });
-  const inputStyle = {
-    "& .MuiOutlinedInput-root": {
-      color: "#fff", // Text color
-      "& fieldset": {
-        borderColor: "#fff", // Border color
-      },
-      "&:hover fieldset": {
-        borderColor: "#fff", // Hover border color
-      },
-    },
-    "& .MuiInputLabel-root": {
-      color: "#fff", // Label color
-    },
-    "& .MuiSvgIcon-root": {
-      color: "#fff", // Icon color
-    },
-  };
 
   const handleTabChange = (event, newIndex) => setTabIndex(newIndex);
 

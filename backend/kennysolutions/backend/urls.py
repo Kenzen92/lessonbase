@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from apps.classes.views import class_events, class_material, class_report, teacher_statistics, class_events_for_student, HomeworkViewSet
-from apps.user_accounts.views import confirm_account, connect_student_teacher, login, logout, new_student, profile, students, students_for_teacher, teachers, userRegister
+from apps.user_accounts.views import ClassGroupViewSet, confirm_account, connect_student_teacher, login, logout, new_student, profile, students, students_for_teacher, teachers, userRegister
 from apps.subjects.views import all_subjects, subjects
 from . import views
 from rest_framework.routers import DefaultRouter
@@ -10,6 +10,7 @@ from apps.storage.views import serve_mongo_file
 
 router = DefaultRouter()
 router.register(r'assignment', HomeworkViewSet, basename='assignment')
+router.register(r'class-group', ClassGroupViewSet, basename="class-group")
 
 urlpatterns = [
     path('create_data', views.createData),
