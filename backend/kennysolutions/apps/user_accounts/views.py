@@ -257,7 +257,7 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
             data['teachers'].append(self.request.user.pk) if self.request.user.pk not in data['teachers'] else None
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid(raise_exception=True):
-            return Response(serializer.errors, status=status.HTTP_200_OK),
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST),
         self.perform_create(serializer)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)

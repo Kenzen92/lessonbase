@@ -58,15 +58,18 @@ function Classes() {
           ...classGroupData,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create group");
+      console.log("status: ", response.status);
+      if (response.status === 201) {
+        const data = await response.json();
+        console.log(data);
+        return { success: true, message: "Class group created successfully" };
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create group");
       }
-
-      const data = await response.json();
-      console.log(data);
     } catch (error) {
       console.error(error.message);
+      return { success: false, message: error.message };
     }
   };
 
@@ -118,7 +121,7 @@ function Classes() {
 
     if (result.success) {
       toast.success(result.message);
-      setIsOpen(false); // Close modal on success
+      setshowClassForm(false); // Close modal on success
       setFormData({
         name: "",
         description: "",

@@ -14,7 +14,8 @@ class ClassGroupUserSerializer(serializers.ModelSerializer):
 class ClassGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassGroup
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers']
+        read_only_fields = ['id']
 
 class StudentSerializer(serializers.ModelSerializer):
     class_groups = ClassGroupUserSerializer(many=True, read_only=True)

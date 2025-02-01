@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Avatar,
   Box,
   Typography,
   TextField,
@@ -14,6 +13,8 @@ import {
   FormGroup,
   Button,
 } from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import AvatarGroup from "@mui/material/AvatarGroup";
 import inputStyle from "../styles/input";
 
 const StudentCard = ({
@@ -24,7 +25,7 @@ const StudentCard = ({
 }) => {
   return (
     <>
-      <ListItem alignItems="flex-start" sx={{ px: 0 }}>
+      <ListItem alignItems="flex-start" sx={{ px: 0, justifyContent: "space-between" }}>
         <Box sx={{ flexDirection: "row" }}>
           <Box>
             <Avatar alt={student.first_name} src={student.avatar} />
@@ -37,33 +38,15 @@ const StudentCard = ({
           >{`Username: ${student.username} | Email: ${student.email}`}</Typography>
         </Box>
         <Box>
-          {!isSelected ? (
             <Button
               variant="contained"
               color="primary"
               onClick={() => {
-                setSelectedStudents([...selectedStudents, student]);
+                setSelectedStudents([...selectedStudents, student.id]);
               }}
             >
               Select
             </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => {
-                let filteredStudents = [];
-                for (let eachStudent of selectedStudents) {
-                  if (eachStudent !== student) {
-                    filteredStudents.push(eachStudent);
-                  }
-                }
-                setSelectedStudents([...filteredStudents]);
-              }}
-            >
-              Remove
-            </Button>
-          )}
         </Box>
       </ListItem>
     </>
@@ -108,7 +91,7 @@ const StudentSearch = ({
     const username = student.username || "";
     const email = student.email || "";
 
-    const isSelected = selectedStudents.includes(student);
+    const isSelected = selectedStudents.includes(student.id);
     const matchesSearch =
       firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -121,6 +104,29 @@ const StudentSearch = ({
 
     return matchesSearch && matchesGroup && !isSelected;
   });
+
+  const studentAvatarList = selectedStudents.map((student, index) => (
+    <Box key={index} sx={{display: 'flex', flexDirection: 'row', alignItems: 'space-between'}}>
+      <Avatar alt={student.username} src={student.profile_picture} key={student.id}>
+        {student.username ? student.username[0] : null}
+      </Avatar>
+      <Button
+        variant="outlined"
+        color="secondary"
+        onClick={() => {
+          let filteredStudents = [];
+          for (let eachStudent of selectedStudents) {
+            if (eachStudent !== student) {
+              filteredStudents.push(eachStudent);
+            }
+          }
+          setSelectedStudents([...filteredStudents]);
+        }}
+        >
+        Remove
+      </Button>
+    </Box>
+  ));
 
   return (
     <Box
@@ -136,7 +142,7 @@ const StudentSearch = ({
         gap: "5em",
       }}
     >
-      <Box>
+      <Box sx={{ width: '70%'}}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Student Search
         </Typography>
@@ -177,7 +183,7 @@ const StudentSearch = ({
                   student={student}
                   setSelectedStudents={setSelectedStudents}
                   selectedStudents={selectedStudents}
-                  isSelected={selectedStudents.includes(student)}
+                  isSelected={selectedStudents.includes(student.id)}
                 />
                 <Divider sx={{ backgroundColor: "#555" }} />
               </React.Fragment>
@@ -190,19 +196,9 @@ const StudentSearch = ({
       <Box>
         <Typography>Selected Students: </Typography>
         {selectedStudents.length > 0 ? (
-          <List>
-            {selectedStudents.map((student) => (
-              <React.Fragment key={student.id}>
-                <StudentCard
-                  student={student}
-                  setSelectedStudents={setSelectedStudents}
-                  selectedStudents={selectedStudents}
-                  isSelected={selectedStudents.includes(student)}
-                />
-                <Divider sx={{ backgroundColor: "#555" }} />
-              </React.Fragment>
-            ))}
-          </List>
+          <Box sx={{ display: "flex", flexDirection: 'column', gap: 1, alignItems: "center" }}>
+            {studentAvatarList}
+          </Box>
         ) : (
           <Typography>No students Selected.</Typography>
         )}
