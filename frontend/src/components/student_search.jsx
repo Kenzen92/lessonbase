@@ -25,7 +25,10 @@ const StudentCard = ({
 }) => {
   return (
     <>
-      <ListItem alignItems="flex-start" sx={{ px: 0, justifyContent: "space-between" }}>
+      <ListItem
+        alignItems="flex-start"
+        sx={{ px: 0, justifyContent: "space-between" }}
+      >
         <Box sx={{ flexDirection: "row" }}>
           <Box>
             <Avatar alt={student.first_name} src={student.avatar} />
@@ -38,15 +41,15 @@ const StudentCard = ({
           >{`Username: ${student.username} | Email: ${student.email}`}</Typography>
         </Box>
         <Box>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                setSelectedStudents([...selectedStudents, student.id]);
-              }}
-            >
-              Select
-            </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setSelectedStudents([...selectedStudents, student.id]);
+            }}
+          >
+            Select
+          </Button>
         </Box>
       </ListItem>
     </>
@@ -106,13 +109,25 @@ const StudentSearch = ({
   });
 
   const studentAvatarList = selectedStudents.map((student, index) => (
-    <Box key={index} sx={{display: 'flex', flexDirection: 'row', alignItems: 'space-between'}}>
-      <Avatar alt={student.username} src={student.profile_picture} key={student.id}>
+    <Box
+      key={index}
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "space-between",
+      }}
+    >
+      <Avatar
+        alt={student.username}
+        src={student.profile_picture}
+        key={student.id}
+      >
         {student.username ? student.username[0] : null}
       </Avatar>
       <Button
         variant="outlined"
         color="secondary"
+        sx={{ marginLeft: 4 }}
         onClick={() => {
           let filteredStudents = [];
           for (let eachStudent of selectedStudents) {
@@ -122,7 +137,7 @@ const StudentSearch = ({
           }
           setSelectedStudents([...filteredStudents]);
         }}
-        >
+      >
         Remove
       </Button>
     </Box>
@@ -142,7 +157,7 @@ const StudentSearch = ({
         gap: "5em",
       }}
     >
-      <Box sx={{ width: '70%'}}>
+      <Box sx={{ width: "70%" }}>
         <Typography variant="h6" sx={{ mb: 2 }}>
           Student Search
         </Typography>
@@ -196,7 +211,14 @@ const StudentSearch = ({
       <Box>
         <Typography>Selected Students: </Typography>
         {selectedStudents.length > 0 ? (
-          <Box sx={{ display: "flex", flexDirection: 'column', gap: 1, alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              alignItems: "center",
+            }}
+          >
             {studentAvatarList}
           </Box>
         ) : (

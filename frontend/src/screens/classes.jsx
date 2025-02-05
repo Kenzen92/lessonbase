@@ -222,29 +222,6 @@ function Classes() {
                 ))}
               </Select>
             </FormControl>
-            {/* <FormControl fullWidth>
-              <InputLabel id="student-select-label" sx={{ color: "#fff" }}>
-                Students
-              </InputLabel>
-              <Select
-                labelId="student-select-label"
-                id="students"
-                multiple
-                value={selectedStudents}
-                onChange={(e) => setSelectedStudents(e.target.value)}
-                label="Students"
-                sx={{
-                  mb: 2,
-                  ...inputStyle,
-                }}
-              >
-                {allStudents.map((student) => (
-                  <MenuItem key={student.id} value={student.id}>
-                    {student.username}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl> */}
 
             <StudentSearch
               students={allStudents}
