@@ -10,6 +10,7 @@ import {
   Paper,
   IconButton,
 } from "@mui/material";
+import { fetchClassEvents, createChat } from "../utils/agent";
 import ScheduleClassModal from "./schedule_class_modal";
 
 const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
@@ -20,25 +21,9 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
   const [selectedClassEvent, setSelectedClassEvent] = useState(null);
   const navigate = useNavigate();
 
-  const fetchClassEvents = async () => {
+  const handleFetchClassEvents = async () => {
     try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:8000/class/${student.id}/`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Token ${auth}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch class events");
-      }
-
-      const data = await response.json();
+      const data = await fetchClassEvents(navigate);
       const now = new Date();
 
       const pastClasses = data.filter(
@@ -59,31 +44,22 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
   };
 
   useEffect(() => {
-    fetchClassEvents();
+    handleFetchClassEvents();
   }, [student.id]);
 
   const handleReloadData = () => {
-    fetchClassEvents();
+    handleFetchClassEvents();
   };
 
-  const createChat = async () => {
+  const handleCreateChat = async () => {
     try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/chats/", {
-        method: "POST",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ participants: [student.id] }),
-      });
+      const response = await createChat(student.id, navigate);
 
       if (!response.ok) {
         throw new Error("Failed to create chat");
       }
 
       const data = await response.json();
-      console.log("got the new chat id: ", data.id);
       handleSelectChat(data.id, student.username);
     } catch (error) {
       setError(error.message);
@@ -107,9 +83,13 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
         boxShadow: 3,
         borderRadius: 2,
         maxWidth: "30rem",
+        minHeight: "18rem",
         boxShadow: 5,
         border: 2,
         borderColor: "#333",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -138,7 +118,7 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
             <Button
               variant="contained"
               color="primary"
-              onClick={createChat}
+              onClick={handleCreateChat}
               sx={{ ml: 2 }}
             >
               + Chat
@@ -212,7 +192,7 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
               eventData={selectedClassEvent}
               handleReloadData={() => {
                 handleCloseModal();
-                fetchClassEvents();
+                handleFetchClassEvents();
               }}
             />
           )}

@@ -15,12 +15,7 @@ import {
 import {
   Box,
   Typography,
-  TextField,
   Button,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
   Tabs,
   Tab,
   Dialog,
@@ -35,6 +30,20 @@ import ScheduleClassBar from "./schedule_class_bar";
 import { toast } from "react-toastify";
 import ClassResources from "./class_resources";
 import { motion } from "framer-motion";
+import { cancelClassEvent } from "../utils/agent";
+
+const subjectIDMap = {
+  Mathematics: 1,
+  Physics: 2,
+  Chemistry: 3,
+  Biology: 4,
+  History: 5,
+  Literature: 6,
+  "Computer Science": 7,
+  Art: 8,
+  Music: 9,
+  Geography: 10,
+};
 
 const subjectIconMap = {
   Mathematics: FaCalculator,
@@ -66,7 +75,10 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
   const startTime = new Date(eventData.start_time);
   const currentTime = new Date();
   const isPastEvent = startTime < currentTime;
-  const IconComponent = subjectIconMap[eventData.subject];
+  const subjectName = Object.keys(subjectIDMap).find(
+    (key) => subjectIDMap[key] === eventData.subject
+  );
+  const IconComponent = subjectIconMap[subjectName];
 
   const formattedTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
@@ -80,33 +92,6 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     </Avatar>
   ));
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const formData = new FormData();
-    formData.append("classID", eventData.id);
-    if (description) formData.append("lesson_summary", description);
-    if (file) {
-      formData.append("file", file);
-      if (filePurpose) formData.append("filePurpose", filePurpose);
-    }
-
-    const auth = window.sessionStorage.getItem("token");
-    fetch("http://localhost:8000/class_report", {
-      method: "POST",
-      headers: {
-        Authorization: `Token ${auth}`,
-      },
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then(() => {
-        toast.success("File uploaded successfully!");
-      })
-      .catch(() => {
-        toast.error("Error uploading file.");
-      });
-  };
-
   const handleTabChange = (event, newIndex) => {
     setTabIndex(newIndex);
   };
@@ -115,19 +100,10 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
     console.log("starting class");
   };
 
-  const handleConfirmCancel = async () => {
+  const handleConfirmCancelClassEvent = async () => {
     try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:8000/class/${eventData.id}/`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Token ${auth}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await cancelClassEvent(eventData.id);
+
       if (response.status === 204) {
         setError(null);
         handleReloadData();
@@ -155,7 +131,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setCancelConfirmOpen(false)}>No</Button>
-          <Button onClick={handleConfirmCancel} color="secondary">
+          <Button onClick={handleConfirmCancelClassEvent} color="secondary">
             Yes, Cancel
           </Button>
         </DialogActions>
@@ -197,7 +173,7 @@ const ClassEventCard = ({ eventData, handleReloadData }) => {
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <IconComponent color="#fff" size={24} />
-              <Typography>{eventData.subject}</Typography>
+              <Typography>{subjectName}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
               <AvatarGroup max={3}>{studentsList}</AvatarGroup>

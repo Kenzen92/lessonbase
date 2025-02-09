@@ -5,67 +5,48 @@ import {
   TextField,
   List,
   ListItem,
-  ListItemAvatar,
-  ListItemText,
   Divider,
   Checkbox,
   FormControlLabel,
   FormGroup,
   Button,
+  Avatar,
 } from "@mui/material";
-import Avatar from "@mui/material/Avatar";
-import AvatarGroup from "@mui/material/AvatarGroup";
 import inputStyle from "../styles/input";
 
-const StudentCard = ({
-  student,
-  setSelectedStudents,
-  selectedStudents,
-  isSelected,
-}) => {
+const StudentCard = ({ student, setSelectedStudents, selectedStudents }) => {
   return (
-    <>
-      <ListItem
-        alignItems="flex-start"
-        sx={{ px: 0, justifyContent: "space-between" }}
+    <ListItem
+      alignItems="flex-start"
+      sx={{ px: 0, justifyContent: "space-between" }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 2,
+        }}
       >
-        <Box sx={{ flexDirection: "row" }}>
-          <Box>
-            <Avatar alt={student.first_name} src={student.avatar} />
-          </Box>
-          <Typography
-            sx={{ ...inputStyle }}
-          >{`${student.first_name} ${student.last_name}`}</Typography>
-          <Typography
-            sx={{ ...inputStyle }}
-          >{`Username: ${student.username} | Email: ${student.email}`}</Typography>
-        </Box>
-        <Box>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setSelectedStudents([...selectedStudents, student.id]);
-            }}
-          >
-            Select
-          </Button>
-        </Box>
-      </ListItem>
-    </>
+        <Avatar alt={student.first_name} src={student.avatar} />
+        <Typography sx={{ ...inputStyle }}>
+          {student.first_name} {student.last_name}
+        </Typography>
+      </Box>
+      <Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            setSelectedStudents([...selectedStudents, student.id]);
+          }}
+        >
+          Select
+        </Button>
+      </Box>
+    </ListItem>
   );
 };
-
-// I have a way to view students filter and search by name or class etc.
-// A student selected here should vanish from the list and appear to the right in a 'selected' state.
-// The parent component needs to control this list so as to return it through form submission.
-
-// If i pass in selected students and setSelected students, the parent can manage state
-// But the child can be responsible for managing it
-
-// I can now add students to the selected students list. Each student needs an attribute for selected (default to false)
-
-// When setting a student into the selected list, they should be excluded from the selectable list.
 
 const StudentSearch = ({
   students,
@@ -114,28 +95,24 @@ const StudentSearch = ({
       sx={{
         display: "flex",
         flexDirection: "row",
-        alignItems: "space-between",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 2,
       }}
     >
-      <Avatar
-        alt={student.username}
-        src={student.profile_picture}
-        key={student.id}
-      >
+      <Avatar alt={student.username} src={student.profile_picture}>
         {student.username ? student.username[0] : null}
       </Avatar>
+      <Typography sx={{ ...inputStyle }}>
+        {student.first_name} {student.last_name}
+      </Typography>
       <Button
         variant="outlined"
         color="secondary"
-        sx={{ marginLeft: 4 }}
         onClick={() => {
-          let filteredStudents = [];
-          for (let eachStudent of selectedStudents) {
-            if (eachStudent !== student) {
-              filteredStudents.push(eachStudent);
-            }
-          }
-          setSelectedStudents([...filteredStudents]);
+          setSelectedStudents(
+            selectedStudents.filter((id) => id !== student.id)
+          );
         }}
       >
         Remove
@@ -146,22 +123,14 @@ const StudentSearch = ({
   return (
     <Box
       sx={{
-        p: 3,
-        boxShadow: 5,
-        borderRadius: 2,
-        border: 2,
-        color: "#fff",
         display: "flex",
         flexDirection: "row",
-        flexWrap: "wrap",
-        gap: "5em",
+        gap: "2em",
+        maxHeight: "40em",
+        overflow: "auto",
       }}
     >
-      <Box sx={{ width: "70%" }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Student Search
-        </Typography>
-
+      <Box sx={{ width: "50%" }}>
         <TextField
           label="Search by name, username, or email"
           variant="outlined"
@@ -171,7 +140,7 @@ const StudentSearch = ({
           sx={{ ...inputStyle }}
         />
 
-        <Typography variant="body1" sx={{ mb: 1 }}>
+        <Typography variant="body1" sx={{ mt: 2, mb: 1 }}>
           Filter by Class Groups:
         </Typography>
         <FormGroup sx={{ mb: 3 }}>
@@ -198,7 +167,6 @@ const StudentSearch = ({
                   student={student}
                   setSelectedStudents={setSelectedStudents}
                   selectedStudents={selectedStudents}
-                  isSelected={selectedStudents.includes(student.id)}
                 />
                 <Divider sx={{ backgroundColor: "#555" }} />
               </React.Fragment>
@@ -208,7 +176,7 @@ const StudentSearch = ({
           <Typography>No students found.</Typography>
         )}
       </Box>
-      <Box>
+      <Box sx={{ width: "50%" }}>
         <Typography>Selected Students: </Typography>
         {selectedStudents.length > 0 ? (
           <Box

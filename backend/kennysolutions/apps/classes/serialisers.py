@@ -5,6 +5,7 @@ from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.user_accounts.models import CustomUser, CustomerAccount, Teacher, Student, Staff
 from apps.classes.models import Assignment, ClassEvent, TeachingResource
+from apps.subjects.serializers import SubjectSerializer
 from django.contrib.auth import authenticate
 import logging
 from django.contrib.auth.hashers import make_password
@@ -20,7 +21,7 @@ class TeachingResourceSerializer(serializers.ModelSerializer):
 class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = serializers.SlugRelatedField(slug_field='name', queryset=Subject.objects.all())
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())  # Allow passing subject as an ID
     resources = TeachingResourceSerializer(many=True, read_only=True)
 
     class Meta:

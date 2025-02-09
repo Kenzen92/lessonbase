@@ -18,8 +18,13 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import { fetchStudents, fetchSubjects } from "../utils/agent.js";
+import {
+  fetchStudents,
+  fetchSubjects,
+  handleCreateClassGroup,
+} from "../utils/agent.js";
 import StudentSearch from "../components/student_search.jsx";
+import ClassWizard from "../components/class_wizard.jsx";
 
 function Classes() {
   const [formData, setFormData] = useState({
@@ -29,110 +34,22 @@ function Classes() {
   });
   const [showClassForm, setshowClassForm] = useState(false);
   const [classes, setClasses] = useState([]);
-  const [name, setName] = useState("");
-  const [selectedStudents, setSelectedStudents] = useState([]);
-  const [selectedSubject, setSelectedSubject] = useState("");
   const [allStudents, setAllStudents] = useState([]);
   const [allSubjects, setAllSubjects] = useState([]);
   const navigate = useNavigate();
 
-  const handleCreateClassGroup = async (classGroupData) => {
-    try {
-      console.log(
-        JSON.stringify({
-          students: selectedStudents,
-          subjects: selectedSubject,
-          ...classGroupData,
-        })
-      );
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/class-group/", {
-        method: "POST",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          students: selectedStudents,
-          subjects: selectedSubject,
-          ...classGroupData,
-        }),
-      });
-      console.log("status: ", response.status);
-      if (response.status === 201) {
-        const data = await response.json();
-        console.log(data);
-        return { success: true, message: "Class group created successfully" };
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create group");
-      }
-    } catch (error) {
-      console.error(error.message);
-      return { success: false, message: error.message };
-    }
-  };
-
   const fetchData = async () => {
     const students = await fetchStudents(navigate);
     if (students) setAllStudents(students);
-    console.log(students);
     const subjects = await fetchSubjects(navigate);
     if (subjects) setAllSubjects(subjects);
-  };
-
-  const fetchClasses = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/class-group", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch classes");
-      }
-
-      const data = await response.json();
-      console.log(data);
-      setClasses(data);
-    } catch (error) {
-      console.error(error.message);
-    }
+    const classes = await fetchClassEvents(navigate);
+    if (classes) setClasses(classes);
   };
 
   useEffect(() => {
-    fetchClasses();
     fetchData();
   }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const classGroupData = {
-      ...formData,
-      students: selectedStudents,
-      subjects: selectedSubject,
-    };
-
-    const result = await handleCreateClassGroup(classGroupData);
-
-    if (result.success) {
-      toast.success(result.message);
-      setshowClassForm(false); // Close modal on success
-      setFormData({
-        name: "",
-        description: "",
-        class_code: "",
-      });
-      setSelectedStudents([]);
-      setSelectedSubject("");
-    } else {
-      toast.error(result.message);
-    }
-  };
 
   return (
     <>
@@ -179,81 +96,12 @@ function Classes() {
             color: "white",
           }}
         >
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Name"
-              variant="outlined"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              sx={{ mb: 2, ...inputStyle }}
-            />
-            <TextField
-              fullWidth
-              label="Description"
-              variant="outlined"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              sx={{ mb: 2, ...inputStyle }}
-            />
-            <FormControl fullWidth>
-              <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
-                Subject
-              </InputLabel>
-              <Select
-                id="subjects"
-                labelId="subject-select-label"
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                label="Subject"
-                sx={{
-                  mb: 2,
-                  ...inputStyle,
-                }}
-              >
-                {allSubjects.map((subject) => (
-                  <MenuItem key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <StudentSearch
-              students={allStudents}
-              classGroups={classes}
-              selectedStudents={selectedStudents}
-              setSelectedStudents={setSelectedStudents}
-            ></StudentSearch>
-
-            <TextField
-              fullWidth
-              label="Code"
-              variant="outlined"
-              value={formData.class_code}
-              onChange={(e) =>
-                setFormData({ ...formData, class_code: e.target.value })
-              }
-              sx={{ mb: 2, mt: 2, ...inputStyle }}
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              sx={{
-                width: {
-                  sm: "100%",
-                  lg: "50%",
-                },
-              }}
-            >
-              Submit
-            </Button>
-          </form>
+          <ClassWizard
+            allStudents={allStudents}
+            allSubjects={allSubjects}
+            classes={classes}
+            handleClose={() => setshowClassForm(false)}
+          />
         </Box>
       </Modal>
     </>

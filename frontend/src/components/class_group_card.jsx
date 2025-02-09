@@ -14,52 +14,6 @@ const ClassGroupCard = ({ data }) => {
   const [selectedClassEvent, setSelectedClassEvent] = useState(null);
   const navigate = useNavigate();
 
-  //   const fetchClassEvents = async () => {
-  //     try {
-  //       const auth = window.sessionStorage.getItem("token");
-  //       const response = await fetch(
-  //         `http://localhost:8000/class/${student.id}/`,
-  //         {
-  //           method: "GET",
-  //           headers: {
-  //             Authorization: `Token ${auth}`,
-  //             "Content-Type": "application/json",
-  //           },
-  //         }
-  //       );
-
-  //       if (!response.ok) {
-  //         throw new Error("Failed to fetch class events");
-  //       }
-
-  //       const data = await response.json();
-  //       const now = new Date();
-
-  //       const pastClasses = data.filter(
-  //         (event) => new Date(event.start_time) < now
-  //       );
-  //       const futureClasses = data.filter(
-  //         (event) => new Date(event.start_time) > now
-  //       );
-
-  //       const lastClass =
-  //         pastClasses.length > 0 ? pastClasses[pastClasses.length - 1] : null;
-  //       const upcomingClass = futureClasses.length > 0 ? futureClasses[0] : null;
-  //       setPreviousClass(lastClass);
-  //       setNextClass(upcomingClass);
-  //     } catch (error) {
-  //       setError(error.message);
-  //     }
-  //   };
-
-  //   useEffect(() => {
-  //     fetchClassEvents();
-  //   }, [student.id]);
-
-  //   const handleReloadData = () => {
-  //     fetchClassEvents();
-  //   };
-
   const handleOpenModal = (event) => {
     setSelectedClassEvent(event);
     setOpenModal(true);
@@ -107,66 +61,13 @@ const ClassGroupCard = ({ data }) => {
           flexDirection: "column",
           gap: 1,
         }}
-      >
-        {/* <Button
-          variant="contained"
-          disabled={!previousClass}
-          onClick={() => handleOpenModal(previousClass)}
-        >
-          {previousClass
-            ? `Previous Class:  ${previousClass.subject}`
-            : "No Previous Class"}
-        </Button>
-
-        {nextClass ? (
-          <Button
-            variant="contained"
-            onClick={() => handleOpenModal(nextClass)}
-          >
-            Next Class: {nextClass.subject}
-          </Button>
-        ) : (
-          <ScheduleClassModal handleReloadData={handleReloadData} />
-        )} */}
-      </Box>
+      ></Box>
 
       {error && (
         <Typography color="error" sx={{ mt: 2 }}>
           {error}
         </Typography>
       )}
-
-      {/* <Modal
-        open={openModal}
-        onClose={handleCloseModal}
-        aria-labelledby="class-event-modal-title"
-        aria-describedby="class-event-modal-description"
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            bgcolor: "background.paper",
-            p: 3,
-            borderRadius: 2,
-            boxShadow: 24,
-            border: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          {selectedClassEvent && (
-            <ClassEventCard
-              eventData={selectedClassEvent}
-              handleReloadData={() => {
-                handleCloseModal();
-                fetchClassEvents();
-              }}
-            />
-          )}
-        </Box>
-      </Modal> */}
     </Box>
   );
 };

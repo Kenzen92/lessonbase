@@ -5,6 +5,7 @@ import TeacherStatistics from "./../components/teacher_statistics.jsx";
 import handleUnautherizedRequest from "./unautherized_request";
 import ScheduleClassBar from "./schedule_class_bar.jsx";
 import { Typography, Box, Button } from "@mui/material";
+import { fetchStatistics, fetchClassEvents } from "../utils/agent.js";
 
 const ClassDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
@@ -12,33 +13,13 @@ const ClassDashboard = () => {
   const [error, setError] = useState(null);
   const [previous, setPrevious] = useState(false);
   const navigate = useNavigate();
-
-  // Define fetchClassEvents function
-  const fetchClassEvents = async () => {
+  const fetchData = async () => {
     try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/class/", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status === 401) {
-        handleUnautherizedRequest(navigate);
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch class events");
-      }
-
-      const data = await response.json();
-      console.log(data);
+      const classEventsData = await fetchClassEvents();
       let dateClassMap = {};
 
       // Loop through each event in the data array
-      data.forEach((event) => {
+      classEventsData.forEach((event) => {
         // Extract the date from the start_time of the event
         const eventDate = new Date(event.start_time);
         const formattedDate = `${eventDate.getDate()}/${
@@ -54,49 +35,21 @@ const ClassDashboard = () => {
           dateClassMap[formattedDate] = [event];
         }
       });
-
       setClassEvents(dateClassMap);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const fetchStatistics = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/teacher-statistics", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.status === 401) {
-        handleUnautherizedRequest(navigate);
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch class events");
-      }
-
-      const data = await response.json();
-      setStatistics(data.data);
+      const statistics = await fetchStatistics();
+      setStatistics(statistics.data);
     } catch (error) {
       setError(error.message);
     }
   };
 
   useEffect(() => {
-    fetchClassEvents();
-    fetchStatistics();
+    fetchData();
   }, []);
 
   // Callback function to force re-render of ClassDashboard after item deletion
   const handleReloadData = () => {
-    console.log("Handling");
-    // Call fetchClassEvents to fetch updated data
-    fetchClassEvents();
-    fetchStatistics();
+    fetchData();
   };
 
   // Utility function to check if a date is in the past

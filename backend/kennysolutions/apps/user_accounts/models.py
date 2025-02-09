@@ -32,6 +32,9 @@ class CustomerAccountManager(PolymorphicManager):
             raise ValueError('Superuser must have is_superuser=True.')
 
         return self.create_user(email, username, password, **extra_fields)
+    
+    def normalize_email(self, email):
+        return email.lower()
 
 
 class CustomerAccount(PolymorphicModel, CustomUser):

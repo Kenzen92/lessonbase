@@ -15,13 +15,12 @@ from .models import Assignment, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
 
-@api_view(['GET', 'POST', 'DELETE', 'PUT', 'PATCH'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def class_events(request, class_id=None):
-    if request.method == 'GET':
+class ClassEventViewSet(viewsets.ViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
         user = request.user.get_real_instance()
-        class_events = None
         if isinstance(user, Teacher):
             class_events = ClassEvent.objects.filter(teachers=user).distinct().select_related('subject').prefetch_related('students')
         else:
@@ -29,18 +28,9 @@ def class_events(request, class_id=None):
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
 
-    elif request.method == 'DELETE':
-        try:
-            class_event = ClassEvent.objects.get(id=class_id)
-            class_event.delete()
-            return Response({'message': 'Class event deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-        except ClassEvent.DoesNotExist:
-            return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
-    
-    elif request.method == 'POST':
+    def create(self, request):
         teacher_ids = [request.user.pk]
         student_ids = request.data.get('students', [])
-
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
         students = Student.objects.filter(pk__in=student_ids)
         serializer = ClassEventSerializer(data=request.data)
@@ -49,39 +39,49 @@ def class_events(request, class_id=None):
             class_event.teachers.set(teachers)
             class_event.students.set(students)
             return Response({"message": "Class event created successfully"}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    
-    elif request.method in ['PUT', 'PATCH']:
-        if not class_id:
-            return Response({"error": "Class event ID is required for updating"}, status=status.HTTP_400_BAD_REQUEST)
-        
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def retrieve(self, request, pk=None):
         try:
-            class_event = ClassEvent.objects.get(id=class_id)
+            class_event = ClassEvent.objects.get(id=pk)
+            serializer = ClassEventSerializer(class_event)
+            return Response(serializer.data)
+        except ClassEvent.DoesNotExist:
+            return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def update(self, request, pk=None):
+        return self._update_class_event(request, pk, partial=False)
+
+    def partial_update(self, request, pk=None):
+        return self._update_class_event(request, pk, partial=True)
+
+    def destroy(self, request, pk=None):
+        try:
+            class_event = ClassEvent.objects.get(id=pk)
+            class_event.delete()
+            return Response({'message': 'Class event deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except ClassEvent.DoesNotExist:
+            return Response({'error': 'Class event not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def _update_class_event(self, request, pk, partial):
+        if not pk:
+            return Response({"error": "Class event ID is required for updating"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            class_event = ClassEvent.objects.get(id=pk)
         except ClassEvent.DoesNotExist:
             return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
 
         teacher_ids = [request.user.pk]
         student_ids = request.data.get('students', [])
-
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
         students = Student.objects.filter(pk__in=student_ids)
-
-        # Use partial updates with PATCH, full update with PUT
-        partial = request.method == 'PATCH'
         serializer = ClassEventSerializer(class_event, data=request.data, partial=partial)
-
         if serializer.is_valid():
             class_event = serializer.save()
             class_event.teachers.set(teachers)
             class_event.students.set(students)
             return Response({"message": "Class event updated successfully"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-    else:
-        return Response({'message': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'POST', 'DELETE', 'PUT', 'PATCH'])
