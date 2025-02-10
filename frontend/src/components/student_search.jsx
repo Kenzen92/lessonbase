@@ -34,15 +34,29 @@ const StudentCard = ({ student, setSelectedStudents, selectedStudents }) => {
         </Typography>
       </Box>
       <Box>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {
-            setSelectedStudents([...selectedStudents, student.id]);
-          }}
-        >
-          Select
-        </Button>
+        {selectedStudents.includes(student) ? (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              setSelectedStudents(
+                selectedStudents.filter((id) => id !== student)
+              );
+            }}
+          >
+            Deselect
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setSelectedStudents([...selectedStudents, student.id]);
+            }}
+          >
+            Select
+          </Button>
+        )}
       </Box>
     </ListItem>
   );
@@ -89,48 +103,17 @@ const StudentSearch = ({
     return matchesSearch && matchesGroup && !isSelected;
   });
 
-  const studentAvatarList = selectedStudents.map((student, index) => (
-    <Box
-      key={index}
-      sx={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 2,
-      }}
-    >
-      <Avatar alt={student.username} src={student.profile_picture}>
-        {student.username ? student.username[0] : null}
-      </Avatar>
-      <Typography sx={{ ...inputStyle }}>
-        {student.first_name} {student.last_name}
-      </Typography>
-      <Button
-        variant="outlined"
-        color="secondary"
-        onClick={() => {
-          setSelectedStudents(
-            selectedStudents.filter((id) => id !== student.id)
-          );
-        }}
-      >
-        Remove
-      </Button>
-    </Box>
-  ));
-
   return (
     <Box
       sx={{
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
         gap: "2em",
         maxHeight: "40em",
         overflow: "auto",
       }}
     >
-      <Box sx={{ width: "50%" }}>
+      <Box sx={{ width: "100%" }}>
         <TextField
           label="Search by name, username, or email"
           variant="outlined"
@@ -158,40 +141,50 @@ const StudentSearch = ({
             />
           ))}
         </FormGroup>
-
-        {filteredStudents.length > 0 ? (
-          <List>
-            {filteredStudents.map((student) => (
-              <React.Fragment key={student.id}>
-                <StudentCard
-                  student={student}
-                  setSelectedStudents={setSelectedStudents}
-                  selectedStudents={selectedStudents}
-                />
-                <Divider sx={{ backgroundColor: "#555" }} />
-              </React.Fragment>
-            ))}
-          </List>
-        ) : (
-          <Typography>No students found.</Typography>
-        )}
       </Box>
-      <Box sx={{ width: "50%" }}>
-        <Typography>Selected Students: </Typography>
-        {selectedStudents.length > 0 ? (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 1,
-              alignItems: "center",
-            }}
-          >
-            {studentAvatarList}
+      <Box sx={{ width: "100%", display: "flex", flexDirection: "row" }}>
+        {filteredStudents.length > 0 ? (
+          <Box sx={{ width: "50%" }}>
+            <List>
+              {filteredStudents.map((student) => (
+                <React.Fragment key={student.id}>
+                  <StudentCard
+                    student={student}
+                    setSelectedStudents={setSelectedStudents}
+                    selectedStudents={selectedStudents}
+                  />
+                  <Divider sx={{ backgroundColor: "#555" }} />
+                </React.Fragment>
+              ))}
+            </List>
           </Box>
         ) : (
-          <Typography>No students Selected.</Typography>
+          <Box sx={{ width: "50%" }}>
+            <Typography sx={{ textAlign: "center" }}>
+              No students found.
+            </Typography>
+          </Box>
         )}
+        <Box sx={{ width: "50%" }}>
+          {selectedStudents.length > 0 ? (
+            <List>
+              {selectedStudents.map((student) => (
+                <React.Fragment key={student.id}>
+                  <StudentCard
+                    student={student}
+                    setSelectedStudents={setSelectedStudents}
+                    selectedStudents={selectedStudents}
+                  />
+                  <Divider sx={{ backgroundColor: "#555" }} />
+                </React.Fragment>
+              ))}
+            </List>
+          ) : (
+            <Typography sx={{ textAlign: "center" }}>
+              No students Selected.
+            </Typography>
+          )}
+        </Box>
       </Box>
     </Box>
   );

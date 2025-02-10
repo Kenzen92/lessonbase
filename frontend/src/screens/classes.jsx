@@ -1,37 +1,17 @@
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation";
-import { toast } from "react-toastify";
 import ClassGroupCard from "../components/class_group_card";
 import { useNavigate } from "react-router-dom";
-import inputStyle from "../styles/input.jsx";
 
-import {
-  Container,
-  Box,
-  Button,
-  Grid,
-  TextField,
-  Typography,
-  Modal,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { Container, Box, Button, Grid, Modal } from "@mui/material";
 import {
   fetchStudents,
   fetchSubjects,
-  handleCreateClassGroup,
+  fetchClassEvents,
 } from "../utils/agent.js";
-import StudentSearch from "../components/student_search.jsx";
 import ClassWizard from "../components/class_wizard.jsx";
 
 function Classes() {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    class_code: "",
-  });
   const [showClassForm, setshowClassForm] = useState(false);
   const [classes, setClasses] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
