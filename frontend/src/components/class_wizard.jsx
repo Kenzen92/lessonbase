@@ -17,10 +17,10 @@ import { handleCreateClassGroup } from "../utils/agent";
 import { toast } from "react-toastify";
 
 const validationSchema = yup.object().shape({
-  class_name: yup.string().required("Class name is required"),
-  class_subject: yup.string().required("Class subject is required"),
+  name: yup.string().required("Class name is required"),
+  subject: yup.string().required("Class subject is required"),
   class_code: yup.string().required("Class code is required"),
-  class_description: yup.string().optional(),
+  description: yup.string().optional(),
 });
 
 const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
@@ -34,9 +34,9 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      class_name: "",
-      class_description: "",
-      class_subject: "",
+      name: "",
+      description: "",
+      subject: "",
       class_code: "",
     },
   });
@@ -50,8 +50,11 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
   };
 
   const onSubmit = async (data) => {
+    data["students"] = selectedStudents;
+    console.log(data);
     try {
-      await handleCreateClassGroup({ ...data, students: selectedStudents });
+      response = await handleCreateClassGroup(data);
+      console.log(reposponse);
       toast.success("Class group created successfully!");
     } catch (error) {
       toast.error("Failed to create class group. Please try again.");
@@ -62,7 +65,7 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
       {step === 1 && (
         <form onSubmit={handleSubmit(handleNext)}>
           <Controller
-            name="class_name"
+            name="name"
             control={control}
             render={({ field }) => (
               <TextField
@@ -70,15 +73,15 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
                 fullWidth
                 label="Class Name"
                 variant="outlined"
-                error={!!errors.class_name}
-                helperText={errors.class_name?.message}
+                error={!!errors.name}
+                helperText={errors.name?.message}
                 sx={{ mb: 2, ...inputStyle }}
               />
             )}
           />
 
           <Controller
-            name="class_description"
+            name="description"
             control={control}
             render={({ field }) => (
               <TextField
@@ -93,7 +96,7 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
 
           <FormControl fullWidth sx={{ mb: 2 }}>
             <Controller
-              name="class_subject"
+              name="subject"
               control={control}
               render={({ field }) => (
                 <Select {...field} displayEmpty sx={{ ...inputStyle }}>
@@ -108,9 +111,9 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
                 </Select>
               )}
             />
-            {errors.class_subject && (
+            {errors.subject && (
               <Typography color="error" variant="caption">
-                {errors.class_subject.message}
+                {errors.subject.message}
               </Typography>
             )}
           </FormControl>

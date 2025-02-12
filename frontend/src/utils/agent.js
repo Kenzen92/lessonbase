@@ -76,3 +76,7 @@ export const createChat = async (studentID, navigate) => {
   return await apiRequest("http://localhost:8000/chats/", "POST", { participants: [studentID] }, navigate);
 };
 
+export const fetchChats = async (navigate) => {
+  return await apiRequest("http://localhost:8000/chats/", "GET", null, navigate);
+};
+

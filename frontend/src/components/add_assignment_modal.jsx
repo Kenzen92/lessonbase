@@ -66,19 +66,14 @@ function AddAssignmentModal() {
 
   return (
     <>
-      <Box sx={{ maxWidth: "20rem", marginTop: "1rem", marginLeft: "auto" }}>
-        <Button
-          onClick={() => setIsOpen(true)}
-          variant="outlined"
-          sx={{
-            color: "white",
-            borderColor: "white",
-            width: "100%",
-          }}
-        >
-          + Add Assignment
-        </Button>
-      </Box>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setIsOpen(true)}
+        sx={{ mb: 4 }}
+      >
+        Add Assignment
+      </Button>
 
       <Modal
         open={isOpen}
