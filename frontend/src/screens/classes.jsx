@@ -7,7 +7,7 @@ import { Container, Box, Button, Grid, Modal } from "@mui/material";
 import {
   fetchStudents,
   fetchSubjects,
-  fetchClassEvents,
+  fetchClassGroups,
 } from "../utils/agent.js";
 import ClassWizard from "../components/class_wizard.jsx";
 
@@ -23,7 +23,7 @@ function Classes() {
     if (students) setAllStudents(students);
     const subjects = await fetchSubjects(navigate);
     if (subjects) setAllSubjects(subjects);
-    const classes = await fetchClassEvents(navigate);
+    const classes = await fetchClassGroups(navigate);
     if (classes) setClasses(classes);
   };
 

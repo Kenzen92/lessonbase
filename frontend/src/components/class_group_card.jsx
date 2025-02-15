@@ -8,21 +8,7 @@ import ScheduleClassModal from "./schedule_class_modal";
 
 const ClassGroupCard = ({ data }) => {
   const [error, setError] = useState(null);
-  const [previousClass, setPreviousClass] = useState(null);
-  const [nextClass, setNextClass] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
-  const [selectedClassEvent, setSelectedClassEvent] = useState(null);
-  const navigate = useNavigate();
-
-  const handleOpenModal = (event) => {
-    setSelectedClassEvent(event);
-    setOpenModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelectedClassEvent(null);
-  };
+  console.log(data);
 
   return (
     <Box
@@ -44,10 +30,17 @@ const ClassGroupCard = ({ data }) => {
           mb: 2,
         }}
       >
-        <Typography variant="h6">{data.name}</Typography>
-        <Typography variant="h6">{data.students}</Typography>
-        <Typography variant="h6">{data.code}</Typography>
-        <Typography variant="h6">{data.subjects}</Typography>
+        <Typography variant="h6">{data.id}</Typography>
+        {data.students.map((student) => {
+          return (
+            <Typography variant="h6" key={student.id}>
+              {`${student.first_name} ${student.last_name}`}
+            </Typography>
+          );
+        })}
+
+        <Typography variant="h6">{data.start_time}</Typography>
+        <Typography variant="h6">{data.subject}</Typography>
       </Box>
 
       <Box
@@ -62,12 +55,6 @@ const ClassGroupCard = ({ data }) => {
           gap: 1,
         }}
       ></Box>
-
-      {error && (
-        <Typography color="error" sx={{ mt: 2 }}>
-          {error}
-        </Typography>
-      )}
     </Box>
   );
 };

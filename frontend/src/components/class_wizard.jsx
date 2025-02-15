@@ -17,7 +17,7 @@ import { handleCreateClassGroup } from "../utils/agent";
 import { toast } from "react-toastify";
 
 const validationSchema = yup.object().shape({
-  class_name: yup.string().required("Class name is required"),
+  name: yup.string().required("Class name is required"),
   class_subject: yup.string().required("Class subject is required"),
   class_code: yup.string().required("Class code is required"),
   class_description: yup.string().optional(),
@@ -34,7 +34,7 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      class_name: "",
+      name: "",
       class_description: "",
       class_subject: "",
       class_code: "",
@@ -62,7 +62,7 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
       {step === 1 && (
         <form onSubmit={handleSubmit(handleNext)}>
           <Controller
-            name="class_name"
+            name="name"
             control={control}
             render={({ field }) => (
               <TextField
@@ -70,8 +70,8 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
                 fullWidth
                 label="Class Name"
                 variant="outlined"
-                error={!!errors.class_name}
-                helperText={errors.class_name?.message}
+                error={!!errors.name}
+                helperText={errors.name?.message}
                 sx={{ mb: 2, ...inputStyle }}
               />
             )}
