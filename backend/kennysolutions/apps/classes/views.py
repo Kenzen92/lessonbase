@@ -29,6 +29,7 @@ class ClassEventViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
+        print(request.data )
         teacher_ids = [request.user.pk]
         student_ids = request.data.get('students', [])
         teachers = Teacher.objects.filter(pk__in=teacher_ids)

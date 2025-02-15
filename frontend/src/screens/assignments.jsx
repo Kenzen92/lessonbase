@@ -1,19 +1,8 @@
-// Login.js
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navigation from "../components/main_navigation";
-import {
-  Grid,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Modal,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/assignment_card";
 import AddAssignmentModal from "../components/add_assignment_modal.jsx";
 import { fetchHomeworks } from "../utils/agent.js";
@@ -66,50 +55,63 @@ function Assignments() {
   return (
     <>
       <Navigation />
-      <AddAssignmentModal />
-      <Box
-        className="homework-dashboard"
-        sx={{
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          marginTop: "1vh",
-          p: 2,
-        }}
-      >
-        <Grid container sx={{ height: "100%" }}>
-          {columns.map((column, index) => (
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={4}
-              lg={3}
-              xl={2.4}
-              key={index}
-              sx={{
-                flex: 1,
-                overflowY: "auto",
-                border: "1px solid #ddd",
-                display: "flex",
-                flexDirection: "column",
-                textAlign: "center",
-                marginTop: "1em",
-                minHeight: "15em",
-              }}
-            >
-              <Typography variant="h6">{column.name}</Typography>
-              <Typography variant="body2" sx={{ marginBottom: 2 }}>
-                {column.description}
-              </Typography>
-              <Box sx={{ flex: 1, overflowY: "auto" }}>
-                <Box>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <AddAssignmentModal />
+        <Box
+          className="homework-dashboard"
+          sx={{
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            marginTop: "1vh",
+            p: 2,
+          }}
+        >
+          <Grid container spacing={2} sx={{ height: "100%" }}>
+            {columns.map((column, index) => (
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                lg={3}
+                xl={2.4}
+                key={index}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  textAlign: "center",
+                  marginTop: "1em",
+                  minHeight: "15em",
+                }}
+              >
+                <Tooltip title={column.description} arrow>
+                  <Box
+                    sx={{
+                      backgroundColor: column.color,
+                      color: "#fff",
+                      padding: "0.5em",
+                      borderRadius: "4px 4px 0 0",
+                    }}
+                  >
+                    <Typography variant="h6">{column.name}</Typography>
+                  </Box>
+                </Tooltip>
+                <Box
+                  sx={{
+                    flex: 1,
+                    overflowY: "auto",
+                    padding: "1em",
+                    backgroundColor: "#f9f9f9",
+                    borderRadius: "0 0 4px 4px",
+                  }}
+                >
                   {homeworks && homeworks[column.name] ? (
                     homeworks[column.name].map((assignment, index) => (
-                      <Box sx={{ m: 1 }}>
+                      <Box sx={{ m: 1 }} key={index}>
                         <AssignmentCard
                           assignment={assignment}
-                          key={index}
                           handleReloadData={fetchHomeworks}
                         />
                       </Box>
@@ -118,11 +120,11 @@ function Assignments() {
                     <Typography>No homeworks available</Typography>
                   )}
                 </Box>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      </Container>
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
   Modal,
 } from "@mui/material";
 import Chat from "../components/chat";
+import { fetchStudents, fetchChats } from "../utils/agent";
 
 function Students() {
   const [showStudentForm, setshowStudentForm] = useState(false);
@@ -23,60 +24,6 @@ function Students() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [email, setEmail] = useState("");
 
-  const fetchStudents = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(
-        "http://localhost:8000/students-for-teacher",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Token ${auth}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch students");
-      }
-
-      const data = await response.json();
-      setStudents(data);
-      setCurrentUserId(window.sessionStorage.getItem("user").id);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-
-  const fetchChats = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/chats", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch chats");
-      }
-
-      const data = await response.json();
-      const processedChats = data.map((chat) => {
-        return {
-          ...chat,
-          participants: chat.participants.filter((id) => id !== currentUserId),
-        };
-      });
-      setChats(processedChats);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-
   const handleSelectChat = (chatId, username) => {
     setChatId(chatId);
     setChatOpen(true);
@@ -84,8 +31,20 @@ function Students() {
   };
 
   useEffect(() => {
-    fetchStudents();
-    fetchChats();
+    const fetchData = async () => {
+      const studentData = await fetchStudents();
+      setStudents(studentData);
+      setCurrentUserId(window.sessionStorage.getItem("user").id);
+      const chatData = await fetchChats();
+      const processedChats = chatData.map((chat) => {
+        return {
+          ...chat,
+          participants: chat.participants.filter((id) => id !== currentUserId),
+        };
+      });
+      setChats(processedChats);
+    };
+    fetchData();
   }, []);
 
   // Function to handle form submission
