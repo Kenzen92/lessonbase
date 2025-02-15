@@ -18,12 +18,18 @@ import { toast } from "react-toastify";
 
 const validationSchema = yup.object().shape({
   name: yup.string().required("Class name is required"),
-  class_subject: yup.string().required("Class subject is required"),
+  subject: yup.string().required("Class subject is required"),
   class_code: yup.string().required("Class code is required"),
   description: yup.string().optional(),
 });
 
-const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
+const ClassWizard = ({
+  allSubjects,
+  allStudents,
+  classes,
+  handleClose,
+  fetchData,
+}) => {
   const [step, setStep] = useState(1);
   const [selectedStudents, setSelectedStudents] = useState([]);
 
@@ -35,8 +41,8 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
     resolver: yupResolver(validationSchema),
     defaultValues: {
       name: "",
-      class_description: "",
-      class_subject: "",
+      description: "",
+      subject: "",
       class_code: "",
     },
   });
@@ -53,9 +59,11 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
     data["students"] = selectedStudents;
     console.log(data);
     try {
-      response = await handleCreateClassGroup(data);
-      console.log(reposponse);
+      const response = await handleCreateClassGroup(data);
+      console.log(response);
       toast.success("Class group created successfully!");
+      handleClose();
+      fetchData();
     } catch (error) {
       toast.error("Failed to create class group. Please try again.");
     }
@@ -66,7 +74,6 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
         <form onSubmit={handleSubmit(handleNext)}>
           <Controller
             name="name"
-            name="name"
             control={control}
             render={({ field }) => (
               <TextField
@@ -74,8 +81,6 @@ const ClassWizard = ({ allSubjects, allStudents, classes, handleClose }) => {
                 fullWidth
                 label="Class Name"
                 variant="outlined"
-                error={!!errors.name}
-                helperText={errors.name?.message}
                 error={!!errors.name}
                 helperText={errors.name?.message}
                 sx={{ mb: 2, ...inputStyle }}

@@ -12,13 +12,16 @@ export const apiRequest = async (url, method = "GET", body = null, navigate) => 
       headers,
       body: body ? JSON.stringify(body) : null,
     });
-
     if (response.status === 401) {
       handleUnauthorizedRequest(navigate);
       return null;
     }
 
     if (response.status === 204) {
+      return response;
+    }
+
+    if (response.status === 201) {
       return response;
     }
 
@@ -80,3 +83,6 @@ export const fetchChats = async (navigate) => {
   return await apiRequest("http://localhost:8000/chats/", "GET", null, navigate);
 };
 
+export const fetchClassGroups = async (navigate) => {
+  return await apiRequest("http://localhost:8000/class-group", "GET", null, navigate);
+};

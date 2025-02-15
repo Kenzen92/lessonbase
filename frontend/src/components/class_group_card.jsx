@@ -1,60 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import Avatar from "@mui/material/Avatar";
-import AvatarGroup from "@mui/material/AvatarGroup";
-import ClassEventCard from "./class_event_card";
-import { Modal, Box, Typography, Button } from "@mui/material";
-import ScheduleClassModal from "./schedule_class_modal";
+import React from "react";
+import { Box, Typography, AvatarGroup, Avatar, Button } from "@mui/material";
 
-const ClassGroupCard = ({ data }) => {
-  const [error, setError] = useState(null);
-  console.log(data);
-
+const ClassGroupCard = ({ data, onClick }) => {
   return (
     <Box
       sx={{
         p: 3,
         boxShadow: 3,
         borderRadius: 2,
-        maxWidth: "30rem",
+        maxWidth: "15rem",
         boxShadow: 5,
         border: 2,
         borderColor: "#333",
+        height: "12rem",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        alignItems: "center",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        <Typography variant="h6">{data.id}</Typography>
-        {data.students.map((student) => {
-          return (
-            <Typography variant="h6" key={student.id}>
-              {`${student.first_name} ${student.last_name}`}
-            </Typography>
-          );
-        })}
+      <Typography variant="h6">{data.name}</Typography>
+      <Typography variant="body2">{data.description}</Typography>
 
-        <Typography variant="h6">{data.start_time}</Typography>
-        <Typography variant="h6">{data.subject}</Typography>
-      </Box>
+      <AvatarGroup max={4}>
+        {data.students.map((student) => (
+          <Avatar key={student.id} src={student.profile_pic} />
+        ))}
+      </AvatarGroup>
 
-      <Box
-        sx={{
-          mt: 2,
-          p: 2,
-          borderRadius: 1,
-          border: "1px solid",
-          borderColor: "divider",
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-        }}
-      ></Box>
+      <Button variant="contained" size="small" onClick={onClick}>
+        View Details
+      </Button>
     </Box>
   );
 };
