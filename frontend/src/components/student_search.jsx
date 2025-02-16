@@ -4,63 +4,13 @@ import {
   Typography,
   TextField,
   List,
-  ListItem,
   Divider,
   Checkbox,
   FormControlLabel,
   FormGroup,
-  Button,
-  Avatar,
 } from "@mui/material";
 import inputStyle from "../styles/input";
-
-const StudentCard = ({ student, setSelectedStudents, selectedStudents }) => {
-  return (
-    <ListItem
-      alignItems="flex-start"
-      sx={{ px: 0, justifyContent: "space-between" }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 2,
-        }}
-      >
-        <Avatar alt={student.first_name} src={student.avatar} />
-        <Typography sx={{ ...inputStyle }}>
-          {student.first_name} {student.last_name}
-        </Typography>
-      </Box>
-      <Box>
-        {selectedStudents.includes(student) ? (
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => {
-              setSelectedStudents(
-                selectedStudents.filter((id) => id !== student)
-              );
-            }}
-          >
-            Deselect
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              setSelectedStudents([...selectedStudents, student.id]);
-            }}
-          >
-            Select
-          </Button>
-        )}
-      </Box>
-    </ListItem>
-  );
-};
+import StudentSelectCard from "./student_select_card";
 
 const StudentSearch = ({
   students,
@@ -109,7 +59,7 @@ const StudentSearch = ({
         display: "flex",
         flexDirection: "column",
         gap: "2em",
-        maxHeight: "40em",
+        height: "30rem",
         overflow: "auto",
       }}
     >
@@ -142,13 +92,15 @@ const StudentSearch = ({
           ))}
         </FormGroup>
       </Box>
-      <Box sx={{ width: "100%", display: "flex", flexDirection: "row" }}>
+      <Box
+        sx={{ width: "100%", display: "flex", flexDirection: "row", gap: 5 }}
+      >
         {filteredStudents.length > 0 ? (
           <Box sx={{ width: "50%" }}>
             <List>
               {filteredStudents.map((student) => (
                 <React.Fragment key={student.id}>
-                  <StudentCard
+                  <StudentSelectCard
                     student={student}
                     setSelectedStudents={setSelectedStudents}
                     selectedStudents={selectedStudents}
@@ -168,16 +120,18 @@ const StudentSearch = ({
         <Box sx={{ width: "50%" }}>
           {selectedStudents.length > 0 ? (
             <List>
-              {selectedStudents.map((student) => (
-                <React.Fragment key={student.id}>
-                  <StudentCard
-                    student={student}
-                    setSelectedStudents={setSelectedStudents}
-                    selectedStudents={selectedStudents}
-                  />
-                  <Divider sx={{ backgroundColor: "#555" }} />
-                </React.Fragment>
-              ))}
+              {students
+                .filter((student) => selectedStudents.includes(student.id))
+                .map((student) => (
+                  <React.Fragment key={student.id}>
+                    <StudentSelectCard
+                      student={student}
+                      setSelectedStudents={setSelectedStudents}
+                      selectedStudents={selectedStudents}
+                    />
+                    <Divider sx={{ backgroundColor: "#555" }} />
+                  </React.Fragment>
+                ))}
             </List>
           ) : (
             <Typography sx={{ textAlign: "center" }}>

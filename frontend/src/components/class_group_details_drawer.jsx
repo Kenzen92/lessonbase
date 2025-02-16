@@ -1,18 +1,35 @@
 import React from "react";
-import Box from "@mui/material/Box";
+import { Box, List, Divider } from "@mui/material";
 import Drawer from "@mui/material/Drawer";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import StudentListCard from "./student_list_card";
+
+const removeStudent = (studentId) => {
+  console.log("Removing student with id: ", studentId);
+};
 
 export default function ClassDetailsDrawer({
   class_group,
   open,
   onClose,
   handleReloadData,
+  students,
+  subjects,
 }) {
+  console.log(class_group);
+  console.log(students);
+  console.log(subjects);
   return (
-    <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box sx={{ width: 300, p: 3 }}>
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      sx={{ backdropFilter: "blur(2px)" }}
+    >
+      <Box
+        sx={{ width: 500, p: 3, height: "100%", backgroundColor: "#252525" }}
+      >
         <Typography variant="h6" gutterBottom>
           Class Details
         </Typography>
@@ -27,11 +44,22 @@ export default function ClassDetailsDrawer({
             <Typography variant="subtitle2" sx={{ mt: 2 }}>
               Students:
             </Typography>
-            <ul>
-              {class_group.students.map((student) => (
-                <li key={student.id}>{student.name}</li>
-              ))}
-            </ul>
+            <Box>
+              <List>
+                {students.map(
+                  (student) =>
+                    class_group.students.includes(student.id) && (
+                      <React.Fragment key={student.id}>
+                        <StudentListCard
+                          student={student}
+                          removeStudent={removeStudent}
+                        />
+                        <Divider sx={{ backgroundColor: "#555" }} />
+                      </React.Fragment>
+                    )
+                )}
+              </List>
+            </Box>
           </>
         ) : (
           <Typography>No class selected.</Typography>

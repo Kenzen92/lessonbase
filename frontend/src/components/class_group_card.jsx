@@ -24,7 +24,7 @@ const ClassGroupCard = ({ data, onClick }) => {
 
       <AvatarGroup max={4}>
         {data.students.map((student) => (
-          <Avatar key={student.id} src={student.profile_pic} />
+          <Avatar key={student} src={student.profile_pic} />
         ))}
       </AvatarGroup>
 
