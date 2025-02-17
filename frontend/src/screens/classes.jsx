@@ -16,8 +16,7 @@ function Classes() {
   const [classes, setClasses] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [allSubjects, setAllSubjects] = useState([]);
-  const [currentClassGroupDetails, setCurrentClassGroupDetails] =
-    useState(null);
+  const [currentClassId, setCurrentClassId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -27,15 +26,15 @@ function Classes() {
     const subjects = await fetchSubjects(navigate);
     if (subjects) setAllSubjects(subjects);
     const classes = await fetchClassGroups(navigate);
-    if (classes) setClasses(classes);
+    setClasses(classes);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const handleOpenDrawer = (classGroup) => {
-    setCurrentClassGroupDetails(classGroup);
+  const handleOpenDrawer = async (classGroupId) => {
+    setCurrentClassId(classGroupId);
     setIsDrawerOpen(true);
   };
 
@@ -45,7 +44,7 @@ function Classes() {
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <ClassDetailsDrawer
-          class_group={currentClassGroupDetails}
+          classGroupId={currentClassId}
           open={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
           handleReloadData={fetchData}
@@ -67,7 +66,7 @@ function Classes() {
             <Grid item xs={12} sm={6} md={4} key={data.id}>
               <ClassGroupCard
                 data={data}
-                onClick={() => handleOpenDrawer(data)}
+                onClick={() => handleOpenDrawer(data.id)}
               />
             </Grid>
           ))}

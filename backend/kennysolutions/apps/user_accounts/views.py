@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.authtoken.models import Token
 from apps.user_accounts.models import ClassGroup, CustomerAccount, Staff, Student, Teacher
-from .serializers import ClassGroupSerializer, CustomerAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
+from .serializers import ClassGroupCreateSerializer, ClassGroupDetailsSerializer, ClassGroupListSerializer, CustomerAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
 from datetime import datetime
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
@@ -235,9 +235,18 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
     """
     A viewset for viewing and editing homework assignments.
     """
-    serializer_class = ClassGroupSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_serializer_class(self):
+        print(self.action )
+        if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
+            return ClassGroupCreateSerializer
+        elif self.action == 'list':
+            return ClassGroupListSerializer
+        else:
+            return ClassGroupDetailsSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -267,13 +276,19 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         Get the queryset of classes and return them
         """
         queryset = self.get_queryset()
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def patch(self, request, *args, **kwargs):
         """
         Not sure this is being called tbh
         """
-        print(request.data) 
-        return Response(status=status.HTTP_200_OK)
+        
+        instance = self.get_object()
+        data = request.data
+        serializer = self.get_serializer(instance, data=data, partial=True)
+        if not serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     

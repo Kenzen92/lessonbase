@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Typography, AvatarGroup, Avatar, Button } from "@mui/material";
 
 const ClassGroupCard = ({ data, onClick }) => {
+  console.log(data);
   return (
     <Box
       sx={{

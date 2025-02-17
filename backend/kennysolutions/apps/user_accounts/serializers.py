@@ -11,11 +11,6 @@ class ClassGroupUserSerializer(serializers.ModelSerializer):
         model = ClassGroup
         fields = ['id', 'name']
 
-class ClassGroupSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClassGroup
-        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers']
-        read_only_fields = ['id']
 
 class StudentSerializer(serializers.ModelSerializer):
     class_groups = ClassGroupUserSerializer(many=True, read_only=True)
@@ -73,3 +68,24 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = AbstractUser
         fields = ['id', 'username', 'first_name', 'last_name', 'email']  # Add any other fields you need
+
+
+class ClassGroupCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassGroup
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects']
+        read_only_fields = ['id']
+
+class ClassGroupDetailsSerializer(serializers.ModelSerializer):
+    subjects = SubjectSerializer(many=True, read_only=True)
+    students = StudentSerializer(many=True, read_only=True)
+    class Meta:
+        model = ClassGroup
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects']
+        read_only_fields = ['id']
+
+class ClassGroupListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClassGroup
+        fields = ['id', 'name', 'description', 'class_code', 'students']
+        read_only_fields = ['id']

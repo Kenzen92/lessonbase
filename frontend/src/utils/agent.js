@@ -87,6 +87,10 @@ export const fetchClassGroups = async (navigate) => {
   return await apiRequest("http://localhost:8000/class-group", "GET", null, navigate);
 };
 
-export const editClassGroup = async (navigate) => {
-  return await apiRequest("http://localhost:8000/class-group", "PATCH", null, navigate);
+export const editClassGroup = async (groupData, navigate) => {
+  return await apiRequest(`http://localhost:8000/class-group/${groupData.id}/`, "PATCH", groupData, navigate);
 };
+
+export const fetchClassGroupById = async (groupId, navigate) => {
+  return await apiRequest(`http://localhost:8000/class-group/${groupId}`, "GET", null, navigate);
+}
