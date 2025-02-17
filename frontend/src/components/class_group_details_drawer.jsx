@@ -13,7 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import StudentListCard from "./student_list_card";
-import { editClassGroup, fetchClassGroupById } from "../utils/agent";
+import { editClassGroup, fetchClassGroup } from "../utils/agent";
 import { toast } from "react-toastify";
 import inputStyle from "../styles/input";
 
@@ -21,11 +21,10 @@ const removeStudent = (studentId) => {
   console.log("Removing student with id: ", studentId);
 };
 
-const handleEditClassGroup = async (classGroupData) => {
+const handleEditClassGroup = async (id, classGroupData) => {
   console.log("Editing class group with data: ", classGroupData);
-  const response = await editClassGroup(classGroupData);
-  console.log(response);
-  if (response.ok) {
+  const response = await editClassGroup(id, classGroupData);
+  if (response) {
     toast.success("Class group updated successfully");
   } else {
     toast.error("Failed to update class group");
@@ -39,28 +38,51 @@ export default function ClassDetailsDrawer({
   handleReloadData,
   subjects,
 }) {
-  const [classGroup, setClassGroup] = useState();
+  const [classGroup, setClassGroup] = useState(null);
+  const [classSubjects, setClassSubjects] = useState([]);
+
+  const fetchClassGroupData = async (id) => {
+    const data = await fetchClassGroup(id);
+    if (data) {
+      setClassGroup(data);
+      setClassSubjects(data.subjects.map((subject) => subject.id));
+    } else {
+      toast.error("Failed to fetch class group data");
+    }
+  };
+
+  useEffect(() => {
+    if (classGroupId) {
+      fetchClassGroupData(classGroupId);
+    }
+  }, [classGroupId]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setClassGroup((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = () => {
-    handleEditClassGroup(classGroup);
+    const students = classGroup.students.map((student) => student.id);
+    const updatedClassGroup = {
+      ...classGroup,
+      students,
+      subjects: classSubjects, // Only IDs
+    };
+    const id = classGroup.id;
+    delete updatedClassGroup.id;
+    handleEditClassGroup(id, updatedClassGroup);
     handleReloadData();
   };
 
-  const fetchClassGroup = async (id) => {
-    const classgroup = await fetchClassGroupById(id);
-    console.log(classgroup);
-    setClassGroup(classgroup);
+  const handleSubjectChange = (event) => {
+    const selectedIds = event.target.value; // Already an array of IDs
+    setClassSubjects(selectedIds);
+    setClassGroup((prev) => ({
+      ...prev,
+      subjects: selectedIds, // Ensure it stores only IDs
+    }));
   };
-
-  useEffect(() => {
-    if (classGroupId) {
-      fetchClassGroup(classGroupId);
-    }
-  }, [classGroupId]);
 
   return (
     <Drawer
@@ -105,25 +127,25 @@ export default function ClassDetailsDrawer({
               <Select
                 id="subjects"
                 labelId="subject-select-label"
-                value={classGroup.subjects || []}
-                onChange={(e) =>
-                  setClassGroup((prev) => ({
-                    ...prev,
-                    subjects: e.target.value,
-                  }))
-                }
-                label="Subject"
+                value={classSubjects}
+                onChange={handleSubjectChange}
                 multiple
+                displayEmpty
+                label="Subject"
                 sx={{
-                  color: "#fff", // Selected text color
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#fff", // Default border color
-                  },
+                  color: "white",
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
                   "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#fff", // Hover border color
+                    borderColor: "#fff",
                   },
-                  "& .MuiSelect-icon": {
-                    color: "#fff", // Caret color
+                  "& .MuiSelect-icon": { color: "#fff" },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: "#333",
+                      color: "#fff",
+                    },
                   },
                 }}
               >
