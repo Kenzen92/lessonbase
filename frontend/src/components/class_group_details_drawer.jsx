@@ -12,50 +12,42 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import StudentListCard from "./student_list_card";
 import { editClassGroup, fetchClassGroup } from "../utils/agent";
 import { toast } from "react-toastify";
 import inputStyle from "../styles/input";
+import StudentSearch from "./student_search";
 
-const handleEditClassGroup = async (id, classGroupData) => {
-  console.log("Editing class group with data: ", classGroupData);
-  const response = await editClassGroup(id, classGroupData);
-  if (response) {
-    toast.success("Class group updated successfully");
-  } else {
-    toast.error("Failed to update class group");
-  }
-};
+const validationSchema = yup.object().shape({
+  name: yup.string().required("Class name is required"),
+  class_code: yup.string().required("Class name is required"),
+  description: yup.string().nullable(),
+  subjects: yup.array().min(1, "At least one subject is required"),
+  students: yup.array().nullable(),
+});
 
 export default function ClassDetailsDrawer({
   classGroupId,
   open,
   onClose,
   handleReloadData,
-  subjects,
+  allSubjects,
+  allStudents,
+  allClasses,
 }) {
   const [classGroup, setClassGroup] = useState(null);
-  const [classSubjects, setClassSubjects] = useState([]);
-
-  const fetchClassGroupData = async (id) => {
-    const data = await fetchClassGroup(id);
-    if (data) {
-      setClassGroup(data);
-      setClassSubjects(data.subjects.map((subject) => subject.id));
-    } else {
-      toast.error("Failed to fetch class group data");
-    }
-  };
-
-  const removeStudent = (studentId) => {
-    console.log("Removing student with ID: ", studentId);
-    classGroup.students = classGroup.students.filter(
-      (student) => student.id !== studentId
-    );
-    setClassGroup(classGroup);
-    console.log("edited classgroup data: ", classGroup);
-    handleEditClassGroup(classGroup.id, classGroup);
-  };
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+  });
 
   useEffect(() => {
     if (classGroupId) {
@@ -63,33 +55,39 @@ export default function ClassDetailsDrawer({
     }
   }, [classGroupId]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setClassGroup((prev) => ({ ...prev, [name]: value }));
+  const fetchClassGroupData = async (id) => {
+    const data = await fetchClassGroup(id);
+    if (data) {
+      setClassGroup(data);
+      setValue("name", data.name);
+      setValue("class_code", data.class_code);
+      setValue("description", data.description || "");
+      setValue(
+        "subjects",
+        data.subjects.map((subject) => subject.id)
+      );
+      setValue(
+        "students",
+        data.students.map((student) => student.id)
+      );
+    } else {
+      toast.error("Failed to fetch class group data");
+    }
   };
 
-  const handleSubmit = () => {
-    const students = classGroup.students.map((student) => student.id);
-    const updatedClassGroup = {
-      ...classGroup,
-      students,
-      subjects: classSubjects, // Only IDs
-    };
-    console.log("Updated class group data: ", updatedClassGroup);
-    const id = classGroup.id;
-    delete updatedClassGroup.id;
-    handleEditClassGroup(id, updatedClassGroup);
-    handleReloadData();
+  const setSelectedStudents = (students) => {
+    setValue("students", students);
   };
 
-  const handleSubjectChange = (event) => {
-    const selectedIds = event.target.value; // Already an array of IDs
-    console.log("selected IDS: ", selectedIds);
-    setClassSubjects(selectedIds);
-    setClassGroup((prev) => ({
-      ...prev,
-      subjects: selectedIds, // Ensure it stores only IDs
-    }));
+  const onSubmit = async (data) => {
+    const updatedClassGroup = { ...classGroup, ...data };
+    const response = await editClassGroup(classGroup.id, updatedClassGroup);
+    if (response) {
+      toast.success("Class group updated successfully");
+      handleReloadData();
+    } else {
+      toast.error("Failed to update class group");
+    }
   };
 
   return (
@@ -103,87 +101,143 @@ export default function ClassDetailsDrawer({
         sx={{ width: 500, p: 3, height: "100%", backgroundColor: "#252525" }}
       >
         {classGroup ? (
-          <Box sx={{ mt: 4 }}>
-            <TextField
-              label="Name"
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+            sx={{ mt: 4 }}
+          >
+            <Controller
               name="name"
-              value={classGroup.name || ""}
-              onChange={handleChange}
-              fullWidth
-              sx={{ ...inputStyle, mb: 2 }}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Name"
+                  fullWidth
+                  sx={{ ...inputStyle, mb: 2 }}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                />
+              )}
             />
-            <TextField
-              label="Description"
+            <Controller
               name="description"
-              value={classGroup.description || ""}
-              onChange={handleChange}
-              fullWidth
-              sx={{ ...inputStyle, mb: 2 }}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Description"
+                  fullWidth
+                  sx={{ ...inputStyle, mb: 2 }}
+                />
+              )}
             />
-            <TextField
-              label="Code"
+            <Controller
               name="class_code"
-              value={classGroup.class_code || ""}
-              onChange={handleChange}
-              fullWidth
-              sx={{ ...inputStyle, mb: 2 }}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Code"
+                  fullWidth
+                  sx={{ ...inputStyle, mb: 2 }}
+                  error={!!errors.class_code}
+                  helperText={errors.class_code?.message}
+                />
+              )}
             />
-            <FormControl fullWidth>
-              <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
-                Subject
+            <FormControl fullWidth error={!!errors.subjects}>
+              <InputLabel id="subjects-select-label" sx={{ color: "#fff" }}>
+                Subjects
               </InputLabel>
-              <Select
-                id="subjects"
-                labelId="subject-select-label"
-                value={classSubjects}
-                onChange={handleSubjectChange}
-                multiple
-                displayEmpty
-                label="Subject"
+              <Controller
+                name="subjects"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    id="subjects"
+                    labelId="subjects-select-label"
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    multiple
+                    displayEmpty
+                    label="Subjects"
+                    sx={{
+                      color: "white",
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
+                      "& .MuiSelect-icon": { color: "#fff" },
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          bgcolor: "#333",
+                          color: "#fff",
+                        },
+                      },
+                    }}
+                  >
+                    {allSubjects.map((subject) => (
+                      <MenuItem key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.subjects && (
+                <Typography color="error">{errors.subjects.message}</Typography>
+              )}
+              <Divider sx={{ mt: 2, mb: 2 }} />
+              <List>
+                {watch("students")?.map((studentId) => (
+                  <StudentListCard
+                    key={studentId}
+                    student={studentId}
+                    onRemove={() =>
+                      field.onChange(
+                        field.value.filter((id) => id !== studentId)
+                      )
+                    }
+                  />
+                ))}
+              </List>
+            </FormControl>
+            <Divider sx={{ mt: 2, mb: 2 }} />
+            <Box>
+              <StudentSearch
+                students={allStudents}
+                classGroups={allClasses}
+                selectedStudents={watch("students")}
+                setSelectedStudents={setSelectedStudents}
+              />
+              <Box
                 sx={{
-                  color: "white",
-                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#fff",
-                  },
-                  "& .MuiSelect-icon": { color: "#fff" },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      bgcolor: "#333",
-                      color: "#fff",
-                    },
-                  },
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mt: 2,
+                  gap: 2,
                 }}
               >
-                {subjects.map((subject) => (
-                  <MenuItem key={subject.id} value={subject.id}>
-                    {subject.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Typography sx={{ mt: 4, color: "white" }}>Students:</Typography>
-            <Box>
-              <List>
-                {classGroup.students &&
-                  classGroup.students.map((student) => (
-                    <React.Fragment key={student.id}>
-                      <StudentListCard
-                        student={student}
-                        removeStudent={removeStudent}
-                      />
-                      <Divider sx={{ backgroundColor: "#555" }} />
-                    </React.Fragment>
-                  ))}
-              </List>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmit(onSubmit)}
+                  sx={{ width: "100%" }}
+                >
+                  Submit
+                </Button>
+              </Box>
             </Box>
             <Button
               variant="contained"
               color="primary"
               sx={{ mt: 2 }}
-              onClick={handleSubmit}
+              type="submit"
             >
               Save Changes
             </Button>

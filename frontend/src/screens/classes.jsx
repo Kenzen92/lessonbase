@@ -49,8 +49,9 @@ function Classes() {
           open={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
           handleReloadData={fetchData}
-          students={allStudents}
-          subjects={allSubjects}
+          allStudents={allStudents}
+          allSubjects={allSubjects}
+          allClasses={classes}
         />
 
         <Button
