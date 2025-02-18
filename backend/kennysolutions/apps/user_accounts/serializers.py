@@ -71,6 +71,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class ClassGroupCreateSerializer(serializers.ModelSerializer):
+    students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True, required=False, allow_empty=True)
     class Meta:
         model = ClassGroup
         fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects']

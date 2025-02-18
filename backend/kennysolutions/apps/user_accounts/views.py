@@ -240,7 +240,7 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_serializer_class(self):
-        print(self.action )
+        print(self.action)
         if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
             return ClassGroupCreateSerializer
         elif self.action == 'list':
@@ -256,7 +256,7 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         )
     
     def create(self, request, *args, **kwargs):
-
+        print("creating")
         # Pass the modified data to the serializer
         data = request.data.copy()
         teacher_list = data.get("teachers")
@@ -266,6 +266,7 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
             data['teachers'].append(self.request.user.pk) if self.request.user.pk not in data['teachers'] else None
         serializer = self.get_serializer(data=data)
         if not serializer.is_valid(raise_exception=True):
+            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST),
         self.perform_create(serializer)
 
@@ -279,16 +280,20 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def patch(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):
         """
-        Not sure this is being called tbh
+        Update the class group
         """
-        
+        print("updating")
         instance = self.get_object()
-        data = request.data
-        serializer = self.get_serializer(instance, data=data, partial=True)
+        data = request.data.copy()
+        teacher_list = data.get("teachers")
+        if not teacher_list:
+            data['teachers'] = [self.request.user]
+        else:
+            data['teachers'].append(self.request.user.pk) if self.request.user.pk not in data['teachers'] else None
+        serializer = self.get_serializer(instance, data=data)
         if not serializer.is_valid(raise_exception=True):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    

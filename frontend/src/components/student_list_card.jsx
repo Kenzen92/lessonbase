@@ -38,7 +38,7 @@ const StudentListCard = ({ student, removeStudent }) => {
           variant="contained"
           color="secondary"
           onClick={() => {
-            removeStudent(student);
+            removeStudent(student.id);
           }}
         >
           Remove

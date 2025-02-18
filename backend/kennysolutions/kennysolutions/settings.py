@@ -113,6 +113,12 @@ MONGO_DB_NAME = 'kennysolutions'
 DEFAULT_FILE_STORAGE = 'apps.storage.storage_backends.GridFSStorage'
 GRIDFS_COLLECTION = 'files'
 
+# ensure django system prints in the console even though it's dockerized
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,  # Disable all existing loggers
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

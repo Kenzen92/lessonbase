@@ -8,6 +8,8 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 # Disable Poetry's virtual environments (since this is inside a Docker container)
 ENV POETRY_VIRTUALENVS_CREATE=false
 
+ENV PYTHONUNBUFFERED=1
+
 # Set work directory
 WORKDIR /app
 

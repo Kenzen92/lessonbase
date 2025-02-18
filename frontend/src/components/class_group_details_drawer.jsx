@@ -17,10 +17,6 @@ import { editClassGroup, fetchClassGroup } from "../utils/agent";
 import { toast } from "react-toastify";
 import inputStyle from "../styles/input";
 
-const removeStudent = (studentId) => {
-  console.log("Removing student with id: ", studentId);
-};
-
 const handleEditClassGroup = async (id, classGroupData) => {
   console.log("Editing class group with data: ", classGroupData);
   const response = await editClassGroup(id, classGroupData);
@@ -51,6 +47,16 @@ export default function ClassDetailsDrawer({
     }
   };
 
+  const removeStudent = (studentId) => {
+    console.log("Removing student with ID: ", studentId);
+    classGroup.students = classGroup.students.filter(
+      (student) => student.id !== studentId
+    );
+    setClassGroup(classGroup);
+    console.log("edited classgroup data: ", classGroup);
+    handleEditClassGroup(classGroup.id, classGroup);
+  };
+
   useEffect(() => {
     if (classGroupId) {
       fetchClassGroupData(classGroupId);
@@ -69,6 +75,7 @@ export default function ClassDetailsDrawer({
       students,
       subjects: classSubjects, // Only IDs
     };
+    console.log("Updated class group data: ", updatedClassGroup);
     const id = classGroup.id;
     delete updatedClassGroup.id;
     handleEditClassGroup(id, updatedClassGroup);
@@ -77,6 +84,7 @@ export default function ClassDetailsDrawer({
 
   const handleSubjectChange = (event) => {
     const selectedIds = event.target.value; // Already an array of IDs
+    console.log("selected IDS: ", selectedIds);
     setClassSubjects(selectedIds);
     setClassGroup((prev) => ({
       ...prev,

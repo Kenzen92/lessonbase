@@ -7,6 +7,7 @@ import {
   MenuItem,
   FormControl,
   Select,
+  InputLabel,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -18,7 +19,7 @@ import { toast } from "react-toastify";
 
 const validationSchema = yup.object().shape({
   name: yup.string().required("Class name is required"),
-  subject: yup.string().required("Class subject is required"),
+  subjects: yup.array().min(1, "At least one subject is required"),
   class_code: yup.string().required("Class code is required"),
   description: yup.string().optional(),
 });
@@ -42,7 +43,7 @@ const ClassWizard = ({
     defaultValues: {
       name: "",
       description: "",
-      subject: "",
+      subjects: [],
       class_code: "",
     },
   });
@@ -57,10 +58,8 @@ const ClassWizard = ({
 
   const onSubmit = async (data) => {
     data["students"] = selectedStudents;
-    console.log(data);
     try {
       const response = await handleCreateClassGroup(data);
-      console.log(response);
       toast.success("Class group created successfully!");
       handleClose();
       fetchData();
@@ -68,6 +67,7 @@ const ClassWizard = ({
       toast.error("Failed to create class group. Please try again.");
     }
   };
+
   return (
     <Box sx={{ p: 3, borderRadius: 2, border: 2, color: "#fff" }}>
       {step === 1 && (
@@ -102,29 +102,54 @@ const ClassWizard = ({
             )}
           />
 
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <Controller
-              name="subject"
-              control={control}
-              render={({ field }) => (
-                <Select {...field} displayEmpty sx={{ ...inputStyle }}>
-                  <MenuItem value="" disabled>
-                    Select Subject
-                  </MenuItem>
+          <Controller
+            name="subjects"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth>
+                <InputLabel id="subjects-select-label" sx={{ color: "#fff" }}>
+                  Subjects
+                </InputLabel>
+                <Select
+                  {...field}
+                  id="subjects"
+                  labelId="subjects-select-label"
+                  multiple
+                  displayEmpty
+                  label="Subjects"
+                  sx={{
+                    color: "white",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff",
+                    },
+                    "& .MuiSelect-icon": { color: "#fff" },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        bgcolor: "#333",
+                        color: "#fff",
+                      },
+                    },
+                  }}
+                >
                   {allSubjects.map((subject) => (
                     <MenuItem key={subject.id} value={subject.id}>
                       {subject.name}
                     </MenuItem>
                   ))}
                 </Select>
-              )}
-            />
-            {errors.subject && (
-              <Typography color="error" variant="caption">
-                {errors.subject.message}
-              </Typography>
+                {errors.subjects && (
+                  <Typography color="error" variant="body2">
+                    {errors.subjects.message}
+                  </Typography>
+                )}
+              </FormControl>
             )}
-          </FormControl>
+          />
 
           <Controller
             name="class_code"
