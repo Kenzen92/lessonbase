@@ -18,6 +18,7 @@ function Classes() {
   const [allSubjects, setAllSubjects] = useState([]);
   const [currentClassId, setCurrentClassId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -28,6 +29,12 @@ function Classes() {
     const classes = await fetchClassGroups(navigate);
     console.log(classes);
     setClasses(classes);
+  };
+
+  const handleOpenStudentSearch = () => {
+    console.log("handling it");
+    setStep(1);
+    setshowClassForm(true);
   };
 
   useEffect(() => {
@@ -52,6 +59,7 @@ function Classes() {
           allStudents={allStudents}
           allSubjects={allSubjects}
           allClasses={classes}
+          handleOpenStudentSearch={handleOpenStudentSearch}
         />
 
         <Button
@@ -96,11 +104,14 @@ function Classes() {
           }}
         >
           <ClassWizard
+            currentClassId={currentClassId}
             allStudents={allStudents}
             allSubjects={allSubjects}
             classes={classes}
             handleClose={() => setshowClassForm(false)}
             fetchData={fetchData}
+            step={step}
+            setStep={setStep}
           />
         </Box>
       </Modal>

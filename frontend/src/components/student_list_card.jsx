@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import inputStyle from "../styles/input";
 
-const StudentListCard = ({ student, removeStudent }) => {
+const StudentListCard = ({ student, removeStudent, action }) => {
   return (
     <ListItem
       alignItems="flex-start"
@@ -34,15 +34,27 @@ const StudentListCard = ({ student, removeStudent }) => {
         </Typography>
       </Box>
       <Box>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => {
-            removeStudent(student.id);
-          }}
-        >
-          Remove
-        </Button>
+        {action == "chat" ? (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              console.log(student.id);
+            }}
+          >
+            Chat
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              removeStudent(student.id);
+            }}
+          >
+            Remove
+          </Button>
+        )}
       </Box>
     </ListItem>
   );

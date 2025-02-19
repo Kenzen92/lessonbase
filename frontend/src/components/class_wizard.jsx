@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -30,23 +30,42 @@ const ClassWizard = ({
   classes,
   handleClose,
   fetchData,
+  step,
+  setStep,
+  currentClassId,
 }) => {
-  const [step, setStep] = useState(1);
   const [selectedStudents, setSelectedStudents] = useState([]);
+
+  // Find current class data if editing
+  const currentClass = currentClassId
+    ? classes.find((cls) => cls.id === currentClassId)
+    : null;
 
   const {
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      subjects: [],
-      class_code: "",
+      name: currentClass?.name || "",
+      description: currentClass?.description || "",
+      subjects: currentClass?.subjects || [],
+      class_code: currentClass?.class_code || "",
     },
   });
+
+  // Populate form when currentClassId changes
+  useEffect(() => {
+    if (currentClass) {
+      setValue("name", currentClass.name);
+      setValue("description", currentClass.description);
+      setValue("subjects", currentClass.subjects);
+      setValue("class_code", currentClass.class_code);
+      setSelectedStudents(currentClass.students || []);
+    }
+  }, [currentClass, setValue]);
 
   const handleNext = (data) => {
     setStep(2);
@@ -60,11 +79,15 @@ const ClassWizard = ({
     data["students"] = selectedStudents;
     try {
       const response = await handleCreateClassGroup(data);
-      toast.success("Class group created successfully!");
+      toast.success(
+        currentClassId
+          ? "Class group updated successfully!"
+          : "Class group created successfully!"
+      );
       handleClose();
       fetchData();
     } catch (error) {
-      toast.error("Failed to create class group. Please try again.");
+      toast.error("Failed to save class group. Please try again.");
     }
   };
 
@@ -220,7 +243,7 @@ const ClassWizard = ({
               onClick={handleSubmit(onSubmit)}
               sx={{ width: "100%" }}
             >
-              Submit
+              {currentClassId ? "Update" : "Submit"}
             </Button>
           </Box>
         </Box>
