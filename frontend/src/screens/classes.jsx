@@ -101,6 +101,8 @@ function Classes() {
             width: "900px",
             maxWidth: "90%",
             color: "white",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <ClassWizard

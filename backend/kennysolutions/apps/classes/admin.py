@@ -27,7 +27,7 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(ClassEvent)
 class ClassEventAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'subject', 'start_time', 'duration')
+    list_display = ('id', 'name', 'subject', 'start_time', 'duration', 'created_at')
     search_fields = ('name', 'subject__name')
     list_filter = ('subject', 'start_time')
     ordering = ('start_time',)

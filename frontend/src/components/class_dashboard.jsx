@@ -1,18 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import ClassEventCard from "./class_event_card";
 import TeacherStatistics from "./../components/teacher_statistics.jsx";
-import handleUnautherizedRequest from "./unautherized_request";
-import ScheduleClassBar from "./schedule_class_bar.jsx";
-import { Typography, Box, Button } from "@mui/material";
-import { fetchStatistics, fetchClassEvents } from "../utils/agent.js";
+import { Typography, Box, Button, Container, Modal } from "@mui/material";
+import {
+  fetchStatistics,
+  fetchClassEvents,
+  fetchSubjects,
+  fetchStudents,
+  fetchClassGroups,
+} from "../utils/agent.js";
+import ClassEventWizard from "./class_event_wizard.jsx";
 
 const ClassDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
   const [statistics, setStatistics] = useState(null);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(false);
   const [previous, setPrevious] = useState(false);
-  const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentClassEvent, setCurrentClassEvent] = useState(null);
+  const [subjects, setSubjects] = useState(null);
+  const [students, setStudents] = useState(null);
+  const [step, setStep] = useState(1);
+  const [classGroups, setClassGroups] = useState(null);
   const fetchData = async () => {
     try {
       const classEventsData = await fetchClassEvents();
@@ -38,6 +47,12 @@ const ClassDashboard = () => {
       setClassEvents(dateClassMap);
       const statistics = await fetchStatistics();
       setStatistics(statistics.data);
+      const fetchedStudents = await fetchStudents();
+      setStudents(fetchedStudents);
+      const fetchedSubjects = await fetchSubjects();
+      setSubjects(fetchedSubjects);
+      const fetchedClassGroups = await fetchClassGroups();
+      setClassGroups(fetchedClassGroups);
     } catch (error) {
       setError(error.message);
     }
@@ -50,6 +65,11 @@ const ClassDashboard = () => {
   // Callback function to force re-render of ClassDashboard after item deletion
   const handleReloadData = () => {
     fetchData();
+  };
+
+  const handleClose = () => {
+    console.log("closing");
+    setModalOpen(false);
   };
 
   // Utility function to check if a date is in the past
@@ -79,83 +99,114 @@ const ClassDashboard = () => {
   }
 
   return (
-    <Box
-      sx={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        overflowY: "auto",
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-        "&::-webkit-scrollbar": {
-          display: "none",
-        },
-        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-      }}
-    >
-      <Box sx={{ mb: 4 }}>
-        <TeacherStatistics statistics={statistics} />
-      </Box>
+    <>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Box sx={{ mb: 4 }}>
+          <TeacherStatistics statistics={statistics} />
+        </Box>
 
-      <Box sx={{ mb: 4 }}>
-        <ScheduleClassBar handleReloadData={handleReloadData} />
-      </Box>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "1rem",
-          mb: 4,
-        }}
-      >
         <Button
-          variant={previous ? "contained" : "outlined"}
-          onClick={() => setPrevious(true)}
-          sx={{ width: "15%" }}
+          variant="contained"
+          color="primary"
+          onClick={() => setModalOpen(true)}
+          sx={{ mb: 4 }}
         >
-          Previous
+          Add New Class
         </Button>
-        <Button
-          variant={!previous ? "contained" : "outlined"}
-          onClick={() => setPrevious(false)}
-          sx={{ width: "15%" }}
-        >
-          Upcoming
-        </Button>
-      </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          alignItems: "center",
-        }}
-      >
-        {Object.keys(filteredClassEvents).map((date) => (
-          <Box key={date} sx={{ display: "flex", flexDirection: "column" }}>
-            <Typography sx={{ marginLeft: "2rem" }}>{date}</Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "16px",
-              }}
-            >
-              {filteredClassEvents[date].map((classEvent, index) => (
-                <ClassEventCard
-                  key={index}
-                  eventData={classEvent}
-                  handleReloadData={handleReloadData}
-                />
-              ))}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "1rem",
+            mb: 4,
+          }}
+        >
+          <Button
+            variant={previous ? "contained" : "outlined"}
+            onClick={() => setPrevious(true)}
+            sx={{ width: "15%" }}
+          >
+            Previous
+          </Button>
+          <Button
+            variant={!previous ? "contained" : "outlined"}
+            onClick={() => setPrevious(false)}
+            sx={{ width: "15%" }}
+          >
+            Upcoming
+          </Button>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+            alignItems: "center",
+          }}
+        >
+          {Object.keys(filteredClassEvents).map((date) => (
+            <Box key={date} sx={{ display: "flex", flexDirection: "column" }}>
+              <Typography sx={{ marginLeft: "2rem" }}>{date}</Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "16px",
+                }}
+              >
+                {filteredClassEvents[date].map((classEvent, index) => (
+                  <ClassEventCard
+                    key={index}
+                    eventData={classEvent}
+                    handleReloadData={handleReloadData}
+                  />
+                ))}
+              </Box>
             </Box>
-          </Box>
-        ))}
-      </Box>
-    </Box>
+          ))}
+        </Box>
+      </Container>
+      <Modal
+        open={modalOpen}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          sx={{
+            backgroundColor: "#333",
+            padding: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+            width: "900px",
+            maxWidth: "90%",
+            color: "white",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ClassEventWizard
+            handleReloadData={handleReloadData}
+            classData={currentClassEvent}
+            modalOpen={modalOpen}
+            handleClose={handleClose}
+            setModalOpen={setModalOpen}
+            subjects={subjects}
+            students={students}
+            step={step}
+            setStep={setStep}
+            classGroups={classGroups}
+          />
+        </Box>
+      </Modal>
+    </>
   );
 };
 

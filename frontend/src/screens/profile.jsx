@@ -17,6 +17,7 @@ import {
   TextField,
 } from "@mui/material";
 import inputStyle from "../styles/input";
+import { fetchAllSubjects, fetchProfileData } from "../utils/agent";
 
 function Profile() {
   const [profileData, setProfileData] = useState(null);
@@ -53,74 +54,40 @@ function Profile() {
     setIsHovering(false);
   };
 
-  // Define fetchClassEvents function
-  const fetchProfileData = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/profile", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.status == 401) {
-        handleUnautherizedRequest(navigate);
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch class events");
-      }
-
-      const data = await response.json();
-      let profile_subjects = data["subjects"];
-      let profile_subjects_for_list = [];
-      for (let subject of profile_subjects) {
-        const subject_option = { value: subject.id, label: subject.name };
-        profile_subjects_for_list.push(subject_option);
-      }
-      console.log(profile_subjects_for_list);
-      await setSelectedSubjects(profile_subjects_for_list);
-      console.log(selectedSubjects);
-      setProfileData(data);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const fetchSubjects = async () => {
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/subjects/all", {
-        method: "GET",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch subjects");
-      }
-
-      const data = await response.json();
-      let subject_options = [];
-      for (let subject of data) {
-        const subject_option = { value: subject.id, label: subject.name };
-        subject_options.push(subject_option);
-      }
-      setSubjects(subject_options);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
   useEffect(() => {
-    fetchProfileData();
-    fetchSubjects();
-    loadUserData();
-    loadUserData();
+    const fetchData = async () => {
+      try {
+        const profileData = await fetchProfileData();
+        console.log(profileData);
+        let profile_subjects = profileData["subjects"];
+        let profile_subjects_for_list = [];
+        for (let subject of profile_subjects) {
+          const subject_option = { value: subject.id, label: subject.name };
+          profile_subjects_for_list.push(subject_option);
+        }
+        setSelectedSubjects(profile_subjects_for_list);
+        setProfileData(profileData);
+      } catch (error) {
+        setError(error.message);
+      }
+
+      try {
+        const subjectData = await fetchAllSubjects();
+        let subject_options = [];
+        for (let subject of subjectData) {
+          const subject_option = { value: subject.id, label: subject.name };
+          subject_options.push(subject_option);
+        }
+        setSubjects(subject_options);
+      } catch (error) {
+        setError(error.message);
+      }
+
+      loadUserData();
+    };
+
+    fetchData();
+
     // Add a storage event listener
     const handleStorageChange = () => {
       console.log("Storage event detected");

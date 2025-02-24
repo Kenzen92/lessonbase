@@ -92,7 +92,7 @@ const ClassWizard = ({
   };
 
   return (
-    <Box sx={{ p: 3, borderRadius: 2, border: 2, color: "#fff" }}>
+    <Box sx={{ p: 3 }}>
       {step === 1 && (
         <form onSubmit={handleSubmit(handleNext)}>
           <Controller
@@ -141,6 +141,7 @@ const ClassWizard = ({
                   displayEmpty
                   label="Subjects"
                   sx={{
+                    mb: 2,
                     color: "white",
                     "& .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#fff",
@@ -191,7 +192,12 @@ const ClassWizard = ({
           />
 
           <Box
-            sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 2,
+              mt: 2,
+            }}
           >
             <Button
               variant="outlined"

@@ -32,7 +32,7 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerAccount
-        fields = ('id', 'username', 'password', 'user_type', 'subjects')
+        fields = ('id', 'username', 'password', 'user_type', 'subjects', 'first_name', 'last_name', 'email')
 
 
         

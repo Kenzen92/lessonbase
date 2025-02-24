@@ -125,12 +125,12 @@ function Students() {
           component="form"
           onSubmit={handleFormSubmit}
           sx={{
-            backgroundColor: "white",
+            backgroundColor: "#333",
             padding: 4,
             borderRadius: 2,
             boxShadow: 24,
-            width: "400px",
-            maxWidth: "90%",
+            width: { xs: "90%", sm: "70%", md: "50%", lg: "30%" },
+            color: "white",
           }}
         >
           <Typography variant="h6" gutterBottom>

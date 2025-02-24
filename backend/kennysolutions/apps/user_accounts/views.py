@@ -17,6 +17,128 @@ from django.core.mail import send_mail
 from rest_framework import viewsets
 
 
+# Create a class group API view here to use all the standard http actions directly mapped to the model
+class TeacherViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing homework assignments.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_serializer_class(self):
+        print(self.action)
+        if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
+            return TeacherSerializer
+        else:
+            return TeacherSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Teacher.objects.filter(id=user.id)
+            .prefetch_related('subjects')
+        )
+    
+    def create(self, request, *args, **kwargs):
+        print("creating")
+        # Pass the modified data to the serializer
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        if not serializer.is_valid(raise_exception=True):
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST),
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def list(self, request, *Args, **kwargs):
+        """
+        Get the queryset of classes and return them
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, *args, **kwargs):
+        """
+        Update the class group (supports both PUT and PATCH)
+        """
+        print("updating")
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        data = request.data.copy()
+        serializer = self.get_serializer(instance, data=data, partial=partial)  # Ensure partial updates work
+
+        if not serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class StudentViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing homework assignments.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_serializer_class(self):
+        print(self.action)
+        if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
+            return StudentSerializer
+        else:
+            return StudentSerializer
+
+    def get_queryset(self):
+        # cast polymorphic user type to actual instance
+
+        user = self.request.user.get_real_instance()
+        if user.polymorphic_ctype.name == "teacher":
+            return (
+                Student.objects.filter(teacher=user)
+                .prefetch_related('class_groups')
+            )
+        else:
+            return (
+                Student.objects.filter(id=user.id)
+                .prefetch_related('class_groups')
+            )
+    
+    def create(self, request, *args, **kwargs):
+        print("creating")
+        # Pass the modified data to the serializer
+        data = request.data.copy()
+        serializer = self.get_serializer(data=data)
+        if not serializer.is_valid(raise_exception=True):
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST),
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def list(self, request, *Args, **kwargs):
+        """
+        Get the queryset of classes and return them
+        """
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, *args, **kwargs):
+        """
+        Update the class group
+        """
+        print("updating")
+        instance = self.get_object()
+        data = request.data.copy()
+        serializer = self.get_serializer(instance, data=data)
+        if not serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def userRegister(request):
@@ -122,7 +244,7 @@ def connect_student_teacher(request):
     return Response(status=status.HTTP_201_CREATED)
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'PATCH'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def profile(request):
@@ -163,7 +285,30 @@ def profile(request):
         else:
             print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    elif request.method == 'PATCH':
+        user = request.user.get_real_instance()
+        files = request.FILES
+        
+        # Adjust serializer to handle files
+        if user.polymorphic_ctype.name == "teacher":
+            serializer = TeacherSerializer(instance=user, data=request.data, partial=True)
+        else:
+            serializer = StudentSerializer(instance=user, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            # Save the user instance
+            user = serializer.save()
+            
+            # Handle file uploads and save to GridFS
+            for file_key in files:
+                uploaded_file = files[file_key]
+                
+                # Create a GridFSStorage instance
+                gridfs_storage = GridFSStorage()
+            return Response(serializer.data)
+        else:
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
 @api_view(['POST'])

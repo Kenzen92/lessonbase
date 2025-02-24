@@ -4,24 +4,18 @@ import { toast } from "react-toastify";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
-import { StaticDatePicker } from "@mui/x-date-pickers/StaticDatePicker";
 import {
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   TextField,
-  Typography,
   Button,
   Box,
   Grid,
 } from "@mui/material";
 import dayjs from "dayjs";
-import {
-  fetchClassEvents,
-  fetchStudents,
-  fetchSubjects,
-} from "../utils/agent.js";
+import { fetchStudents, fetchSubjects } from "../utils/agent.js";
 
 const ScheduleClassBar = ({ handleReloadData, classData }) => {
   const [startDate, setStartDate] = useState(null);

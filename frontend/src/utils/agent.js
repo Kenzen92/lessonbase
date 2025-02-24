@@ -44,11 +44,15 @@ export const handleUnauthorizedRequest = (navigate) => {
   navigate("/login");
 };
 export const fetchStudents = async (navigate) => {
-  return await apiRequest("http://localhost:8000/students", "GET", null, navigate);
+  return await apiRequest("http://localhost:8000/student", "GET", null, navigate);
 };
 
 export const fetchSubjects = async (navigate) => {
   return await apiRequest("http://localhost:8000/subjects", "GET", null, navigate);
+};
+
+export const fetchAllSubjects = async (navigate) => {
+  return await apiRequest("http://localhost:8000/subjects/all", "GET", null, navigate);
 };
 
 export const fetchHomeworks = async (navigate) => {
@@ -95,3 +99,15 @@ export const fetchClassGroup = async (groupId, navigate) => {
   console.log("Fetching class group with ID: ", groupId);
   return await apiRequest(`http://localhost:8000/class-group/${groupId}`, "GET", null, navigate);
 }
+
+export const editTeacherProfile = async (id, profileData, navigate) => {
+  return await apiRequest(`http://localhost:8000/teacher/${id}/`, "PATCH", profileData, navigate);
+};
+
+export const fetchProfileData = async (navigate) => {
+  return await apiRequest("http://localhost:8000/profile", "GET", null, navigate);
+};
+
+export const fetchStudentProfile = async (id, navigate) => {
+  return await apiRequest(`http://localhost:8000/student/${id}`, "GET", null, navigate);
+};

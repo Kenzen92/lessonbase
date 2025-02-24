@@ -33,6 +33,8 @@ const StudentSearch = ({
     );
   };
 
+  console.log(students);
+  console.log(selectedStudents);
   const filteredStudents = students.filter((student) => {
     const firstName = student.first_name || "";
     const lastName = student.last_name || "";
@@ -74,9 +76,9 @@ const StudentSearch = ({
         />
 
         <Typography variant="body1" sx={{ mt: 2, mb: 1 }}>
-          Filter by Class Groups:
+          Filter by Class Group:
         </Typography>
-        <FormGroup sx={{ mb: 3 }}>
+        <FormGroup sx={{ mb: 3, flexDirection: "row" }}>
           {classGroups.map((group) => (
             <FormControlLabel
               key={group.id}

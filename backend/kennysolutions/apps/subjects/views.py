@@ -6,7 +6,6 @@ from rest_framework import status
 from apps.subjects.models import Subject
 from apps.subjects.serializers import SubjectSerializer
 
-
 @api_view(['GET', 'POST'])    
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
