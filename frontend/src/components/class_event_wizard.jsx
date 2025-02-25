@@ -175,10 +175,10 @@ const ClassEventWizard = ({
               render={({ field, fieldState: { error } }) => (
                 <TimePicker
                   label="Time"
-                  value={dayjs(field.value, "HH:mm")} // Parse the string value
+                  value={dayjs(field.value, "HH:mm")}
                   onChange={(newValue) =>
                     field.onChange(newValue ? newValue.format("HH:mm") : null)
-                  } // Format back to string
+                  }
                   fullWidth
                   sx={{ ...inputStyle, width: "100%", mb: 2 }}
                   renderInput={(params) => (
@@ -187,7 +187,7 @@ const ClassEventWizard = ({
                       error={!!error}
                       helperText={error?.message}
                     />
-                  )} // Show error
+                  )}
                 />
               )}
             />

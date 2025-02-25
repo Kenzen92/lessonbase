@@ -67,6 +67,12 @@ const ClassDashboard = () => {
     fetchData();
   };
 
+  const handleOpenDetails = (eventId) => {
+    console.log("opening", eventId);
+  };
+
+  // Utility function to handle the 'previous' state
+
   const handleClose = () => {
     console.log("closing");
     setModalOpen(false);
@@ -100,7 +106,7 @@ const ClassDashboard = () => {
 
   return (
     <>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container>
         <Box sx={{ mb: 4 }}>
           <TeacherStatistics statistics={statistics} />
         </Box>
@@ -142,18 +148,25 @@ const ClassDashboard = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
             alignItems: "center",
+            width: "100%",
           }}
         >
           {Object.keys(filteredClassEvents).map((date) => (
-            <Box key={date} sx={{ display: "flex", flexDirection: "column" }}>
+            <Box
+              key={date}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                width: { sm: "95%", md: "90%", lg: "80%", xl: "70%" },
+              }}
+            >
               <Typography sx={{ marginLeft: "2rem" }}>{date}</Typography>
               <Box
                 sx={{
                   display: "flex",
-                  flexWrap: "wrap",
-                  gap: "16px",
+                  flexDirection: "column",
+                  width: "100%",
                 }}
               >
                 {filteredClassEvents[date].map((classEvent, index) => (
@@ -161,6 +174,7 @@ const ClassDashboard = () => {
                     key={index}
                     eventData={classEvent}
                     handleReloadData={handleReloadData}
+                    handleOpenDetails={handleOpenDetails}
                   />
                 ))}
               </Box>
