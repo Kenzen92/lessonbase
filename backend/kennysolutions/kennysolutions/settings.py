@@ -113,40 +113,7 @@ MONGO_DB_NAME = 'kennysolutions'
 DEFAULT_FILE_STORAGE = 'apps.storage.storage_backends.GridFSStorage'
 GRIDFS_COLLECTION = 'files'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {  # Log to the console (your terminal)
-            'level': 'DEBUG',  # Or INFO, WARNING, ERROR, depending on your needs
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',  # Or 'simple'
-        },
-    },
-    'loggers': {
-        '': {  # The root logger (catches everything)
-            'handlers': ['console'],
-            'level': 'DEBUG',  # Set the level you want to see
-            'propagate': True,
-        },
-        # You can add specific loggers for your apps if needed:
-        'backend': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False, # Prevent duplicate logging if also caught by root logger
-        },
-    },
-}
+
 
 
 # Database

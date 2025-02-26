@@ -18,7 +18,7 @@ class TeachingResourceSerializer(serializers.ModelSerializer):
         model = TeachingResource
         fields = ['file', 'class_event', 'name']
 
-class ClassEventSerializer(serializers.ModelSerializer):
+class ClassEventCreateSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())  # Allow passing subject as an ID
@@ -29,6 +29,16 @@ class ClassEventSerializer(serializers.ModelSerializer):
         fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
         read_only_fields = ['id']
 
+class ClassEventSerializer(serializers.ModelSerializer):
+    students = StudentSerializer(many=True, read_only=True)
+    teachers = TeacherClassEventSerializer(many=True, read_only=True)
+    subject = SubjectSerializer(many=False, read_only=True)
+    resources = TeachingResourceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ClassEvent
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
+        read_only_fields = ['id']
 
 
 class AssignmentSerializer(serializers.ModelSerializer):

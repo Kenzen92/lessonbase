@@ -27,7 +27,6 @@ class TeacherViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_serializer_class(self):
-        print(self.action)
         if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
             return TeacherSerializer
         else:
@@ -85,7 +84,6 @@ class StudentViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_serializer_class(self):
-        print(self.action)
         if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
             return StudentSerializer
         else:
@@ -385,7 +383,6 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_serializer_class(self):
-        print(self.action)
         if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
             return ClassGroupCreateSerializer
         elif self.action == 'list':

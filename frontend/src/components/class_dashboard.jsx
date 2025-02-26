@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from "react";
 import ClassEventCard from "./class_event_card";
 import TeacherStatistics from "./../components/teacher_statistics.jsx";
-import { Typography, Box, Button, Container, Modal } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Button,
+  Container,
+  Modal,
+  Paper,
+} from "@mui/material";
 import {
   fetchStatistics,
   fetchClassEvents,
   fetchSubjects,
   fetchStudents,
   fetchClassGroups,
+  cancelClassEvent,
 } from "../utils/agent.js";
 import ClassEventWizard from "./class_event_wizard.jsx";
+import ClassEventDetailsDrawer from "./class_event_details_drawer.jsx";
 
 const ClassDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
@@ -17,6 +26,7 @@ const ClassDashboard = () => {
   const [error, setError] = useState(false);
   const [previous, setPrevious] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentClassEvent, setCurrentClassEvent] = useState(null);
   const [subjects, setSubjects] = useState(null);
   const [students, setStudents] = useState(null);
@@ -67,8 +77,24 @@ const ClassDashboard = () => {
     fetchData();
   };
 
-  const handleOpenDetails = (eventId) => {
-    console.log("opening", eventId);
+  const handleCancelClassEvent = () => {
+    cancelClassEvent(currentClassEvent.id);
+    handleCloseDetails();
+    handleReloadData();
+  };
+
+  const handleOpenDetails = (eventData) => {
+    setCurrentClassEvent(eventData);
+    setDrawerOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setCurrentClassEvent(null);
+    setDrawerOpen(false);
+  };
+
+  const handleOpenStudentSearch = () => {
+    console.log("searching");
   };
 
   // Utility function to handle the 'previous' state
@@ -107,10 +133,17 @@ const ClassDashboard = () => {
   return (
     <>
       <Container>
+        <ClassEventDetailsDrawer
+          open={drawerOpen}
+          onClose={handleCloseDetails}
+          currentClassEvent={currentClassEvent}
+          handleReloadData={handleReloadData}
+          handleOpenStudentSearch={handleOpenStudentSearch}
+          handleCancelClassEvent={handleCancelClassEvent}
+        />
         <Box sx={{ mb: 4 }}>
           <TeacherStatistics statistics={statistics} />
         </Box>
-
         <Button
           variant="contained"
           color="primary"
@@ -119,7 +152,6 @@ const ClassDashboard = () => {
         >
           Add New Class
         </Button>
-
         <Box
           sx={{
             display: "flex",
@@ -143,7 +175,6 @@ const ClassDashboard = () => {
             Upcoming
           </Button>
         </Box>
-
         <Box
           sx={{
             display: "flex",
@@ -161,14 +192,18 @@ const ClassDashboard = () => {
                 width: { sm: "95%", md: "90%", lg: "80%", xl: "70%" },
               }}
             >
-              <Typography sx={{ marginLeft: "2rem" }}>{date}</Typography>
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
                   width: "100%",
+                  padding: "2rem",
+                  marginBottom: "1rem",
                 }}
               >
+                <Typography sx={{ marginLeft: "1rem" }} variant="h6">
+                  {date}
+                </Typography>
                 {filteredClassEvents[date].map((classEvent, index) => (
                   <ClassEventCard
                     key={index}

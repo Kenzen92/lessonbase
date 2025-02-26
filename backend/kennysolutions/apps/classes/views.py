@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from apps.user_accounts.models import Student, Teacher
 from apps.subjects.models import Subject
-from apps.classes.serialisers import  ClassEventSerializer
+from apps.classes.serialisers import  ClassEventSerializer, ClassEventCreateSerializer
 from django.core.exceptions import ValidationError
 from .serialisers import  AssignmentSerializer, ClassEventSerializer
 from .models import Assignment, ClassEvent,  TeachingResource
@@ -19,13 +19,20 @@ class ClassEventViewSet(viewsets.ViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return ClassEventCreateSerializer
+        else:
+            return ClassEventSerializer
+
     def list(self, request):
         user = request.user.get_real_instance()
         if isinstance(user, Teacher):
             class_events = ClassEvent.objects.filter(teachers=user).distinct().select_related('subject').prefetch_related('students')
         else:
             class_events = ClassEvent.objects.filter(students=user).distinct().select_related('subject').prefetch_related('teachers')
-        serializer = ClassEventSerializer(class_events, many=True)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(class_events, many=True)
         return Response(serializer.data)
 
     def create(self, request):
@@ -34,7 +41,8 @@ class ClassEventViewSet(viewsets.ViewSet):
         student_ids = request.data.get('students', [])
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
         students = Student.objects.filter(pk__in=student_ids)
-        serializer = ClassEventSerializer(data=request.data)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
         if serializer.is_valid():
             class_event = serializer.save()
             class_event.teachers.set(teachers)
@@ -76,7 +84,8 @@ class ClassEventViewSet(viewsets.ViewSet):
         student_ids = request.data.get('students', [])
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
         students = Student.objects.filter(pk__in=student_ids)
-        serializer = ClassEventSerializer(class_event, data=request.data, partial=partial)
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(class_event, data=request.data, partial=partial)
         if serializer.is_valid():
             class_event = serializer.save()
             class_event.teachers.set(teachers)

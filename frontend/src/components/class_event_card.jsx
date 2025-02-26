@@ -16,19 +16,6 @@ import {
 import { Box, Typography, Button, Chip, IconButton } from "@mui/material";
 import { motion } from "framer-motion";
 
-const subjectIDMap = {
-  Mathematics: 1,
-  Physics: 2,
-  Chemistry: 3,
-  Biology: 4,
-  History: 5,
-  Literature: 6,
-  "Computer Science": 7,
-  Art: 8,
-  Music: 9,
-  Geography: 10,
-};
-
 const subjectIconMap = {
   Mathematics: FaCalculator,
   Physics: FaBalanceScaleLeft,
@@ -40,17 +27,15 @@ const subjectIconMap = {
   Art: FaPalette,
   Music: FaMusic,
   Geography: FaGlobe,
+  English: FaBook,
 };
 
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const startTime = new Date(eventData.start_time);
   const currentTime = new Date();
   const isPastEvent = startTime < currentTime;
-  const subjectName = Object.keys(subjectIDMap).find(
-    (key) => subjectIDMap[key] === eventData.subject
-  );
-  const IconComponent = subjectIconMap[subjectName];
 
+  const IconComponent = subjectIconMap[eventData.subject.name];
   const formattedTime = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "numeric",
@@ -75,9 +60,8 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
         }}
       >
         <Chip
-          color="success"
           icon={<IconComponent color="#fff" size={20} />}
-          label={subjectName}
+          label={eventData.subject.name}
           sx={{
             color: "#fff",
             fontSize: "smaller",
@@ -85,6 +69,7 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
             mb: "auto",
             height: "2.2rem",
             minWidth: "10rem",
+            backgroundColor: eventData.subject.color,
           }}
         />
         <Box
@@ -100,8 +85,9 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
           <Typography>{formattedTime}</Typography>
         </Box>
         <Typography>{eventData.duration} Minutes</Typography>
+        <Typography>Class code</Typography>
         <IconButton
-          onClick={() => handleOpenDetails(eventData.id)}
+          onClick={() => handleOpenDetails(eventData)}
           aria-label="details"
         >
           <FaInfoCircle color="#fff" />

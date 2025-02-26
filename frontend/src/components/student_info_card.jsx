@@ -145,7 +145,7 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
           onClick={() => handleOpenModal(previousClass)}
         >
           {previousClass
-            ? `Previous Class:  ${previousClass.subject}`
+            ? `Previous Class:  ${previousClass.subject.name}`
             : "No Previous Class"}
         </Button>
 
@@ -154,7 +154,7 @@ const StudentInfoCard = ({ student, chatId, handleSelectChat }) => {
             variant="contained"
             onClick={() => handleOpenModal(nextClass)}
           >
-            Next Class: {nextClass.subject}
+            Next Class: {nextClass.subject.name}
           </Button>
         ) : (
           <ScheduleClassModal handleReloadData={handleReloadData} />

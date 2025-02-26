@@ -8,8 +8,11 @@ def create_required_objects(sender, **kwargs):
     from apps.user_accounts.models import CustomerAccount
     from apps.classes.models import ClassEvent
 
-    for name in Subject.reserved_names:
-        Subject.objects.get_or_create(name=name)
+    for name, color in Subject.reserved_names:
+        subject, created = Subject.objects.get_or_create(name=name)
+        if not subject.color:
+            subject.color = color
+            subject.save()
 
     # Create some students and a teacher
     student_1, student_1_created = Student.objects.get_or_create(username="student_1", first_name="Jim", last_name="Bob", email="jimbob@test.com")
