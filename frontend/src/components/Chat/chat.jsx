@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import WebSocketInstance from "./web_socket_service";
+import WebSocketInstance from "../web_socket_service";
 import {
   Box,
   Button,
@@ -8,16 +8,13 @@ import {
   TextField,
   Typography,
   Divider,
+  Avatar,
 } from "@mui/material";
 import moment from "moment";
+import { FaWindowClose } from "react-icons/fa";
 
-const Chat = ({
-  studentName,
-  chatId,
-  chatOpen,
-  setChatOpen,
-  currentUserId,
-}) => {
+const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
+  console.log("student: ", student);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
@@ -79,25 +76,39 @@ const Chat = ({
         bottom: 20,
         right: 20,
         width: 300,
-        bgcolor: "background.paper",
-        boxShadow: 3,
-        borderRadius: 1,
         overflow: "hidden",
       }}
     >
       <Paper
         elevation={3}
-        sx={{ bgcolor: "grey.900", color: "white", padding: 2 }}
+        sx={{
+          bgcolor: "grey.900",
+          color: "white",
+          padding: 2,
+          minHeight: 300,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
       >
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            Chat with {studentName}
-          </Typography>
-          <IconButton onClick={closeChat} color="inherit">
-            Close
-          </IconButton>
+        <Box>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Avatar alt={student.first_name} src={student.profile_image}>
+              {student.first_name[0]}
+            </Avatar>
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              {student.first_name}
+            </Typography>
+            <IconButton onClick={closeChat} color="inherit">
+              <FaWindowClose color="#fff" />
+            </IconButton>
+          </Box>
+          <Divider sx={{ my: 1, bgcolor: "grey.700" }} />
         </Box>
-        <Divider sx={{ my: 1, bgcolor: "grey.700" }} />
         <Box
           ref={messagesEndRef} // Attach ref to the Box
           sx={{

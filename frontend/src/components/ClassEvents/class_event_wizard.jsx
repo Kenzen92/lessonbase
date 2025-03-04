@@ -16,10 +16,10 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import StudentSearch from "./student_search";
+import StudentSearch from "../Students/student_search";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
 import { toast } from "react-toastify";
-import inputStyle from "../styles/input";
+import inputStyle from "../../styles/input";
 
 // Define your validation schema *outside* the component for better performance
 const validationSchema = yup.object().shape({

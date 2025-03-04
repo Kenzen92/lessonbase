@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, List, Divider, Typography, Button, Drawer } from "@mui/material";
-import StudentListCard from "./student_list_card";
-import { fetchClassGroup } from "../utils/agent";
+import StudentListCard from "../Students/student_list_card";
+import { fetchClassGroup } from "../../utils/agent";
 import { toast } from "react-toastify";
 
 export default function ClassDetailsDrawer({

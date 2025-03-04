@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
-import ClassEventCard from "./class_event_card";
-import TeacherStatistics from "./../components/teacher_statistics.jsx";
-import {
-  Typography,
-  Box,
-  Button,
-  Container,
-  Modal,
-  Paper,
-} from "@mui/material";
+import ClassEventCard from "../ClassEvents/class_event_card.jsx";
+import TeacherStatistics from "./teacher_statistics.jsx";
+import { Typography, Box, Container, Modal, Alert } from "@mui/material";
 import {
   fetchStatistics,
   fetchClassEvents,
@@ -16,11 +9,12 @@ import {
   fetchStudents,
   fetchClassGroups,
   cancelClassEvent,
-} from "../utils/agent.js";
-import ClassEventWizard from "./class_event_wizard.jsx";
-import ClassEventDetailsDrawer from "./class_event_details_drawer.jsx";
+} from "../../utils/agent.js";
+import ClassEventWizard from "../ClassEvents/class_event_wizard.jsx";
+import ClassEventDetailsDrawer from "../ClassEvents/class_event_details_drawer.jsx";
+import { PrimaryButton, SecondaryButton } from "../../styles/buttons.jsx";
 
-const ClassDashboard = () => {
+const ClassDashboard = (classId) => {
   const [classEvents, setClassEvents] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [error, setError] = useState(false);
@@ -56,6 +50,25 @@ const ClassDashboard = () => {
       });
       setClassEvents(dateClassMap);
       const statistics = await fetchStatistics();
+      // check if the current class event was updated and reset it
+      if (currentClassEvent) {
+        const currentEventIndex = classEventsData.findIndex(
+          (event) => event.id === currentClassEvent.id
+        );
+        const updatedCurrentEvent = classEventsData[currentEventIndex];
+        setCurrentClassEvent(updatedCurrentEvent);
+      }
+      console.log(classId.classId);
+      if (classId.classId != undefined) {
+        const id = parseInt(classId.classId, 10);
+        console.log(id);
+        const classIdIndex = classEventsData.findIndex(
+          (event) => event.id === id
+        );
+        setCurrentClassEvent(classEventsData[classIdIndex]);
+        setDrawerOpen(true);
+      }
+
       setStatistics(statistics.data);
       const fetchedStudents = await fetchStudents();
       setStudents(fetchedStudents);
@@ -95,6 +108,7 @@ const ClassDashboard = () => {
 
   const handleOpenStudentSearch = () => {
     console.log("searching");
+    setModalOpen(true);
   };
 
   // Utility function to handle the 'previous' state
@@ -144,14 +158,9 @@ const ClassDashboard = () => {
         <Box sx={{ mb: 4 }}>
           <TeacherStatistics statistics={statistics} />
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setModalOpen(true)}
-          sx={{ mb: 4 }}
-        >
+        <PrimaryButton onClick={() => setModalOpen(true)}>
           Add New Class
-        </Button>
+        </PrimaryButton>
         <Box
           sx={{
             display: "flex",
@@ -160,20 +169,25 @@ const ClassDashboard = () => {
             mb: 4,
           }}
         >
-          <Button
-            variant={previous ? "contained" : "outlined"}
-            onClick={() => setPrevious(true)}
-            sx={{ width: "15%" }}
-          >
-            Previous
-          </Button>
-          <Button
-            variant={!previous ? "contained" : "outlined"}
-            onClick={() => setPrevious(false)}
-            sx={{ width: "15%" }}
-          >
-            Upcoming
-          </Button>
+          {!previous ? (
+            <PrimaryButton onClick={() => setPrevious(true)}>
+              Previous
+            </PrimaryButton>
+          ) : (
+            <SecondaryButton onClick={() => setPrevious(true)}>
+              Previous
+            </SecondaryButton>
+          )}
+
+          {previous ? (
+            <PrimaryButton onClick={() => setPrevious(false)}>
+              Upcoming
+            </PrimaryButton>
+          ) : (
+            <SecondaryButton onClick={() => setPrevious(false)}>
+              Upcoming
+            </SecondaryButton>
+          )}
         </Box>
         <Box
           sx={{

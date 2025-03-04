@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation";
 import { toast } from "react-toastify";
-import StudentInfoCard from "../components/student_info_card";
+import StudentInfoCard from "../components/Students/student_info_card";
 import {
   Container,
   Box,
@@ -11,23 +11,27 @@ import {
   Typography,
   Modal,
 } from "@mui/material";
-import Chat from "../components/chat";
+import Chat from "../components/Chat/chat";
 import { fetchStudents, fetchChats } from "../utils/agent";
+import StudentDetailsDrawer from "../components/Students/student_details_drawer";
+import { useParams } from "react-router-dom";
 
 function Students() {
+  const { id } = useParams();
   const [showStudentForm, setshowStudentForm] = useState(false);
   const [students, setStudents] = useState([]);
   const [chats, setChats] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
-  const [studentName, setStudentName] = useState(null);
+  const [currentStudent, setCurrentStudent] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [email, setEmail] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleSelectChat = (chatId, username) => {
+  const handleSelectChat = (chatId, student) => {
     setChatId(chatId);
+    setCurrentStudent(student);
     setChatOpen(true);
-    setStudentName(username);
   };
 
   useEffect(() => {
@@ -43,6 +47,16 @@ function Students() {
         };
       });
       setChats(processedChats);
+      if (id != undefined) {
+        console.log(studentData);
+        const intId = parseInt(id, 10);
+        const currentStudent = studentData.find(
+          (student) => student.id === intId
+        );
+        console.log(currentStudent);
+        setCurrentStudent(currentStudent);
+        setDrawerOpen(true);
+      }
     };
     fetchData();
   }, []);
@@ -83,6 +97,12 @@ function Students() {
       <Navigation />
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <StudentDetailsDrawer
+          open={drawerOpen}
+          setOpen={setDrawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          student={currentStudent}
+        />
         <Button
           variant="contained"
           color="primary"
@@ -105,6 +125,8 @@ function Students() {
                   student={student}
                   chatId={chatId}
                   handleSelectChat={handleSelectChat}
+                  setCurrentStudent={setCurrentStudent}
+                  handleOpenDrawer={setDrawerOpen}
                 />
               </Grid>
             );
@@ -154,8 +176,7 @@ function Students() {
 
       {chatOpen && (
         <Chat
-          studentName={studentName}
-          currentUserId={currentUserId}
+          student={currentStudent}
           chatId={chatId}
           chatOpen={chatOpen}
           setChatOpen={setChatOpen}

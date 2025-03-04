@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation";
-import ClassGroupCard from "../components/class_group_card";
+import ClassGroupCard from "../components/ClassGroups/class_group_card.jsx";
 import { useNavigate } from "react-router-dom";
 import { Container, Box, Button, Grid, Modal } from "@mui/material";
 import {
@@ -8,8 +8,8 @@ import {
   fetchSubjects,
   fetchClassGroups,
 } from "../utils/agent.js";
-import ClassWizard from "../components/class_wizard.jsx";
-import ClassDetailsDrawer from "../components/class_group_details_drawer.jsx";
+import ClassWizard from "../components/ClassGroups/class_group_wizard.jsx";
+import ClassDetailsDrawer from "../components/ClassGroups/class_group_details_drawer.jsx";
 
 function Classes() {
   const [showClassForm, setshowClassForm] = useState(false);

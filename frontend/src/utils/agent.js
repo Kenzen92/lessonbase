@@ -67,6 +67,12 @@ export const fetchClassEvents = async (navigate) => {
   return await apiRequest("http://localhost:8000/class-event", "GET", null, navigate);
 }
 
+export const fetchClassEventsForStudent = async ( studentID, navigate) => {
+  console.log(studentID);
+  return await apiRequest(`http://localhost:8000/class-event/student/${studentID}`,  "GET", null, navigate);
+};
+
+
 export const handleCreateClassGroup = async (classGroupData, navigate) => {
   return await apiRequest("http://localhost:8000/class-group/", "POST", classGroupData, navigate);
 };
@@ -110,4 +116,8 @@ export const fetchProfileData = async (navigate) => {
 
 export const fetchStudentProfile = async (id, navigate) => {
   return await apiRequest(`http://localhost:8000/student/${id}`, "GET", null, navigate);
+};
+
+export const handleDeleteStudent = async (id, navigate) => {
+  return await apiRequest(`http://localhost:8000/student/${id}/`, "DELETE", null, navigate);
 };

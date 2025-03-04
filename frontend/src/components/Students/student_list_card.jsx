@@ -2,19 +2,22 @@ import React, { useState } from "react";
 import {
   Box,
   Typography,
-  TextField,
-  List,
   ListItem,
-  Divider,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
   Button,
   Avatar,
+  IconButton,
 } from "@mui/material";
-import inputStyle from "../styles/input";
+import inputStyle from "../../styles/input";
+import { useNavigate } from "react-router-dom";
+import { FaInfoCircle } from "react-icons/fa";
 
 const StudentListCard = ({ student, removeStudent, action }) => {
+  const navigate = useNavigate();
+
+  const handleNavigateStudentDetails = () => {
+    navigate(`/students/${student.id}`);
+  };
+
   return (
     <ListItem
       alignItems="flex-start"
@@ -34,16 +37,16 @@ const StudentListCard = ({ student, removeStudent, action }) => {
         </Typography>
       </Box>
       <Box>
-        {action == "chat" ? (
-          <Button
+        {action == "navigate" ? (
+          <IconButton
             variant="contained"
             color="primary"
             onClick={() => {
-              console.log(student.id);
+              handleNavigateStudentDetails(student.id);
             }}
           >
-            Chat
-          </Button>
+            <FaInfoCircle color="#fff" size={20} />
+          </IconButton>
         ) : (
           <Button
             variant="contained"

@@ -43,9 +43,9 @@ function App() {
                 }
               />
               <Route element={<PrivateRoutes />}>
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/:id?" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
-                <Route path="/students" element={<Students />} />
+                <Route path="/students/:id?" element={<Students />} />
                 <Route path="/classes" element={<Classes />} />
                 <Route path="/assignments" element={<Assignments />} />
               </Route>

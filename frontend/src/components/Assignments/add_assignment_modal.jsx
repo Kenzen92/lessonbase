@@ -1,4 +1,3 @@
-import { handleCreateAssignment } from "../utils/agent";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,9 +12,13 @@ import {
   MenuItem,
   FormControl,
 } from "@mui/material";
-import { fetchStudents, fetchSubjects } from "../utils/agent.js";
+import {
+  fetchStudents,
+  fetchSubjects,
+  handleCreateAssignment,
+} from "../../utils/agent.js";
 import { toast } from "react-toastify";
-import inputStyle from "../styles/input.jsx";
+import inputStyle from "../../styles/input.jsx";
 
 function AddAssignmentModal() {
   const [formData, setFormData] = useState({ title: "", due_date: "" });

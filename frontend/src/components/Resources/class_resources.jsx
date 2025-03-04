@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Box, Typography, Button, Link } from "@mui/material";
+import { Box, Typography, Button, Link, Chip } from "@mui/material";
 import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
+import { FaUpload } from "react-icons/fa";
 
 const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -19,7 +20,7 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
   const handleDeleteFile = (resourceURL) => {
     const auth = window.sessionStorage.getItem("token");
     const deleteBody = JSON.stringify({ file_url: resourceURL });
-  
+
     fetch("http://localhost:8000/class_material", {
       method: "DELETE",
       headers: {
@@ -41,10 +42,9 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
         toast.error("An error occurred while deleting the file");
       });
   };
-  
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = () => {
+    console.log("submitting");
     const formData = new FormData();
 
     // Append selected files to form data
@@ -75,60 +75,65 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
 
   return (
     <Box>
-      <Typography variant="h6" color={'#fff'}>Upload Resources</Typography>
+      <Typography variant="h6" color={"#fff"}>
+        Upload Resources
+      </Typography>
       <Dropzone onDrop={handleFileDrop} />
       {existing_resources.map((resource, index) => (
-        <Box key={index} sx={{ display: "flex", alignItems: "center", marginTop: "0.5rem" }}>
-          <Typography variant="body1" color={'#fff'} sx={{ flexGrow: 1 }}>
+        <Chip
+          key={index}
+          label={
             <Link
               href={resource.file}
               target="_blank"
               rel="noopener noreferrer"
-              sx={{ color: "#fff", fontSize: "larger" }}
+              style={{ color: "inherit", textDecoration: "none" }}
             >
               {resource.name}
             </Link>
-          </Typography>
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => handleDeleteFile(resource.file)}
-          >
-            Remove
-          </Button>
-        </Box>
+          }
+          onDelete={() => handleDeleteFile(resource.file)}
+          sx={{
+            margin: "0.5rem",
+            width: "100%",
+            justifyContent: "space-between",
+          }}
+          color="primary"
+        />
       ))}
       {selectedFiles.map((file, index) => (
-        <Box
+        <Chip
           key={index}
+          label={file.name}
+          onDelete={() => handleRemoveFile(file)}
+          color="secondary"
           sx={{
-            display: "flex",
-            alignItems: "center",
-            marginTop: "0.5rem",
+            margin: "0.5rem",
+            width: "100%",
+            justifyContent: "space-between",
+            color: "secondary",
           }}
-        >
-          <Typography variant="body2" color={'#fff'} sx={{ flexGrow: 1 }}>
-            {file.name}
-          </Typography>
+        />
+      ))}
+      {selectedFiles.length > 0 && (
+        <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
           <Button
-            variant="outlined"
-            color="secondary"
-            onClick={() => handleRemoveFile(file)}
+            onClick={handleSubmit}
+            color="primary"
+            variant="contained"
+            sx={{
+              marginTop: "1rem",
+              width: 250,
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 1,
+            }}
           >
-            Remove
+            Upload {selectedFiles.length} File{selectedFiles.length > 1 && "s"}
+            <FaUpload style={{ color: "#fff" }} />
           </Button>
         </Box>
-      ))}
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        fullWidth
-        sx={{ mt: 2 }}
-        onClick={handleSubmit}
-      >
-        Submit
-      </Button>
+      )}
     </Box>
   );
 };

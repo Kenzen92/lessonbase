@@ -9,7 +9,7 @@ import {
   FormControlLabel,
   FormGroup,
 } from "@mui/material";
-import inputStyle from "../styles/input";
+import inputStyle from "../../styles/input";
 import StudentSelectCard from "./student_select_card";
 
 const StudentSearch = ({

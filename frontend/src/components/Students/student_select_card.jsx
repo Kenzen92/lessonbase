@@ -12,7 +12,7 @@ import {
   Button,
   Avatar,
 } from "@mui/material";
-import inputStyle from "../styles/input";
+import inputStyle from "../../styles/input";
 
 const StudentSelectCard = ({
   student,

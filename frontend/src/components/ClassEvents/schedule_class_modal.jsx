@@ -16,7 +16,7 @@ import {
   Modal,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { fetchStudents, fetchSubjects } from "../utils/agent.js";
+import { fetchStudents, fetchSubjects } from "../../utils/agent.js";
 import ClassEventWizard from "./class_event_wizard.jsx";
 
 const ScheduleClassModal = ({

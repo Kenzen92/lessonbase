@@ -20,7 +20,7 @@ urlpatterns = [
     path('create_data', views.createData),
     path('login', login),
     path('logout/', logout),
-    path('class/<int:student_id>/', class_events_for_student), 
+    path('class-event/student/<int:student_id>/', class_events_for_student), 
     path('subjects/all', all_subjects),
     path('subjects/', subjects),
     path('confirm-account/', confirm_account, name='confirm_account'),

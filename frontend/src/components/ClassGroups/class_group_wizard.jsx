@@ -12,9 +12,9 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import StudentSearch from "./student_search";
-import inputStyle from "../styles/input";
-import { handleCreateClassGroup } from "../utils/agent";
+import StudentSearch from "../Students/student_search";
+import inputStyle from "../../styles/input";
+import { handleCreateClassGroup } from "../../utils/agent";
 import { toast } from "react-toastify";
 
 const validationSchema = yup.object().shape({

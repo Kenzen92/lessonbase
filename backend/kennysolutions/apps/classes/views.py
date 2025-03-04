@@ -141,6 +141,7 @@ def teacher_statistics(request):
 def class_material(request):
     if request.method == 'POST':
         # Ensure class_id is provided
+        print(request.data)
         class_id = request.data.get('class_id')
         if class_id is None:
             return Response({"error": "class_id is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -148,11 +149,13 @@ def class_material(request):
         # Extract class event from class_id (assuming it's part of TeachingResourceSerializer)
         try:
             class_event = ClassEvent.objects.get(id=class_id)  # Replace with actual model query
+            print(class_event)
         except ClassEvent.DoesNotExist:
             return Response({"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Handle file uploads
         files = request.FILES.getlist('file')  # getlist to handle multiple files
+        print(files)
         if not files:
             return Response({"error": "No files provided"}, status=status.HTTP_400_BAD_REQUEST)
         

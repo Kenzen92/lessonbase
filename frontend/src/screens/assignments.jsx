@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navigation from "../components/main_navigation";
 import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
-import AssignmentCard from "../components/assignment_card";
-import AddAssignmentModal from "../components/add_assignment_modal.jsx";
+import AssignmentCard from "../components/Assignments/assignment_card.jsx";
+import AddAssignmentModal from "../components/Assignments/add_assignment_modal.jsx";
 import { fetchHomeworks } from "../utils/agent.js";
 
 function Assignments() {

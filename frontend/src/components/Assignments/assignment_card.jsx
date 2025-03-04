@@ -15,7 +15,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import inputStyle from "../styles/input";
+import inputStyle from "../../styles/input";
 
 const TabPanel = ({ children, value, index }) => (
   <Box hidden={value !== index} sx={{ p: 2 }}>
