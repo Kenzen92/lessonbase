@@ -205,7 +205,7 @@ function Profile() {
         <Box
           sx={{
             marginLeft: "auto",
-            marginRight: "auto",
+            marginleft: "auto",
             flex: 1,
             justifyItems: "center",
           }}
@@ -245,6 +245,7 @@ function Profile() {
                   alignItems: "center",
                   gap: "2rem",
                   flexDirection: "row",
+                  justifyContent: "space-between",
                 }}
               >
                 <FormLabel
@@ -252,7 +253,7 @@ function Profile() {
                   sx={{
                     color: "white",
                     minWidth: "8rem",
-                    textAlign: "right",
+                    textAlign: "left",
                   }}
                 >
                   Username
@@ -272,6 +273,7 @@ function Profile() {
                 sx={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "space-between",
                   gap: "2rem",
                   flexDirection: "row",
                 }}
@@ -280,7 +282,6 @@ function Profile() {
                   htmlFor="subjects"
                   sx={{
                     color: "white",
-                    minWidth: "12rem",
                     textAlign: "center",
                   }}
                 >
@@ -309,7 +310,7 @@ function Profile() {
                       backgroundColor: "#222", // Adjust for contrast
                       color: "white",
                       padding: "0.5rem",
-                      maxWidth: "30em",
+                      width: "15rem",
                     }),
                     multiValue: (provided) => ({
                       ...provided,
@@ -336,6 +337,7 @@ function Profile() {
                     alignItems: "center",
                     gap: "2rem",
                     flexDirection: "row",
+                    justifyContent: "space-between",
                   }}
                 >
                   <FormLabel
@@ -343,7 +345,7 @@ function Profile() {
                     sx={{
                       color: "white",
                       minWidth: "8rem",
-                      textAlign: "right",
+                      textAlign: "left",
                     }}
                   >
                     {field
@@ -371,6 +373,7 @@ function Profile() {
                   alignItems: "center",
                   gap: "2rem",
                   p: 1,
+                  justifyContent: "space-between",
                 }}
               >
                 <FormLabel
@@ -378,7 +381,7 @@ function Profile() {
                   sx={{
                     color: "white",
                     minWidth: "8rem",
-                    textAlign: "right",
+                    textAlign: "left",
                   }}
                 >
                   Profile Picture:
