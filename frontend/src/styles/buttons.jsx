@@ -13,6 +13,8 @@ export const StyledButton = styled(Button)(({ theme }) => ({
 
 // Primary Button Variant
 export const PrimaryButton = styled(StyledButton)(({ theme }) => ({
+  maxWidth: 250,
+  maxHeight: 50,
   backgroundColor: theme.palette.primary.main,
   color: theme.palette.common.white,
   "&:hover": {

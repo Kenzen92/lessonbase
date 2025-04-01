@@ -34,19 +34,6 @@ class ClassEventViewSet(viewsets.ViewSet):
         user = request.user.get_real_instance()
         if isinstance(user, Teacher):
             class_events = ClassEvent.objects.filter(teachers=user).distinct().select_related('subject').prefetch_related('students')
-            # Group by starting date
-            grouped_events = defaultdict(list)
-            serializer_class = self.get_serializer_class()
-            for event in class_events:
-                grouped_events[str(event.start_time)].append(
-                    serializer_class(event).data
-                )
-            
-            # Convert to JSON structure
-            grouped_events_json = json.dumps(grouped_events, default=str)
-            
-            # Return as JsonResponse
-            return JsonResponse(grouped_events_json, safe=False)
         else:
             class_events = ClassEvent.objects.filter(students=user).distinct().select_related('subject').prefetch_related('teachers')
         serializer_class = self.get_serializer_class()
