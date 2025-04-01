@@ -3,17 +3,16 @@ import { Box, TextField, Typography } from "@mui/material";
 import inputStyle from "../../styles/input";
 import { PrimaryButton, SecondaryButton } from "../../styles/buttons.jsx";
 
-
 function ClassEventSearchAndFilter({
   allClassEvents,
   setFilteredClassEvents,
+  allClassGroups,
 }) {
-  const [filters, setFilters] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [previous, setPrevious] = useState(false);
+  const [classGroupFilter, setClassGroupFilter] = useState({});
 
   useEffect(() => {
-    console.log(allClassEvents);
     // Utility function to check if a date is in the past
     const isPast = (date) => {
       const eventDate = new Date(date);
@@ -25,35 +24,34 @@ function ClassEventSearchAndFilter({
       (result, date) => {
         const filteredEvents = allClassEvents[date].filter((event) => {
           const isEventPast = isPast(event.start_time);
-          return previous ? isEventPast : !isEventPast;
+          const lowerCaseSearch = searchTerm.toLowerCase();
+          if (!previous && isEventPast) {
+            return false;
+          }
+
+          return (
+            event.students.some((student) =>
+              [
+                `${student.first_name.toLowerCase()} ${student.last_name.toLowerCase()}`,
+                student.first_name.toLowerCase(),
+                student.last_name.toLowerCase(),
+                student.username?.toLowerCase(),
+              ].some((field) => field.includes(lowerCaseSearch))
+            ) ||
+            (event.subject?.name.toLowerCase().includes(lowerCaseSearch) ??
+              false)
+          );
         });
+
         if (filteredEvents.length > 0) {
           result[date] = filteredEvents;
         }
-        return result;
+        return result; // Ensure reduce returns the accumulated result
       },
       {}
     );
-    console.log(timeFilteredClassEvents);
-
-    if (searchTerm === "") {
-      setFilteredClassEvents(timeFilteredClassEvents);
-      return;
-    }
-    const lowerCaseSearch = searchTerm.toLowerCase();
-    const filtered = timeFilteredClassEvents.filter(
-      (event) =>
-        event.students.some((student) =>
-          [
-            `${student.first_name.toLowerCase()} ${student.last_name.toLowerCase()}`,
-            student.first_name.toLowerCase(),
-            student.last_name.toLowerCase(),
-            student.username?.toLowerCase(), // Ensure username exists before calling toLowerCase()
-          ].some((field) => field.includes(lowerCaseSearch))
-        ) || event.subject.name.toLowerCase().includes(lowerCaseSearch)
-    );
-    setFilteredClassEvents(filtered);
-  }, [searchTerm, previous, allClassEvents]);
+    setFilteredClassEvents(timeFilteredClassEvents);
+  }, [searchTerm, previous, allClassEvents, classGroupFilter]);
 
   return (
     <Box>
@@ -75,7 +73,6 @@ function ClassEventSearchAndFilter({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        {/* Render filtered results here (optional) */}
       </Box>
       <Box
         sx={{

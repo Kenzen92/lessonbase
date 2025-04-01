@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ClassEventCard from "../ClassEvents/class_event_card.jsx";
-import TeacherStatistics from "./teacher_statistics.jsx";
 import { Typography, Box, Container, Modal, Alert } from "@mui/material";
 import {
-  fetchStatistics,
   fetchClassEvents,
   fetchSubjects,
   fetchStudents,
@@ -12,13 +10,13 @@ import {
 } from "../../utils/agent.js";
 import ClassEventWizard from "../ClassEvents/class_event_wizard.jsx";
 import ClassEventDetailsDrawer from "../ClassEvents/class_event_details_drawer.jsx";
-import { PrimaryButton, SecondaryButton } from "../../styles/buttons.jsx";
 import ClassEventSearchAndFilter from "../ClassEvents/class_event_search_filter.jsx";
+import ActionStatisticsBar from "./action_statistics_bar.jsx";
+import Navigation from "../main_navigation.jsx";
 
 const ClassDashboard = (classId) => {
   const [classEvents, setClassEvents] = useState([]);
   const [filteredClassEvents, setFilteredClassEvents] = useState([]);
-  const [statistics, setStatistics] = useState(null);
   const [error, setError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -50,7 +48,7 @@ const ClassDashboard = (classId) => {
         }
       });
       setClassEvents(dateClassMap);
-      const statistics = await fetchStatistics();
+
       // check if the current class event was updated and reset it
       if (currentClassEvent) {
         const currentEventIndex = classEventsData.findIndex(
@@ -68,12 +66,12 @@ const ClassDashboard = (classId) => {
         setDrawerOpen(true);
       }
 
-      setStatistics(statistics.data);
       const fetchedStudents = await fetchStudents();
       setStudents(fetchedStudents);
       const fetchedSubjects = await fetchSubjects();
       setSubjects(fetchedSubjects);
       const fetchedClassGroups = await fetchClassGroups();
+      console.log(fetchedClassGroups);
       setClassGroups(fetchedClassGroups);
     } catch (error) {
       setError(error.message);
@@ -115,14 +113,19 @@ const ClassDashboard = (classId) => {
     setModalOpen(false);
   };
 
-
   if (error) {
     return <Typography color="error">Error: {error}</Typography>;
   }
 
   return (
     <>
+      <Navigation />
       <Container>
+        <ActionStatisticsBar
+          page={"dashboard"}
+          actionFunction={setModalOpen}
+          actionText={"Add New Class"}
+        />
         <ClassEventDetailsDrawer
           open={drawerOpen}
           onClose={handleCloseDetails}
@@ -131,21 +134,13 @@ const ClassDashboard = (classId) => {
           handleOpenStudentSearch={handleOpenStudentSearch}
           handleCancelClassEvent={handleCancelClassEvent}
         />
-      <Box sx={{ mt: 2 }}>
-        <TeacherStatistics statistics={statistics} />
-      </Box>
-      <Box sx={{ display: "flex", flexDirection: "row" }}>
-        <PrimaryButton
-          onClick={() => setModalOpen(true)}
-          sx={{ minWidth: 150 }}
-        >
-          Add New Class
-        </PrimaryButton>
+
         <ClassEventSearchAndFilter
           allClassEvents={classEvents}
           setFilteredClassEvents={setFilteredClassEvents}
+          allClassGroups={classGroups}
         />
-      </Box>
+
         <Box
           sx={{
             display: "flex",
@@ -187,45 +182,45 @@ const ClassDashboard = (classId) => {
             </Box>
           ))}
         </Box>
-      </Container>
-      <Modal
-        open={modalOpen}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Box
+        <Modal
+          open={modalOpen}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
           sx={{
-            backgroundColor: "#333",
-            padding: 4,
-            borderRadius: 2,
-            boxShadow: 24,
-            width: "900px",
-            maxWidth: "90%",
-            color: "white",
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <ClassEventWizard
-            handleReloadData={handleReloadData}
-            classData={currentClassEvent}
-            modalOpen={modalOpen}
-            handleClose={handleClose}
-            setModalOpen={setModalOpen}
-            subjects={subjects}
-            students={students}
-            step={step}
-            setStep={setStep}
-            classGroups={classGroups}
-          />
-        </Box>
-      </Modal>
+          <Box
+            sx={{
+              backgroundColor: "#333",
+              padding: 4,
+              borderRadius: 2,
+              boxShadow: 24,
+              width: "900px",
+              maxWidth: "90%",
+              color: "white",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ClassEventWizard
+              handleReloadData={handleReloadData}
+              classData={currentClassEvent}
+              modalOpen={modalOpen}
+              handleClose={handleClose}
+              setModalOpen={setModalOpen}
+              subjects={subjects}
+              students={students}
+              step={step}
+              setStep={setStep}
+              classGroups={classGroups}
+            />
+          </Box>
+        </Modal>
+      </Container>
     </>
   );
 };

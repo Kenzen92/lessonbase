@@ -9,7 +9,7 @@ import { IconContext } from "react-icons";
 import { FaFolder } from "react-icons/fa";
 import Login from "./screens/login";
 import Signup from "./screens/signup";
-import Dashboard from "./screens/dashboard";
+import ClassDashboard from "./components/Dashboard/class_dashboard";
 import Profile from "./screens/profile";
 import PrivateRoutes from "./components/privateRoute";
 import ToastNotification from "./components/notification";
@@ -43,7 +43,7 @@ function App() {
                 }
               />
               <Route element={<PrivateRoutes />}>
-                <Route path="/dashboard/:id?" element={<Dashboard />} />
+                <Route path="/dashboard/:id?" element={<ClassDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/students/:id?" element={<Students />} />
                 <Route path="/classes" element={<Classes />} />
