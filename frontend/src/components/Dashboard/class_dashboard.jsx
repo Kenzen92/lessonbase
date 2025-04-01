@@ -13,9 +13,11 @@ import {
 import ClassEventWizard from "../ClassEvents/class_event_wizard.jsx";
 import ClassEventDetailsDrawer from "../ClassEvents/class_event_details_drawer.jsx";
 import { PrimaryButton, SecondaryButton } from "../../styles/buttons.jsx";
+import ClassEventSearchAndFilter from "../ClassEvents/class_event_search_filter.jsx";
 
 const ClassDashboard = (classId) => {
   const [classEvents, setClassEvents] = useState([]);
+  const [filteredClassEvents, setFilteredClassEvents] = useState([]);
   const [statistics, setStatistics] = useState(null);
   const [error, setError] = useState(false);
   const [previous, setPrevious] = useState(false);
@@ -26,56 +28,18 @@ const ClassDashboard = (classId) => {
   const [students, setStudents] = useState(null);
   const [step, setStep] = useState(1);
   const [classGroups, setClassGroups] = useState(null);
+
   const fetchData = async () => {
     try {
       const classEventsData = await fetchClassEvents();
-      let dateClassMap = {};
+      const classEventsJSON = JSON.parse(classEventsData);
 
-      // Loop through each event in the data array
-      classEventsData.forEach((event) => {
-        // Extract the date from the start_time of the event
-        const eventDate = new Date(event.start_time);
-        const formattedDate = `${eventDate.getDate()}/${
-          eventDate.getMonth() + 1
-        }/${eventDate.getFullYear()}`; // Format: DD/MM/YYYY
-
-        // Check if the date exists as a key in the dateClassMap
-        if (dateClassMap[formattedDate]) {
-          // If the date exists, add this class event to the value array
-          dateClassMap[formattedDate].push(event);
-        } else {
-          // If the date doesn't exist, create the value array and add this class event
-          dateClassMap[formattedDate] = [event];
-        }
-      });
-      setClassEvents(dateClassMap);
-      const statistics = await fetchStatistics();
-      // check if the current class event was updated and reset it
-      if (currentClassEvent) {
-        const currentEventIndex = classEventsData.findIndex(
-          (event) => event.id === currentClassEvent.id
-        );
-        const updatedCurrentEvent = classEventsData[currentEventIndex];
-        setCurrentClassEvent(updatedCurrentEvent);
-      }
-      console.log(classId.classId);
-      if (classId.classId != undefined) {
-        const id = parseInt(classId.classId, 10);
-        console.log(id);
-        const classIdIndex = classEventsData.findIndex(
-          (event) => event.id === id
-        );
-        setCurrentClassEvent(classEventsData[classIdIndex]);
-        setDrawerOpen(true);
-      }
-
-      setStatistics(statistics.data);
-      const fetchedStudents = await fetchStudents();
-      setStudents(fetchedStudents);
-      const fetchedSubjects = await fetchSubjects();
-      setSubjects(fetchedSubjects);
-      const fetchedClassGroups = await fetchClassGroups();
-      setClassGroups(fetchedClassGroups);
+      setClassEvents(classEventsJSON);
+      setFilteredClassEvents(classEventsJSON);
+      setStatistics((await fetchStatistics()).data);
+      setStudents(await fetchStudents());
+      setSubjects(await fetchSubjects());
+      setClassGroups(await fetchClassGroups());
     } catch (error) {
       setError(error.message);
     }
@@ -85,7 +49,6 @@ const ClassDashboard = (classId) => {
     fetchData();
   }, []);
 
-  // Callback function to force re-render of ClassDashboard after item deletion
   const handleReloadData = () => {
     fetchData();
   };
@@ -106,141 +69,95 @@ const ClassDashboard = (classId) => {
     setDrawerOpen(false);
   };
 
-  const handleOpenStudentSearch = () => {
-    console.log("searching");
-    setModalOpen(true);
+  const classEventCards = (classEventsData) => {
+    return Object.entries(classEventsData).map(([date, events]) => (
+      <Box key={date} sx={{ width: "100%", mb: 3 }}>
+        <Typography variant="h6" sx={{ textAlign: "center", mb: 2 }}>
+          {new Date(date).toLocaleDateString()}{" "}
+          {/* Convert timestamp to readable format */}
+        </Typography>
+        {events.map((event) => (
+          <ClassEventCard
+            key={event.id}
+            eventData={event}
+            handleReloadData={handleReloadData}
+            handleOpenDetails={handleOpenDetails}
+          />
+        ))}
+      </Box>
+    ));
   };
-
-  // Utility function to handle the 'previous' state
-
-  const handleClose = () => {
-    console.log("closing");
-    setModalOpen(false);
-  };
-
-  // Utility function to check if a date is in the past
-  const isPast = (date) => {
-    const eventDate = new Date(date);
-    const now = new Date();
-    return eventDate < now;
-  };
-
-  // Filter class events based on the 'previous' state
-  const filteredClassEvents = Object.keys(classEvents).reduce(
-    (result, date) => {
-      const filteredEvents = classEvents[date].filter((event) => {
-        const isEventPast = isPast(event.start_time);
-        return previous ? isEventPast : !isEventPast;
-      });
-      if (filteredEvents.length > 0) {
-        result[date] = filteredEvents;
-      }
-      return result;
-    },
-    {}
-  );
 
   if (error) {
     return <Typography color="error">Error: {error}</Typography>;
   }
 
   return (
-    <>
-      <Container>
-        <ClassEventDetailsDrawer
-          open={drawerOpen}
-          onClose={handleCloseDetails}
-          currentClassEvent={currentClassEvent}
-          handleReloadData={handleReloadData}
-          handleOpenStudentSearch={handleOpenStudentSearch}
-          handleCancelClassEvent={handleCancelClassEvent}
-        />
-        <Box sx={{ mb: 4 }}>
-          <TeacherStatistics statistics={statistics} />
-        </Box>
-        <PrimaryButton onClick={() => setModalOpen(true)}>
+    <Container>
+      <ClassEventDetailsDrawer
+        open={drawerOpen}
+        onClose={handleCloseDetails}
+        currentClassEvent={currentClassEvent}
+        handleReloadData={handleReloadData}
+        handleCancelClassEvent={handleCancelClassEvent}
+      />
+      <Box sx={{ mt: 2 }}>
+        <TeacherStatistics statistics={statistics} />
+      </Box>
+      <Box sx={{ display: "flex", flexDirection: "row" }}>
+        <PrimaryButton
+          onClick={() => setModalOpen(true)}
+          sx={{ minWidth: 150 }}
+        >
           Add New Class
         </PrimaryButton>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "1rem",
-            mb: 4,
-          }}
-        >
-          {!previous ? (
-            <PrimaryButton onClick={() => setPrevious(true)}>
-              Previous
-            </PrimaryButton>
-          ) : (
-            <SecondaryButton onClick={() => setPrevious(true)}>
-              Previous
-            </SecondaryButton>
-          )}
-
-          {previous ? (
-            <PrimaryButton onClick={() => setPrevious(false)}>
-              Upcoming
-            </PrimaryButton>
-          ) : (
-            <SecondaryButton onClick={() => setPrevious(false)}>
-              Upcoming
-            </SecondaryButton>
-          )}
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "100%",
-          }}
-        >
-          {Object.keys(filteredClassEvents).map((date) => (
-            <Box
-              key={date}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                width: { sm: "95%", md: "90%", lg: "80%", xl: "70%" },
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                  padding: "2rem",
-                  marginBottom: "1rem",
-                }}
-              >
-                <Typography sx={{ marginLeft: "1rem" }} variant="h6">
-                  {date}
-                </Typography>
-                {filteredClassEvents[date].map((classEvent, index) => (
-                  <ClassEventCard
-                    key={index}
-                    eventData={classEvent}
-                    handleReloadData={handleReloadData}
-                    handleOpenDetails={handleOpenDetails}
-                  />
-                ))}
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      </Container>
-      <Modal
-        open={modalOpen}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        <ClassEventSearchAndFilter
+          allClassEvents={classEvents}
+          setFilteredClassEvents={setFilteredClassEvents}
+        />
+      </Box>
+      <Box
         sx={{
           display: "flex",
-          alignItems: "center",
           justifyContent: "center",
+          gap: "1rem",
+          mb: 4,
         }}
+      >
+        {!previous ? (
+          <PrimaryButton onClick={() => setPrevious(true)}>
+            Previous
+          </PrimaryButton>
+        ) : (
+          <SecondaryButton onClick={() => setPrevious(true)}>
+            Previous
+          </SecondaryButton>
+        )}
+
+        {previous ? (
+          <PrimaryButton onClick={() => setPrevious(false)}>
+            Upcoming
+          </PrimaryButton>
+        ) : (
+          <SecondaryButton onClick={() => setPrevious(false)}>
+            Upcoming
+          </SecondaryButton>
+        )}
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        {classEventCards(filteredClassEvents)}
+      </Box>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <Box
           sx={{
@@ -251,15 +168,13 @@ const ClassDashboard = (classId) => {
             width: "900px",
             maxWidth: "90%",
             color: "white",
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
           <ClassEventWizard
             handleReloadData={handleReloadData}
             classData={currentClassEvent}
             modalOpen={modalOpen}
-            handleClose={handleClose}
+            handleClose={() => setModalOpen(false)}
             setModalOpen={setModalOpen}
             subjects={subjects}
             students={students}
@@ -269,7 +184,7 @@ const ClassDashboard = (classId) => {
           />
         </Box>
       </Modal>
-    </>
+    </Container>
   );
 };
 

@@ -15,6 +15,7 @@ import Chat from "../components/Chat/chat";
 import { fetchStudents, fetchChats } from "../utils/agent";
 import StudentDetailsDrawer from "../components/Students/student_details_drawer";
 import { useParams } from "react-router-dom";
+import { PrimaryButton } from "../styles/buttons";
 
 function Students() {
   const { id } = useParams();
@@ -103,14 +104,14 @@ function Students() {
           onClose={() => setDrawerOpen(false)}
           student={currentStudent}
         />
-        <Button
+        <PrimaryButton
           variant="contained"
           color="primary"
           onClick={() => setshowStudentForm(true)}
           sx={{ mb: 4 }}
         >
           Add New Student
-        </Button>
+        </PrimaryButton>
 
         <Grid container spacing={2} className="cards-section">
           {students.map((student) => {

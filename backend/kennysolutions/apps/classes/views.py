@@ -1,5 +1,8 @@
+from collections import defaultdict
 import datetime
+import json
 from django.db.models import Count, Sum, Q, Case, When, Value
+from django.http import JsonResponse
 from apps.storage.storage_backends import GridFSStorage
 from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.authentication import TokenAuthentication
@@ -10,7 +13,7 @@ from apps.user_accounts.models import Student, Teacher
 from apps.subjects.models import Subject
 from apps.classes.serialisers import  ClassEventSerializer, ClassEventCreateSerializer
 from django.core.exceptions import ValidationError
-from .serialisers import  AssignmentSerializer, ClassEventSerializer
+from .serialisers import  AssignmentSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
 from .models import Assignment, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
@@ -22,6 +25,8 @@ class ClassEventViewSet(viewsets.ViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return ClassEventCreateSerializer
+        if self.action == 'list':
+            return ClassEventDateOrderedSerializer
         else:
             return ClassEventSerializer
 
@@ -29,6 +34,19 @@ class ClassEventViewSet(viewsets.ViewSet):
         user = request.user.get_real_instance()
         if isinstance(user, Teacher):
             class_events = ClassEvent.objects.filter(teachers=user).distinct().select_related('subject').prefetch_related('students')
+            # Group by starting date
+            grouped_events = defaultdict(list)
+            serializer_class = self.get_serializer_class()
+            for event in class_events:
+                grouped_events[str(event.start_time)].append(
+                    serializer_class(event).data
+                )
+            
+            # Convert to JSON structure
+            grouped_events_json = json.dumps(grouped_events, default=str)
+            
+            # Return as JsonResponse
+            return JsonResponse(grouped_events_json, safe=False)
         else:
             class_events = ClassEvent.objects.filter(students=user).distinct().select_related('subject').prefetch_related('teachers')
         serializer_class = self.get_serializer_class()

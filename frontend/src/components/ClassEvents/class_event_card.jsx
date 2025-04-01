@@ -32,8 +32,6 @@ const subjectIconMap = {
 
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const startTime = new Date(eventData.start_time);
-  const currentTime = new Date();
-  const isPastEvent = startTime < currentTime;
 
   const IconComponent = subjectIconMap[eventData.subject.name];
   const formattedTime = new Intl.DateTimeFormat("en-US", {

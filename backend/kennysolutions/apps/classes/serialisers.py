@@ -29,6 +29,31 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
         read_only_fields = ['id']
 
+class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
+    """
+    Returns a list of ClassEvents grouped into their starting date, order by start time.
+    Appends each event with a previous field representing if the event was past or future.
+    """
+    students = StudentSerializer(many=True, read_only=True)
+    teachers = TeacherClassEventSerializer(many=True, read_only=True)
+    subject = SubjectSerializer(many=False, read_only=True)
+    resources = TeachingResourceSerializer(many=True, read_only=True)
+    previous = serializers.SerializerMethodField()
+
+    def get_previous(self, obj):
+        """
+        Returns a boolean indicating whether the event is past or future.
+        """
+        if obj.start_time < datetime.now(timezone.utc):
+            return True
+        else:
+            return False
+    class Meta:
+        model = ClassEvent
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'previous']
+        read_only_fields = ['id']
+
+
 class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)

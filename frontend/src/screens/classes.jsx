@@ -10,6 +10,7 @@ import {
 } from "../utils/agent.js";
 import ClassWizard from "../components/ClassGroups/class_group_wizard.jsx";
 import ClassDetailsDrawer from "../components/ClassGroups/class_group_details_drawer.jsx";
+import { PrimaryButton } from "../styles/buttons.jsx";
 
 function Classes() {
   const [showClassForm, setshowClassForm] = useState(false);
@@ -62,14 +63,9 @@ function Classes() {
           handleOpenStudentSearch={handleOpenStudentSearch}
         />
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setshowClassForm(true)}
-          sx={{ mb: 4 }}
-        >
+        <PrimaryButton onClick={() => setshowClassForm(true)} sx={{ mb: 4 }}>
           Add New Class
-        </Button>
+        </PrimaryButton>
 
         <Grid container spacing={2} className="cards-section">
           {classes.map((data) => (
