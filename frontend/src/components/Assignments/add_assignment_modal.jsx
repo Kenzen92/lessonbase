@@ -20,9 +20,9 @@ import {
 import { toast } from "react-toastify";
 import inputStyle from "../../styles/input.jsx";
 
-function AddAssignmentModal() {
+function AddAssignmentModal({ isOpen, setIsOpen }) {
   const [formData, setFormData] = useState({ title: "", due_date: "" });
-  const [isOpen, setIsOpen] = useState(false);
+
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [allStudents, setAllStudents] = useState([]);
@@ -69,15 +69,6 @@ function AddAssignmentModal() {
 
   return (
     <>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setIsOpen(true)}
-        sx={{ mb: 4 }}
-      >
-        Add Assignment
-      </Button>
-
       <Modal
         open={isOpen}
         onClose={() => setIsOpen(false)}

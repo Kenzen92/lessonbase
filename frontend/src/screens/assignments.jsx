@@ -6,10 +6,16 @@ import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
 import AddAssignmentModal from "../components/Assignments/add_assignment_modal.jsx";
 import { fetchHomeworks } from "../utils/agent.js";
+import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
+import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
+import { PrimaryButton } from "../styles/buttons.jsx";
 
 function Assignments() {
   const [homeworks, setHomeworks] = useState([]);
   const [error, setError] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentAssignment, setCurrentAssignment] = useState(false);
 
   const navigate = useNavigate();
   const columns = [
@@ -55,8 +61,20 @@ function Assignments() {
   return (
     <>
       <Navigation />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <AddAssignmentModal />
+      <Container>
+        <ActionStatisticsBar
+          page="assignments"
+          actionFunction={setIsOpen}
+          actionText="Create Assignment"
+        />
+        <AddAssignmentModal isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AssignmentDetailsDrawer
+          open={drawerOpen}
+          setOpen={setDrawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          assignment={currentAssignment}
+        />
+
         <Box
           className="homework-dashboard"
           sx={{
@@ -110,10 +128,24 @@ function Assignments() {
                   {homeworks && homeworks[column.name] ? (
                     homeworks[column.name].map((assignment, index) => (
                       <Box sx={{ m: 1 }} key={index}>
-                        <AssignmentCard
+                        {/* <AssignmentCard
                           assignment={assignment}
                           handleReloadData={fetchHomeworks}
-                        />
+                        /> */}
+                        <Typography sx={{ color: "black" }}>
+                          {assignment.due_date}
+                        </Typography>
+                        <Typography sx={{ color: "black" }}>
+                          {assignment.title}
+                        </Typography>
+                        <PrimaryButton
+                          onClick={() => {
+                            setCurrentAssignment(assignment);
+                            setDrawerOpen(true);
+                          }}
+                        >
+                          Details
+                        </PrimaryButton>
                       </Box>
                     ))
                   ) : (

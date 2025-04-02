@@ -109,34 +109,71 @@ def class_events_for_student(request, student_id=None):
         return Response(serializer.data)
 
 
+from datetime import datetime, timedelta
+from django.db.models import Count, Sum, Avg, F, Q
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def teacher_statistics(request):
+    page = request.GET.get("page")
+    
     try:
         teacher = Teacher.objects.get(pk=request.user.id)
-        current_dateTime = datetime.datetime.now()
-        # Aggregate the count and total duration of past classes for the teacher
-        class_stats = ClassEvent.objects.filter(
-            teachers=teacher,
-            start_time__lt=current_dateTime
-        ).aggregate(
-            class_count=Count('id'),
-            class_duration_total=Sum('duration')
-        )
+        current_datetime = datetime.now()
         
-        # Count the number of students associated with the teacher
-        student_count = teacher.students.count()
-        
-        return Response({
-            "data": {
-                "class_count": class_stats['class_count'],
-                "class_duration_total": class_stats['class_duration_total'] or 0,
-                "student_count": student_count
+        # Common Queries
+        total_students = teacher.students.count()
+        total_classes = ClassEvent.objects.filter(teachers=teacher).count()
+        completed_classes = ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime).count()
+        upcoming_classes = ClassEvent.objects.filter(teachers=teacher, start_time__gte=current_datetime).count()
+        total_assignments = Assignment.objects.filter(teachers=teacher).count()
+
+        if page == "dashboard":
+            stats = {
+                "total_students": total_students,
+                "total_classes": total_classes,
+                "upcoming_classes": upcoming_classes,
+                "total_assignments": total_assignments,
+                "pending_assignments": Assignment.objects.filter(teachers=teacher, marked=False).count(),
+                "total_teaching_hours": ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime).aggregate(Sum("duration"))["duration__sum"] or 0
             }
-        }, status=status.HTTP_200_OK)
+
+        elif page == "students":
+            stats = {
+                "total_students": total_students,
+                "active_students": teacher.students.filter(is_confirmed=True).count(),
+                "inactive_students": teacher.students.filter(is_confirmed=False).count(),
+                "avg_assignments_per_student": round(total_assignments / total_students, 2) if total_students else 0,
+            }
+
+        elif page == "classes":
+            stats = {
+                "total_classes": total_classes,
+                "completed_classes": completed_classes,
+                "upcoming_classes": upcoming_classes,
+                "average_class_duration": round(ClassEvent.objects.filter(teachers=teacher).aggregate(Avg("duration"))["duration__avg"], 2) or 0,
+            }
+
+        elif page == "assignments":
+            stats = {
+                "total_assignments": total_assignments,
+                "total_documents" : TeachingResource.objects.filter(homework_resource__teachers=teacher).distinct().count(),
+            }
+
+        else:
+            return Response({"error": "Invalid page parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"data": stats}, status=status.HTTP_200_OK)
+    
     except Teacher.DoesNotExist:
         return Response({"error": "Teacher not found"}, status=status.HTTP_404_NOT_FOUND)
+
     
 
 

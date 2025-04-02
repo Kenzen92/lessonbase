@@ -16,6 +16,7 @@ import { fetchStudents, fetchChats } from "../utils/agent";
 import StudentDetailsDrawer from "../components/Students/student_details_drawer";
 import { useParams } from "react-router-dom";
 import { PrimaryButton } from "../styles/buttons";
+import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 
 function Students() {
   const { id } = useParams();
@@ -96,22 +97,19 @@ function Students() {
   return (
     <>
       <Navigation />
+      <Container>
+        <ActionStatisticsBar
+          page="students"
+          actionFunction={setshowStudentForm}
+          actionText="Add New Student"
+        />
 
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <StudentDetailsDrawer
           open={drawerOpen}
           setOpen={setDrawerOpen}
           onClose={() => setDrawerOpen(false)}
           student={currentStudent}
         />
-        <PrimaryButton
-          variant="contained"
-          color="primary"
-          onClick={() => setshowStudentForm(true)}
-          sx={{ mb: 4 }}
-        >
-          Add New Student
-        </PrimaryButton>
 
         <Grid container spacing={2} className="cards-section">
           {students.map((student) => {
@@ -133,56 +131,56 @@ function Students() {
             );
           })}
         </Grid>
-      </Container>
 
-      <Modal
-        open={showStudentForm}
-        onClose={() => setshowStudentForm(false)}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Box
-          component="form"
-          onSubmit={handleFormSubmit}
+        <Modal
+          open={showStudentForm}
+          onClose={() => setshowStudentForm(false)}
           sx={{
-            backgroundColor: "#333",
-            padding: 4,
-            borderRadius: 2,
-            boxShadow: 24,
-            width: { xs: "90%", sm: "70%", md: "50%", lg: "30%" },
-            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          <Typography variant="h6" gutterBottom>
-            Add New Student
-          </Typography>
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            Send Invitation
-          </Button>
-        </Box>
-      </Modal>
+          <Box
+            component="form"
+            onSubmit={handleFormSubmit}
+            sx={{
+              backgroundColor: "#333",
+              padding: 4,
+              borderRadius: 2,
+              boxShadow: 24,
+              width: { xs: "90%", sm: "70%", md: "50%", lg: "30%" },
+              color: "white",
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Add New Student
+            </Typography>
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              fullWidth
+              sx={{ mb: 2 }}
+            />
+            <Button type="submit" variant="contained" color="primary" fullWidth>
+              Send Invitation
+            </Button>
+          </Box>
+        </Modal>
 
-      {chatOpen && (
-        <Chat
-          student={currentStudent}
-          chatId={chatId}
-          chatOpen={chatOpen}
-          setChatOpen={setChatOpen}
-        />
-      )}
+        {chatOpen && (
+          <Chat
+            student={currentStudent}
+            chatId={chatId}
+            chatOpen={chatOpen}
+            setChatOpen={setChatOpen}
+          />
+        )}
+      </Container>
     </>
   );
 }

@@ -10,7 +10,7 @@ import {
 } from "../utils/agent.js";
 import ClassWizard from "../components/ClassGroups/class_group_wizard.jsx";
 import ClassDetailsDrawer from "../components/ClassGroups/class_group_details_drawer.jsx";
-import { PrimaryButton } from "../styles/buttons.jsx";
+import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 
 function Classes() {
   const [showClassForm, setshowClassForm] = useState(false);
@@ -51,7 +51,12 @@ function Classes() {
     <>
       <Navigation />
 
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container>
+        <ActionStatisticsBar
+          page="classes"
+          actionFunction={setshowClassForm}
+          actionText="Add New Class"
+        />
         <ClassDetailsDrawer
           classGroupId={currentClassId}
           open={isDrawerOpen}
@@ -62,10 +67,6 @@ function Classes() {
           allClasses={classes}
           handleOpenStudentSearch={handleOpenStudentSearch}
         />
-
-        <PrimaryButton onClick={() => setshowClassForm(true)} sx={{ mb: 4 }}>
-          Add New Class
-        </PrimaryButton>
 
         <Grid container spacing={2} className="cards-section">
           {classes.map((data) => (
