@@ -1,12 +1,35 @@
-import React from "react";
-import { Box, Typography, Button, Drawer } from "@mui/material";
-
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Button, Drawer, List, Chip } from "@mui/material";
+import StudentListCard from "../Students/student_list_card";
+import { fetchAssignment } from "../../utils/agent";
+import { getSubjectIcon } from "../../utils/icons";
 export default function AssignmentDetailsDrawer({
   assignment,
   open,
   onClose,
   onEdit,
 }) {
+  const [assignmentDetails, setAssignmentDetails] = useState(null);
+
+  useEffect(() => {
+    if (assignment?.id) {
+      const handleFetchAssignment = async () => {
+        try {
+          const assignmentDetails = await fetchAssignment(assignment.id);
+          setAssignmentDetails(assignmentDetails);
+        } catch (error) {
+          console.error("Error fetching assignment details:", error);
+        }
+      };
+      handleFetchAssignment();
+    }
+  }, [assignment]); // Re-run when assignment changes
+
+  // Ensure assignmentDetails is available before trying to get the icon
+  const IconComponent =
+    assignmentDetails?.subject?.name &&
+    getSubjectIcon(assignmentDetails.subject.name);
+
   return (
     <Drawer
       anchor="right"
@@ -17,17 +40,42 @@ export default function AssignmentDetailsDrawer({
       <Box
         sx={{ width: 500, p: 3, height: "100%", backgroundColor: "#252525" }}
       >
-        {assignment ? (
+        {assignmentDetails ? (
           <>
             <Typography
               variant="h6"
               sx={{ color: "white", mb: 2, textAlign: "center" }}
             >
-              {assignment.title}
+              {assignmentDetails.title}
             </Typography>
             <Typography sx={{ color: "white", mb: 2 }}>
-              {assignment.description}
+              {assignmentDetails.description}
             </Typography>
+            <Chip
+              icon={<IconComponent color="#fff" size={20} />}
+              label={assignmentDetails.subject.name}
+              sx={{
+                color: "#fff",
+                fontSize: "smaller",
+                mt: "auto",
+                mb: "auto",
+                height: "2.2rem",
+                minWidth: "10rem",
+                backgroundColor: assignmentDetails.subject.color,
+              }}
+            />
+            <Typography sx={{ color: "white" }}>
+              Teachers: {assignmentDetails.teachers}
+            </Typography>
+            <List>
+              {assignmentDetails.students.map((student) => (
+                <StudentListCard
+                  key={student.id}
+                  student={student}
+                  action={"navigate"}
+                />
+              ))}
+            </List>
             <Button
               variant="contained"
               color="primary"

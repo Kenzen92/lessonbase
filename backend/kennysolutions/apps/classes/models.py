@@ -3,7 +3,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from apps.subjects.models import Subject
-from apps.user_accounts.models import CustomUser, Student
+from apps.user_accounts.models import ClassGroup, CustomUser, Student
 from django.core.exceptions import ValidationError
 from apps.storage.storage_backends import GridFSStorage  # Ensure this is your GridFS storage backend
 

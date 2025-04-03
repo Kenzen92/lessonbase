@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 from backend.serializers import TeacherClassEventSerializer
-from apps.user_accounts.serializers import StudentSerializer
+from apps.user_accounts.serializers import ClassGroupListSerializer, StudentSerializer
 from rest_framework import serializers
 from apps.subjects.models import Subject
-from apps.user_accounts.models import CustomUser, CustomerAccount, Teacher, Student, Staff
+from apps.user_accounts.models import ClassGroup, CustomUser, CustomerAccount, Teacher, Student, Staff
 from apps.classes.models import Assignment, ClassEvent, TeachingResource
 from apps.subjects.serializers import SubjectSerializer
 from django.contrib.auth import authenticate
@@ -66,10 +66,31 @@ class ClassEventSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class AssignmentSerializer(serializers.ModelSerializer):
+class AssignmentListSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
     teachers = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), many=True)
+    students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True)
+
+    class Meta:
+        model = Assignment
+        fields = [
+            'id',
+            'title',
+            'description',
+            'subject',
+            'teachers',
+            'max_score',
+            'created_at',
+            'due_date',
+            'students',
+        ]
+
+class AssignmentDetailsSerializer(serializers.ModelSerializer):
+    # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
+    subject = SubjectSerializer(many=False)
+    teachers = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), many=True)
+    students = StudentSerializer(many=True)
 
     class Meta:
         model = Assignment

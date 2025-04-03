@@ -13,7 +13,7 @@ from apps.user_accounts.models import Student, Teacher
 from apps.subjects.models import Subject
 from apps.classes.serialisers import  ClassEventSerializer, ClassEventCreateSerializer
 from django.core.exceptions import ValidationError
-from .serialisers import  AssignmentSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
+from .serialisers import  AssignmentDetailsSerializer, AssignmentListSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
 from .models import Assignment, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
@@ -312,10 +312,15 @@ class HomeworkViewSet(viewsets.ModelViewSet):
     """
     A viewset for viewing and editing homework assignments.
     """
-    serializer_class = AssignmentSerializer
+    serializer_class = AssignmentDetailsSerializer
     queryset = Assignment.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return AssignmentListSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
         user = self.request.user
@@ -338,7 +343,6 @@ class HomeworkViewSet(viewsets.ModelViewSet):
     def list(self, request):
         # Define the current time
         now = timezone.now().date()
-        print(now)
         # Annotate each assignment with its category based on conditions
         assignments = self.get_queryset().annotate(
             category=Case(
@@ -361,7 +365,7 @@ class HomeworkViewSet(viewsets.ModelViewSet):
 
         # Assign each annotated assignment to the appropriate category list
         for assignment in assignments:
-            assignment_data = AssignmentSerializer(assignment).data
+            assignment_data = AssignmentListSerializer(assignment).data
             category = assignment.category
             categorized_data[category].append(assignment_data)
         

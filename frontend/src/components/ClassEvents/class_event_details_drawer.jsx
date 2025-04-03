@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Box, List, Typography, Drawer } from "@mui/material";
+import { Box, List, Typography, Drawer, Chip } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import ClassResources from "../Resources/class_resources";
+import { getSubjectIcon } from "../../utils/icons";
 import {
   PrimaryButton,
   SecondaryButton,
@@ -20,6 +21,10 @@ export default function ClassEventDetailsDrawer({
   const formattedDate = `${eventDate.getDate()}/${
     eventDate.getMonth() + 1
   }/${eventDate.getFullYear()}`;
+  // Ensure assignmentDetails is available before trying to get the icon
+  const IconComponent =
+    currentClassEvent?.subject?.name &&
+    getSubjectIcon(currentClassEvent.subject.name);
   return (
     <Drawer
       anchor="right"
@@ -41,9 +46,19 @@ export default function ClassEventDetailsDrawer({
               }}
             >
               <Box>
-                <Typography variant="h5" sx={{ color: "white", mb: 2 }}>
-                  {currentClassEvent.subject.name}
-                </Typography>
+                <Chip
+                  icon={<IconComponent color="#fff" size={20} />}
+                  label={currentClassEvent.subject.name}
+                  sx={{
+                    color: "#fff",
+                    fontSize: "smaller",
+                    mt: "auto",
+                    mb: "auto",
+                    height: "2.2rem",
+                    minWidth: "10rem",
+                    backgroundColor: currentClassEvent.subject.color,
+                  }}
+                />
                 <Typography variant="h5" sx={{ color: "white", mb: 2 }}>
                   {formattedDate}
                 </Typography>

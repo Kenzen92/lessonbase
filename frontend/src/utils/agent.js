@@ -55,9 +55,13 @@ export const fetchAllSubjects = async (navigate) => {
   return await apiRequest("http://localhost:8000/subjects/all", "GET", null, navigate);
 };
 
-export const fetchHomeworks = async (navigate) => {
+export const fetchAllAssignments = async (navigate) => {
   return await apiRequest("http://localhost:8000/assignment", "GET", null, navigate);
 };
+
+export const fetchAssignment = async (assignment_id, navigate) => {
+    return await apiRequest(`http://localhost:8000/assignment/${assignment_id}`, "GET", null, navigate);
+}
 
 export const handleCreateAssignment = async (formData, navigate) => {
   return await apiRequest("http://localhost:8000/assignment/", "POST", formData, navigate);

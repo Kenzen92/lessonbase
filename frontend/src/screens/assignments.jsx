@@ -5,13 +5,13 @@ import Navigation from "../components/main_navigation";
 import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
 import AddAssignmentModal from "../components/Assignments/add_assignment_modal.jsx";
-import { fetchHomeworks } from "../utils/agent.js";
+import { fetchAllAssignments } from "../utils/agent.js";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
 import { PrimaryButton } from "../styles/buttons.jsx";
 
 function Assignments() {
-  const [homeworks, setHomeworks] = useState([]);
+  const [assignments, setAssignments] = useState([]);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -48,8 +48,8 @@ function Assignments() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const homeworks = await fetchHomeworks(navigate);
-      if (homeworks) setHomeworks(homeworks);
+      const assignments = await fetchAllAssignments(navigate);
+      if (assignments) setAssignments(assignments);
     };
     fetchData();
   }, []);
@@ -76,7 +76,7 @@ function Assignments() {
         />
 
         <Box
-          className="homework-dashboard"
+          className="assignment-dashboard"
           sx={{
             maxHeight: "90vh",
             display: "flex",
@@ -125,8 +125,8 @@ function Assignments() {
                     borderRadius: "0 0 4px 4px",
                   }}
                 >
-                  {homeworks && homeworks[column.name] ? (
-                    homeworks[column.name].map((assignment, index) => (
+                  {assignments && assignments[column.name] ? (
+                    assignments[column.name].map((assignment, index) => (
                       <Box sx={{ m: 1 }} key={index}>
                         {/* <AssignmentCard
                           assignment={assignment}

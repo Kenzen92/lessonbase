@@ -1,34 +1,8 @@
 import React, { useState } from "react";
-import {
-  FaDna,
-  FaAtom,
-  FaGlobe,
-  FaCalculator,
-  FaDesktop,
-  FaLandmark,
-  FaPalette,
-  FaMusic,
-  FaBalanceScaleLeft,
-  FaBook,
-  FaClock,
-  FaInfoCircle,
-} from "react-icons/fa";
+import { FaClock, FaInfoCircle } from "react-icons/fa";
 import { Box, Typography, Button, Chip, IconButton } from "@mui/material";
 import { motion } from "framer-motion";
-
-const subjectIconMap = {
-  Mathematics: FaCalculator,
-  Physics: FaBalanceScaleLeft,
-  Chemistry: FaAtom,
-  Biology: FaDna,
-  History: FaLandmark,
-  Literature: FaBook,
-  "Computer Science": FaDesktop,
-  Art: FaPalette,
-  Music: FaMusic,
-  Geography: FaGlobe,
-  English: FaBook,
-};
+import subjectIconMap from "../../utils/icons";
 
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const startTime = new Date(eventData.start_time);
