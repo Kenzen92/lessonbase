@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Button, Drawer, List, Chip } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Button,
+  Drawer,
+  List,
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import { fetchAssignment } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
@@ -10,6 +22,30 @@ export default function AssignmentDetailsDrawer({
   onEdit,
 }) {
   const [assignmentDetails, setAssignmentDetails] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+  const handleDeleteAssignment = async () => {
+    try {
+      const auth = window.sessionStorage.getItem("token");
+      const response = await fetch(`/assignment/${assignment.id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Token ${auth}`,
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Assignment deleted successfully!");
+        handleReloadData();
+      } else {
+        throw new Error("Failed to delete assignment");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleteConfirmOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (assignment?.id) {
@@ -31,68 +67,88 @@ export default function AssignmentDetailsDrawer({
     getSubjectIcon(assignmentDetails.subject.name);
 
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      sx={{ backdropFilter: "blur(2px)" }}
-    >
-      <Box
-        sx={{ width: 500, p: 3, height: "100%", backgroundColor: "#252525" }}
+    <>
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={onClose}
+        sx={{ backdropFilter: "blur(2px)" }}
       >
-        {assignmentDetails ? (
-          <>
-            <Typography
-              variant="h6"
-              sx={{ color: "white", mb: 2, textAlign: "center" }}
-            >
-              {assignmentDetails.title}
-            </Typography>
-            <Chip
-              icon={<IconComponent color="#fff" size={20} />}
-              label={assignmentDetails.subject.name}
-              size={"medium"}
-              sx={{
-                color: "#fff",
-                fontSize: 20,
-                mt: 2,
-                mb: 2,
-                height: "2.2rem",
-                minWidth: "10rem",
-                backgroundColor: assignmentDetails.subject.color,
-              }}
-            />
-            <Typography sx={{ color: "white", mb: 2 }}>
-              {assignmentDetails.description}
-            </Typography>
+        <Box
+          sx={{ width: 500, p: 3, height: "100%", backgroundColor: "#252525" }}
+        >
+          {assignmentDetails ? (
+            <>
+              <Typography
+                variant="h6"
+                sx={{ color: "white", mb: 2, textAlign: "center" }}
+              >
+                {assignmentDetails.title}
+              </Typography>
+              <Chip
+                icon={<IconComponent color="#fff" size={20} />}
+                label={assignmentDetails.subject.name}
+                size={"medium"}
+                sx={{
+                  color: "#fff",
+                  fontSize: 20,
+                  mt: 2,
+                  mb: 2,
+                  height: "2.2rem",
+                  minWidth: "10rem",
+                  backgroundColor: assignmentDetails.subject.color,
+                }}
+              />
+              <Typography sx={{ color: "white", mb: 2 }}>
+                {assignmentDetails.description}
+              </Typography>
 
+              <Typography sx={{ color: "white" }}>
+                Teachers: {assignmentDetails.teachers}
+              </Typography>
+              <List>
+                {assignmentDetails.students.map((student) => (
+                  <StudentListCard
+                    key={student.id}
+                    student={student}
+                    action={"navigate"}
+                  />
+                ))}
+              </List>
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{ mt: 2, width: "100%" }}
+                onClick={onEdit}
+              >
+                Edit Assignment
+              </Button>
+            </>
+          ) : (
             <Typography sx={{ color: "white" }}>
-              Teachers: {assignmentDetails.teachers}
+              No Assignment selected.
             </Typography>
-            <List>
-              {assignmentDetails.students.map((student) => (
-                <StudentListCard
-                  key={student.id}
-                  student={student}
-                  action={"navigate"}
-                />
-              ))}
-            </List>
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{ mt: 2, width: "100%" }}
-              onClick={onEdit}
-            >
-              Edit Assignment
-            </Button>
-          </>
-        ) : (
-          <Typography sx={{ color: "white" }}>
-            No Assignment selected.
-          </Typography>
-        )}
-      </Box>
-    </Drawer>
+          )}
+        </Box>
+      </Drawer>
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this assignment? This action cannot
+            be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={handleDeleteAssignment}>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

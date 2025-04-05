@@ -82,10 +82,10 @@ function Assignments() {
             display: "flex",
             flexDirection: "column",
             marginTop: "1vh",
-            p: 2,
+            p: 1,
           }}
         >
-          <Grid container spacing={2} sx={{ height: "100%" }}>
+          <Grid container spacing={1} sx={{ height: "100%" }}>
             {columns.map((column, index) => (
               <Grid
                 item
@@ -109,7 +109,6 @@ function Assignments() {
                     sx={{
                       backgroundColor: column.color,
                       color: "#fff",
-                      padding: "0.5em",
                       borderRadius: "4px 4px 0 0",
                     }}
                   >
@@ -120,32 +119,18 @@ function Assignments() {
                   sx={{
                     flex: 1,
                     overflowY: "auto",
-                    padding: "1em",
                     backgroundColor: "#f9f9f9",
                     borderRadius: "0 0 4px 4px",
                   }}
                 >
                   {assignments && assignments[column.name] ? (
                     assignments[column.name].map((assignment, index) => (
-                      <Box sx={{ m: 1 }} key={index}>
-                        {/* <AssignmentCard
+                      <Box sx={{ m: 0.2 }} key={index}>
+                        <AssignmentCard
                           assignment={assignment}
-                          handleReloadData={fetchHomeworks}
-                        /> */}
-                        <Typography sx={{ color: "black" }}>
-                          {assignment.due_date}
-                        </Typography>
-                        <Typography sx={{ color: "black" }}>
-                          {assignment.title}
-                        </Typography>
-                        <PrimaryButton
-                          onClick={() => {
-                            setCurrentAssignment(assignment);
-                            setDrawerOpen(true);
-                          }}
-                        >
-                          Details
-                        </PrimaryButton>
+                          setDrawerOpen={setDrawerOpen}
+                          setCurrentAssignment={setCurrentAssignment}
+                        />
                       </Box>
                     ))
                   ) : (
