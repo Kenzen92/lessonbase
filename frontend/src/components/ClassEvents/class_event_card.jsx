@@ -34,9 +34,10 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
         <Chip
           icon={<IconComponent color="#fff" size={20} />}
           label={eventData.subject.name}
+          size={"medium"}
           sx={{
             color: "#fff",
-            fontSize: "smaller",
+            fontSize: 20,
             mt: "auto",
             mb: "auto",
             height: "2.2rem",

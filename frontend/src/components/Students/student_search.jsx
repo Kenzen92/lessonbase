@@ -33,8 +33,6 @@ const StudentSearch = ({
     );
   };
 
-  console.log(students);
-  console.log(selectedStudents);
   const filteredStudents = students.filter((student) => {
     const firstName = student.first_name || "";
     const lastName = student.last_name || "";

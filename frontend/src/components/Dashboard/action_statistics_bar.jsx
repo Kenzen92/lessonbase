@@ -124,7 +124,7 @@ export default function ActionStatisticsBar({
           display: "flex",
           justifyContent: "space-between",
           gap: "2rem",
-          margin: "1rem",
+          marginTop: "1rem",
         }}
       >
         <PrimaryButton

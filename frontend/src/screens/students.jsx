@@ -17,11 +17,13 @@ import StudentDetailsDrawer from "../components/Students/student_details_drawer"
 import { useParams } from "react-router-dom";
 import { PrimaryButton } from "../styles/buttons";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
+import StudentListSearch from "../components/Students/student_list_search";
 
 function Students() {
   const { id } = useParams();
   const [showStudentForm, setshowStudentForm] = useState(false);
   const [students, setStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
   const [chats, setChats] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
@@ -40,6 +42,7 @@ function Students() {
     const fetchData = async () => {
       const studentData = await fetchStudents();
       setStudents(studentData);
+      setFilteredStudents(studentData);
       setCurrentUserId(window.sessionStorage.getItem("user").id);
       const chatData = await fetchChats();
       const processedChats = chatData.map((chat) => {
@@ -50,7 +53,6 @@ function Students() {
       });
       setChats(processedChats);
       if (id != undefined) {
-        console.log(studentData);
         const intId = parseInt(id, 10);
         const currentStudent = studentData.find(
           (student) => student.id === intId
@@ -111,8 +113,13 @@ function Students() {
           student={currentStudent}
         />
 
-        <Grid container spacing={2} className="cards-section">
-          {students.map((student) => {
+        <StudentListSearch
+          allStudents={students}
+          setFilteredStudents={setFilteredStudents}
+        />
+
+        <Grid sx={{ mt: 2 }} container spacing={2} className="cards-section">
+          {filteredStudents.map((student) => {
             const chat = chats.find((chat) =>
               chat.participants.includes(student.id)
             );

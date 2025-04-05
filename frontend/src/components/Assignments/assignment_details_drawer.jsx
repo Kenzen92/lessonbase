@@ -48,22 +48,24 @@ export default function AssignmentDetailsDrawer({
             >
               {assignmentDetails.title}
             </Typography>
-            <Typography sx={{ color: "white", mb: 2 }}>
-              {assignmentDetails.description}
-            </Typography>
             <Chip
               icon={<IconComponent color="#fff" size={20} />}
               label={assignmentDetails.subject.name}
+              size={"medium"}
               sx={{
                 color: "#fff",
-                fontSize: "smaller",
-                mt: "auto",
-                mb: "auto",
+                fontSize: 20,
+                mt: 2,
+                mb: 2,
                 height: "2.2rem",
                 minWidth: "10rem",
                 backgroundColor: assignmentDetails.subject.color,
               }}
             />
+            <Typography sx={{ color: "white", mb: 2 }}>
+              {assignmentDetails.description}
+            </Typography>
+
             <Typography sx={{ color: "white" }}>
               Teachers: {assignmentDetails.teachers}
             </Typography>
