@@ -9,8 +9,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.authtoken.models import Token
-from apps.user_accounts.models import ClassGroup, CustomerAccount, Staff, Student, Teacher
-from .serializers import ClassGroupCreateSerializer, ClassGroupDetailsSerializer, ClassGroupListSerializer, CustomerAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
+from apps.user_accounts.models import ClassGroup, CustomAccount, Staff, Student, Teacher
+from .serializers import ClassGroupCreateSerializer, ClassGroupDetailsSerializer, ClassGroupListSerializer, CustomAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
 from datetime import datetime
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
@@ -147,7 +147,7 @@ def userRegister(request):
     for each_subject in subject_dicts:
         subject_ids.append(each_subject['value'])
     request.data['subjects'] = subject_ids
-    serializer = CustomerAccountSerializer(data=request.data)
+    serializer = CustomAccountSerializer(data=request.data)
     if serializer.is_valid():
         user_type = serializer.validated_data['user_type']
         # Create an instance of the appropriate subclass
@@ -350,8 +350,8 @@ def confirm_account(request):
     if request.method == 'GET':
         token = request.GET.get('token')
         try:
-            account = CustomerAccount.objects.get(confirmation_token=token)
-        except CustomerAccount.DoesNotExist:
+            account = CustomAccount.objects.get(confirmation_token=token)
+        except CustomAccount.DoesNotExist:
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
        
         return render(request, "student_account_signup.html", {"token": token, confirm_account: "http://localhost:8000/confirm_account/"})
@@ -359,8 +359,8 @@ def confirm_account(request):
         if request.data['username'] and request.data['password1']:
             token=request.data.get('token')
             try:
-                account = CustomerAccount.objects.get(confirmation_token=token)
-            except CustomerAccount.DoesNotExist:
+                account = CustomAccount.objects.get(confirmation_token=token)
+            except CustomAccount.DoesNotExist:
                 return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
             
             account.username=request.data['username']

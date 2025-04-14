@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import permissions, status, generics
 from .models import Chat, Message
 from apps.classes.models import ClassEvent
-from apps.user_accounts.models import CustomerAccount, Student, Teacher
+from apps.user_accounts.models import CustomAccount, Student, Teacher
 from apps.subjects.models import Subject
 from .serializers import ChatSerializer, MessageSerializer
 
@@ -74,10 +74,10 @@ class ChatListCreateView(generics.ListCreateAPIView):
         if user_ids:
             for each_id in user_ids:
                 try:
-                    other_user = CustomerAccount.objects.get(id=each_id)
+                    other_user = CustomAccount.objects.get(id=each_id)
                     print("Added the other user yo: ", other_user)
                     chat.participants.add(other_user)
-                except CustomerAccount.DoesNotExist:
+                except CustomAccount.DoesNotExist:
                     print(f"User with ID {each_id} does not exist ")
         
         chat.save()

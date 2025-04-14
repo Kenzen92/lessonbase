@@ -22,6 +22,7 @@ import {
   handleCreateAssignment,
 } from "../../utils/agent.js";
 import { toast } from "react-toastify";
+import ClassResources from "../Resources/class_resources";
 import inputStyle from "../../styles/input.jsx";
 
 function AssignmentFeedbackModal({
@@ -82,7 +83,11 @@ function AssignmentFeedbackModal({
               <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
                 {currentAssignmentAttempt.student.name}
               </Typography>
-              <Typography>File fields here</Typography>
+              <ClassResources
+                  assignmentId={currentAssignmentAttempt?.id}
+                  existing_resources={currentAssignmentAttempt?.submitted_files}
+                  handleReloadData={null} //TODO fixme
+                />
 
               <Typography>Feedback form here</Typography>
               <form onSubmit={handleSubmit}>

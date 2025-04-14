@@ -4,7 +4,7 @@ import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
 
-const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
+const ClassResources = ({ assignmentAttemptId, classId, existing_resources, handleReloadData }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
 
   const handleFileDrop = (files) => {
@@ -52,7 +52,8 @@ const ClassResources = ({ classId, existing_resources, handleReloadData }) => {
       formData.append("file", file);
     });
 
-    formData.append("class_id", classId);
+    if (classId) formData.append("class_id", classId);
+    if (assignmentAttemptId) formData.append("assignment_attempt_id", assignmentAttemptId);
     const auth = window.sessionStorage.getItem("token");
     fetch("http://localhost:8000/class_material", {
       method: "POST",

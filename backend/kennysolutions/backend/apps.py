@@ -6,7 +6,7 @@ from django.db.models.signals import post_migrate
 def create_required_objects(sender, **kwargs):
     from apps.subjects.models import Subject
     from apps.user_accounts.models import Student, Teacher
-    from apps.user_accounts.models import CustomerAccount
+    from apps.user_accounts.models import CustomAccount
     from apps.classes.models import ClassEvent, Assignment, AssignmentAttempt, Feedback
 
 
@@ -110,8 +110,8 @@ def create_required_objects(sender, **kwargs):
             )
 
     # Create a superuser
-    if not CustomerAccount.objects.filter(username="admin").exists():
-        CustomerAccount.objects.create_superuser(
+    if not CustomAccount.objects.filter(username="admin").exists():
+        CustomAccount.objects.create_superuser(
             username="admin",
             password="admin",
             email="admin@example.com"

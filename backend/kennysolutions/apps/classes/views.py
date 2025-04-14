@@ -398,3 +398,5 @@ class AssignmentAttemptViewSet(ModelViewSet):
         )
         serializer = self.get_serializer(attempt)
         return Response(serializer.data)
+    
+

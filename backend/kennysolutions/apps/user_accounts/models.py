@@ -12,7 +12,7 @@ class CustomUser(AbstractUser):
     groups = models.ManyToManyField('auth.Group', related_name='custom_users', blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name='custom_users', blank=True)
 
-class CustomerAccountManager(PolymorphicManager):
+class CustomAccountManager(PolymorphicManager):
     def get_by_natural_key(self, username):
         return self.get(username=username)
     
@@ -37,8 +37,8 @@ class CustomerAccountManager(PolymorphicManager):
         return email.lower()
 
 
-class CustomerAccount(PolymorphicModel, CustomUser):
-    objects = CustomerAccountManager()
+class CustomAccount(PolymorphicModel, CustomUser):
+    objects = CustomAccountManager()
     is_confirmed = models.BooleanField(null=False, default=False)
     premium_account = models.BooleanField(null=False, default=False)
     confirmation_token = models.UUIDField(null=True, blank=True)
@@ -54,13 +54,13 @@ class CustomerAccount(PolymorphicModel, CustomUser):
     
  
 
-class Student(CustomerAccount):
+class Student(CustomAccount):
     enrollment_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.username
 
-class Teacher(CustomerAccount):
+class Teacher(CustomAccount):
     subjects = models.ManyToManyField(Subject)
     hire_date = models.DateField(null=True)
     students = models.ManyToManyField(Student)

@@ -1,10 +1,10 @@
-from apps.user_accounts.models import ClassGroup, CustomerAccount, Teacher, Student, Staff
+from apps.user_accounts.models import ClassGroup, CustomAccount, Teacher, Student, Staff
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.subjects.serializers import SubjectSerializer
 from django.contrib.auth.models import AbstractUser
 
-userModel = CustomerAccount()
+userModel = CustomAccount()
 
 class ClassGroupUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,24 +14,33 @@ class ClassGroupUserSerializer(serializers.ModelSerializer):
 
 class StudentSerializer(serializers.ModelSerializer):
     class_groups = ClassGroupUserSerializer(many=True, read_only=True)
+    user_type = serializers.SerializerMethodField()
+
+    def get_user_type(self, obj):
+        return obj.__class__.__name__
     class Meta:
         model = Student
-        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture', 'class_groups']
+        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture', 'class_groups', 'user_type']
 
 class TeacherSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
+    user_type = serializers.SerializerMethodField()
+
+    def get_user_type(self, obj):
+        return obj.__class__.__name__
 
     class Meta:
         model = Teacher
-        fields = ['id', 'username', 'subjects', 'students', 'first_name', 'last_name', 'email', 'profile_picture']
+        fields = ['id', 'username', 'subjects', 'students', 'first_name', 'last_name', 'email', 'profile_picture', 'user_type']
         read_only_fields = ['id', 'students']
 
-class CustomerAccountSerializer(serializers.ModelSerializer):
+class CustomAccountSerializer(serializers.ModelSerializer):
     user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')], write_only=True)
     subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True, write_only=True)
 
+
     class Meta:
-        model = CustomerAccount
+        model = CustomAccount
         fields = ('id', 'username', 'password', 'user_type', 'subjects', 'first_name', 'last_name', 'email')
 
 
@@ -51,8 +60,8 @@ class LoginSerializer(serializers.Serializer):
         password = data.get('password' )
         print(username, password)
         try:
-            user = CustomerAccount.objects.get(username=username)
-        except CustomerAccount.DoesNotExist:
+            user = CustomAccount.objects.get(username=username)
+        except CustomAccount.DoesNotExist:
             raise serializers.ValidationError('Invalid username or password') 
         user.get_real_instance()
         validated = user.check_password(password)

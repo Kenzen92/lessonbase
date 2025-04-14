@@ -44,12 +44,16 @@ const StudentAssignmentAttemptCard = ({
       </Typography>
 
       <Box>
-        <Typography variant="body1" gutterBottom>
-          {assignmentAttempt.graded}
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Submission Date:{" "}
-          {new Date(assignmentAttempt.submitted_at).toLocaleDateString()}
+        <Typography sx={{ color: assignmentAttempt.graded ? 'darkGreen' : 'red'}}>{assignmentAttempt.graded ? "Marked" : "Not marked"}</Typography>
+        <Typography sx={{ color: 'lightGray'}} variant="body2" gutterBottom>
+          Submitted{" "}
+          {new Date(assignmentAttempt.submitted_at).toLocaleString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
         </Typography>
         <PrimaryButton
           onClick={() => {
@@ -57,7 +61,7 @@ const StudentAssignmentAttemptCard = ({
             setFeedbackModalOpen(true);
           }}
         >
-          Details
+          Open
         </PrimaryButton>
       </Box>
     </Box>

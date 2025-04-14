@@ -190,7 +190,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-AUTH_USER_MODEL = 'user_accounts.CustomerAccount'
+AUTH_USER_MODEL = 'user_accounts.CustomAccount'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",

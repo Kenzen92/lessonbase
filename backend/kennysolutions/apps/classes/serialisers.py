@@ -3,7 +3,7 @@ from backend.serializers import TeacherClassEventSerializer
 from apps.user_accounts.serializers import ClassGroupListSerializer, StudentSerializer
 from rest_framework import serializers
 from apps.subjects.models import Subject
-from apps.user_accounts.models import ClassGroup, CustomUser, CustomerAccount, Teacher, Student, Staff
+from apps.user_accounts.models import ClassGroup, CustomUser, CustomAccount, Teacher, Student, Staff
 from apps.classes.models import Assignment, AssignmentAttempt, ClassEvent, TeachingResource
 from apps.subjects.serializers import SubjectSerializer
 from django.contrib.auth import authenticate
