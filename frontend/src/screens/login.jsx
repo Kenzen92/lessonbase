@@ -38,6 +38,7 @@ function Login() {
       const data = await response.json();
       window.sessionStorage.setItem("token", data["token"]);
       window.sessionStorage.setItem("user", JSON.stringify(data["user"]));
+      window.sessionStorage.setItem("is_teacher", data["user"]["user_type"] == "Teacher" ? "true" : "false");
       navigate("/dashboard");
     } catch (error) {
       toast.error("Connection error. Please try again later.");

@@ -14,7 +14,7 @@ import ClassEventSearchAndFilter from "../ClassEvents/class_event_search_filter.
 import ActionStatisticsBar from "./action_statistics_bar.jsx";
 import Navigation from "../main_navigation.jsx";
 
-const ClassDashboard = (classId) => {
+const TeacherClassEventDashboard = (classId) => {
   const [classEvents, setClassEvents] = useState([]);
   const [filteredClassEvents, setFilteredClassEvents] = useState([]);
   const [error, setError] = useState(false);
@@ -82,7 +82,7 @@ const ClassDashboard = (classId) => {
     fetchData();
   }, []);
 
-  // Callback function to force re-render of ClassDashboard after item deletion
+  // Callback function to force re-render of TeacherClassEventDashboard after item deletion
   const handleReloadData = () => {
     fetchData();
   };
@@ -225,4 +225,4 @@ const ClassDashboard = (classId) => {
   );
 };
 
-export default ClassDashboard;
+export default TeacherClassEventDashboard;

@@ -21,6 +21,7 @@ const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openLogoutDialog, setOpenLogoutDialog] = React.useState(false);
+  const is_teacher = window.sessionStorage.getItem("is_teacher");
 
   useEffect(() => {}, []);
 
@@ -57,7 +58,7 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { label: "Dashboard", path: "/dashboard" },
+    { label: "Dashboard", path: is_teacher ? "/teacher-dashboard" : "/student-dashboard" },
     { label: "Students", path: "/students" },
     { label: "Classes", path: "/classes" },
     { label: "Assignments", path: "/assignments" },
