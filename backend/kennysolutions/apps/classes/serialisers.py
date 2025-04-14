@@ -4,7 +4,7 @@ from apps.user_accounts.serializers import ClassGroupListSerializer, StudentSeri
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.user_accounts.models import ClassGroup, CustomUser, CustomerAccount, Teacher, Student, Staff
-from apps.classes.models import Assignment, ClassEvent, TeachingResource
+from apps.classes.models import Assignment, AssignmentAttempt, ClassEvent, TeachingResource
 from apps.subjects.serializers import SubjectSerializer
 from django.contrib.auth import authenticate
 import logging
@@ -104,3 +104,24 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
             'due_date',
             'students',
         ]
+
+class AssignmentAttemptCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssignmentAttempt
+        fields = '__all__'
+
+class AssignmentAttemptDetailsSerializer(serializers.ModelSerializer):
+    student = StudentSerializer(many=False, read_only=True)
+    subject = SubjectSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = AssignmentAttempt
+        fields = '__all__'
+
+class AssignmentAttemptListSerializer(serializers.ModelSerializer):
+    student = StudentSerializer(many=False, read_only=True)
+    subject = SubjectSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = AssignmentAttempt
+        fields = ['assignment', 'student', 'submitted_at', 'accepted', 'graded']

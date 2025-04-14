@@ -25,6 +25,11 @@ export const apiRequest = async (url, method = "GET", body = null, navigate) => 
       return response;
     }
 
+    if (response.status == 404) {
+      console.log("Not found");
+      return null;
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.detail || "Failed to fetch data");
@@ -124,4 +129,9 @@ export const fetchStudentProfile = async (id, navigate) => {
 
 export const handleDeleteStudent = async (id, navigate) => {
   return await apiRequest(`http://localhost:8000/student/${id}/`, "DELETE", null, navigate);
+};
+
+export const fetchAssignmentAttempt = async (assignmentID, studentID, navigate) => {
+  return await apiRequest(
+    `http://localhost:8000/assignment-attempt/${assignmentID}/students/${studentID}/attempt`, "GET", null, navigate);
 };

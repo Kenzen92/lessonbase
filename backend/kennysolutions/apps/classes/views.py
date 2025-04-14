@@ -3,18 +3,20 @@ import datetime
 import json
 from django.db.models import Count, Sum, Q, Case, When, Value
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from apps.storage.storage_backends import GridFSStorage
 from rest_framework.decorators import api_view, permission_classes, authentication_classes, action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 from apps.user_accounts.models import Student, Teacher
 from apps.subjects.models import Subject
 from apps.classes.serialisers import  ClassEventSerializer, ClassEventCreateSerializer
 from django.core.exceptions import ValidationError
-from .serialisers import  AssignmentDetailsSerializer, AssignmentListSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
-from .models import Assignment, ClassEvent,  TeachingResource
+from .serialisers import  AssignmentAttemptCreateSerializer, AssignmentAttemptDetailsSerializer, AssignmentDetailsSerializer, AssignmentListSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
+from .models import Assignment, AssignmentAttempt, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
 
@@ -371,4 +373,28 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         
         # Return the categorized response
         return Response(categorized_data, status=status.HTTP_200_OK)
-        
+    
+
+class AssignmentAttemptViewSet(ModelViewSet):
+    serializer_class = AssignmentAttemptDetailsSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return AssignmentAttempt.objects.filter(teacher=self.request.user)
+
+    def get_serializer_class(self):
+        # Optional: return different serializer for detail vs list
+        if self.action == 'create' or self.action == 'update':
+            return AssignmentAttemptCreateSerializer
+        return super().get_serializer_class()
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<assignment_id>\d+)/students/(?P<student_id>\d+)/attempt')
+    def retrieve_by_assignment_and_student(self, request, assignment_id=None, student_id=None):
+        attempt = get_object_or_404(
+            AssignmentAttempt,
+            assignment_id=assignment_id,
+            student_id=student_id
+        )
+        serializer = self.get_serializer(attempt)
+        return Response(serializer.data)

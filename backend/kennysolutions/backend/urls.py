@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from apps.classes.views import ClassEventViewSet, class_material, class_report, teacher_statistics, class_events_for_student, HomeworkViewSet
+from apps.classes.views import AssignmentAttemptViewSet, ClassEventViewSet, class_material, class_report, teacher_statistics, class_events_for_student, HomeworkViewSet
 from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile
 from apps.subjects.views import all_subjects, subjects
 from . import views
@@ -14,6 +14,7 @@ router.register(r'class-group', ClassGroupViewSet, basename="class-group")
 router.register(r'class-event', ClassEventViewSet, basename="class-event")
 router.register(r'student', StudentViewSet, basename="student")
 router.register(r'teacher', TeacherViewSet, basename="teacher")
+router.register(r'assignment-attempt', AssignmentAttemptViewSet, basename="assignment-attempt")
 
 urlpatterns = [
     path('profile/', profile),
@@ -30,6 +31,8 @@ urlpatterns = [
     path('class_material', class_material, name="open-api"),
     path('media/<str:collection>/<str:filename>/', serve_mongo_file, name='serve_mongo_file'),
     path('teacher-statistics', teacher_statistics, name='teacher_statistics'),
+
+
 
     path('', include(router.urls)),
 ]

@@ -20,10 +20,16 @@ const AssignmentCard = ({
       sx={{
         boxShadow: 2,
         p: 0.2,
+        marginTop: 1,
         borderColor: "#fff",
         borderRadius: "10px",
         borderStyle: "solid",
+        borderWidth: 0.1,
         backgroundColor: "#292929",
+        transition: "background-color 0.3s ease",
+        "&:hover": {
+          backgroundColor: "#333",
+        },
       }}
     >
       <Typography variant="h6" gutterBottom>

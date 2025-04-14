@@ -73,13 +73,31 @@ class Assignment(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.subject.name}"
+    
+
+class AssignmentAttempt(models.Model):
+    """
+    Represents an attempt by a student to complete and submit an assignment.
+    """
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="attempts")
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="assignment_attempts")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    answer_text = models.TextField(blank=True, help_text="Student's written response.")
+    submitted_files = models.ManyToManyField(TeachingResource, blank=True, related_name="assignment_attempts")
+    graded = models.BooleanField(default=False)
+    accepted = models.BooleanField(default=False)
+    class Meta:
+        unique_together = ('assignment', 'student')  # Prevent multiple attempts if needed
+
+    def __str__(self):
+        return f"{self.student} - {self.assignment.title}"
 
 
 class Feedback(models.Model):
     """
     Feedback is associated to an assignment
     """
-    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="feedback_entries")
+    assignmentAttempt = models.ForeignKey(AssignmentAttempt, on_delete=models.CASCADE, related_name="feedback_entries", null=True)
     teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     text = models.TextField(max_length=2000, blank=True, help_text="Teacher's feedback text.")
     created_at = models.DateTimeField(auto_now_add=True)

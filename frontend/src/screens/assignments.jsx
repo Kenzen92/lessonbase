@@ -9,6 +9,7 @@ import { fetchAllAssignments } from "../utils/agent.js";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
 import { PrimaryButton } from "../styles/buttons.jsx";
+import AssignmentFeedbackModal from "../components/Assignments/assignment_feedback_modal.jsx";
 
 function Assignments() {
   const [assignments, setAssignments] = useState([]);
@@ -16,6 +17,9 @@ function Assignments() {
   const [isOpen, setIsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState(false);
+  const [currentAssignmentAttempt, setCurrentAssignmentAttempt] =
+    useState(null);
+  const [feedbackModelOpen, setFeedbackModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const columns = [
@@ -67,12 +71,21 @@ function Assignments() {
           actionFunction={setIsOpen}
           actionText="Create Assignment"
         />
+
         <AddAssignmentModal isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AssignmentFeedbackModal
+          feedbackModelOpen={feedbackModelOpen}
+          setFeedbackModalOpen={setFeedbackModalOpen}
+          currentAssignmentAttempt={currentAssignmentAttempt}
+        />
+
         <AssignmentDetailsDrawer
           open={drawerOpen}
           setOpen={setDrawerOpen}
           onClose={() => setDrawerOpen(false)}
           assignment={currentAssignment}
+          setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
+          setFeedbackModalOpen={setFeedbackModalOpen}
         />
 
         <Box
@@ -119,7 +132,7 @@ function Assignments() {
                   sx={{
                     flex: 1,
                     overflowY: "auto",
-                    backgroundColor: "#f9f9f9",
+                    backgroundColor: "#292929",
                     borderRadius: "0 0 4px 4px",
                   }}
                 >

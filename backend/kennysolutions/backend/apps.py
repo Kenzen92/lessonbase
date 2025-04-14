@@ -2,11 +2,13 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
 
+
 def create_required_objects(sender, **kwargs):
     from apps.subjects.models import Subject
     from apps.user_accounts.models import Student, Teacher
     from apps.user_accounts.models import CustomerAccount
-    from apps.classes.models import ClassEvent
+    from apps.classes.models import ClassEvent, Assignment, AssignmentAttempt, Feedback
+
 
     for name, color in Subject.reserved_names:
         subject, created = Subject.objects.get_or_create(name=name)
@@ -74,6 +76,38 @@ def create_required_objects(sender, **kwargs):
         subject = Subject.objects.order_by('?').first()
         class_group.subjects.add(subject)
         class_group.save()
+
+    # Create some assignments
+    for i in range(5):
+        subject = Subject.objects.order_by('?').first()
+        assignment = Assignment.objects.create(
+            title=f"Homework {i + 1}",
+            description="Please complete the assigned exercises.",
+            subject=subject,
+            max_score=100,
+            due_date=timezone.now().date() + timedelta(days=7)
+        )
+        assignment.teachers.add(teacher)
+        assignment.students.add(student_1, student_2, student_3)
+        assignment.save()
+
+        # Create assignment attempts for each student
+        for student in [student_1, student_2, student_3]:
+            attempt, created = AssignmentAttempt.objects.get_or_create(
+                assignment=assignment,
+                student=student,
+                defaults={
+                    "answer_text": f"My answer to Homework {i + 1}",
+                }
+            )
+
+            # Provide feedback
+            Feedback.objects.create(
+                assignmentAttempt=attempt,
+                teacher=teacher,
+                text=f"Well done, {student.first_name}!",
+                score=99
+            )
 
     # Create a superuser
     if not CustomerAccount.objects.filter(username="admin").exists():

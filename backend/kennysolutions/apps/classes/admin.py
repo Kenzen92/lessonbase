@@ -50,12 +50,12 @@ class AssignmentAdmin(admin.ModelAdmin):
     list_filter = ('subject', 'marked', 'due_date')
     ordering = ('due_date',)
     filter_horizontal = ('teachers', 'students', 'material')
-    inlines = [FeedbackInline]
+
 
 
 @admin.register(Feedback)
 class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('id', 'assignment', 'teacher', 'score', 'created_at')
+    list_display = ('id', 'assignmentAttempt', 'teacher', 'score', 'created_at')
     search_fields = ('assignment__title', 'teacher__username', 'teacher__email')
     list_filter = ('score', 'created_at')
     ordering = ('-created_at',)

@@ -13,13 +13,16 @@ import {
   DialogActions,
 } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
+import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
 import { fetchAssignment } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
 export default function AssignmentDetailsDrawer({
   assignment,
+  setCurrentAssignmentAttempt,
   open,
   onClose,
   onEdit,
+  setFeedbackModalOpen,
 }) {
   const [assignmentDetails, setAssignmentDetails] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -102,17 +105,32 @@ export default function AssignmentDetailsDrawer({
               <Typography sx={{ color: "white", mb: 2 }}>
                 {assignmentDetails.description}
               </Typography>
-
-              <Typography sx={{ color: "white" }}>
-                Teachers: {assignmentDetails.teachers}
-              </Typography>
               <List>
                 {assignmentDetails.students.map((student) => (
-                  <StudentListCard
-                    key={student.id}
-                    student={student}
-                    action={"navigate"}
-                  />
+                  <Box
+                    sx={{
+                      backgroundColor: "#333",
+                      transition: "background-color 0.3s ease",
+                      "&:hover": {
+                        backgroundColor: "#444", // slightly lighter
+                      },
+                      padding: 1,
+                      margin: 1,
+                      borderRadius: 3,
+                    }}
+                  >
+                    <StudentListCard
+                      key={student.id}
+                      student={student}
+                      action={"navigate"}
+                    />
+                    <StudentAssignmentAttemptCard
+                      assignment={assignment}
+                      student={student}
+                      setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
+                      setFeedbackModalOpen={setFeedbackModalOpen}
+                    />
+                  </Box>
                 ))}
               </List>
               <Button
