@@ -19,6 +19,9 @@ from .serialisers import  AssignmentAttemptCreateSerializer, AssignmentAttemptDe
 from .models import Assignment, AssignmentAttempt, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
+from datetime import datetime, timedelta
+from django.db.models import Count, Sum, Avg, F, Q
+
 
 class ClassEventViewSet(viewsets.ViewSet):
     authentication_classes = [TokenAuthentication]
@@ -111,13 +114,42 @@ def class_events_for_student(request, student_id=None):
         return Response(serializer.data)
 
 
-from datetime import datetime, timedelta
-from django.db.models import Count, Sum, Avg, F, Q
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def student_statistics(request):
+    page = request.GET.get("page")
+    try:
+        student = Student.objects.get(pk=request.user.id)
+        current_datetime = datetime.now()
+
+        # Common Queries
+        total_classes = ClassEvent.objects.filter(students=student).count()
+        completed_classes = ClassEvent.objects.filter(students=student, start_time__lt=current_datetime).count()
+        upcoming_classes = ClassEvent.objects.filter(students=student, start_time__gte=current_datetime).count()
+        total_assignments = Assignment.objects.filter(students=student).count()
+
+        if page == "dashboard":
+            stats = {
+                "total_classes": total_classes,
+                "completed_classes": completed_classes,
+                "upcoming_classes": upcoming_classes,
+            }
+
+        elif page == "assignments":
+            stats = {
+                "total_assignments": total_assignments,
+                "total_documents" : TeachingResource.objects.filter(homework_resource__students=student).distinct().count(),
+            }
+
+        else:
+            return Response({"error": "Invalid page parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"data": stats}, status=status.HTTP_200_OK)
+
+    except Student.DoesNotExist:
+        return Response({"error": "Student not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])

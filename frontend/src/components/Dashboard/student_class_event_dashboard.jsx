@@ -90,7 +90,7 @@ const StudentClassEventDashboard = (classId) => {
   };
 
   const handleOpenStudentSearch = () => {
-    setModalOpen(true);
+    // setModalOpen(true);
   };
 
   if (error) {

@@ -43,6 +43,7 @@ class CustomAccount(PolymorphicModel, CustomUser):
     premium_account = models.BooleanField(null=False, default=False)
     confirmation_token = models.UUIDField(null=True, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', null=True, blank=True)
+    subjects = models.ManyToManyField(Subject)
 
     def save(self, *args, **kwargs):
             if self.profile_picture:
@@ -61,7 +62,6 @@ class Student(CustomAccount):
         return self.username
 
 class Teacher(CustomAccount):
-    subjects = models.ManyToManyField(Subject)
     hire_date = models.DateField(null=True)
     students = models.ManyToManyField(Student)
 

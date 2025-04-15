@@ -58,7 +58,7 @@ const Navigation = () => {
   };
 
   const navItems = [
-    { label: "Dashboard", path: is_teacher ? "/teacher-dashboard" : "/student-dashboard" },
+    { label: "Dashboard", path: "/dashboard" },
     { label: "Students", path: "/students" },
     { label: "Classes", path: "/classes" },
     { label: "Assignments", path: "/assignments" },

@@ -8,7 +8,7 @@ import {
   FaExclamationTriangle,
   FaFile,
 } from "react-icons/fa";
-import { fetchStatistics } from "../../utils/agent.js";
+import { fetchTeacherStatistics, fetchStudentStatistics } from "../../utils/agent.js";
 import { PrimaryButton } from "../../styles/buttons";
 
 export default function ActionStatisticsBar({
@@ -17,10 +17,13 @@ export default function ActionStatisticsBar({
   actionText,
 }) {
   const [statistics, setStatistics] = useState(null);
+  const is_teacher = window.sessionStorage.getItem("is_teacher");
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetchStatistics(page);
+      let response = null
+      if (is_teacher === "teacher") response = await fetchTeacherStatistics(page);
+      else response = await fetchStudentStatistics(page);
       setStatistics(response.data);
     };
     fetchData();

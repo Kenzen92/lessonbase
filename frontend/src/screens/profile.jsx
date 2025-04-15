@@ -158,7 +158,7 @@ function Profile() {
       }
       if (newURL) userData["profile_picture"] = newURL;
 
-      await window.sessionStorage.setItem("user", JSON.stringify(userData));
+      window.sessionStorage.setItem("user", JSON.stringify(userData));
       console.log("User data updated in session storage.");
     } catch (error) {
       console.error("Error:", error.message);

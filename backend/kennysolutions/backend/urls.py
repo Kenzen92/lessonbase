@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from apps.classes.views import AssignmentAttemptViewSet, ClassEventViewSet, class_material, class_report, teacher_statistics, class_events_for_student, HomeworkViewSet
+from apps.classes.views import AssignmentAttemptViewSet, ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student, HomeworkViewSet
 from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile
 from apps.subjects.views import all_subjects, subjects
 from . import views
@@ -31,6 +31,7 @@ urlpatterns = [
     path('class_material', class_material, name="open-api"),
     path('media/<str:collection>/<str:filename>/', serve_mongo_file, name='serve_mongo_file'),
     path('teacher-statistics', teacher_statistics, name='teacher_statistics'),
+    path('student-statistics', student_statistics, name='student_statistics'),
 
 
 

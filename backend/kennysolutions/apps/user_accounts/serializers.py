@@ -13,14 +13,16 @@ class ClassGroupUserSerializer(serializers.ModelSerializer):
 
 
 class StudentSerializer(serializers.ModelSerializer):
+    subjects = SubjectSerializer(many=True, read_only=True)
     class_groups = ClassGroupUserSerializer(many=True, read_only=True)
     user_type = serializers.SerializerMethodField()
 
     def get_user_type(self, obj):
         return obj.__class__.__name__
+    
     class Meta:
         model = Student
-        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture', 'class_groups', 'user_type']
+        fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture', 'class_groups', 'user_type', 'subjects']
 
 class TeacherSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
@@ -36,7 +38,6 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 class CustomAccountSerializer(serializers.ModelSerializer):
     user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')], write_only=True)
-    subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True, write_only=True)
 
 
     class Meta:

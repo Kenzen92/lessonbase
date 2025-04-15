@@ -86,8 +86,12 @@ export const handleCreateClassGroup = async (classGroupData, navigate) => {
   return await apiRequest("http://localhost:8000/class-group/", "POST", classGroupData, navigate);
 };
 
-export const fetchStatistics = async (page, navigate) => {
+export const fetchTeacherStatistics = async (page, navigate) => {
   return await apiRequest(`http://localhost:8000/teacher-statistics?page=${page}`, "GET", null, navigate);
+};  
+
+export const fetchStudentStatistics = async (page, navigate) => {
+  return await apiRequest(`http://localhost:8000/student-statistics?page=${page}`, "GET", null, navigate);
 };  
 
 export const cancelClassEvent = async (eventID, navigate) => {
