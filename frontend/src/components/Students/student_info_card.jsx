@@ -10,33 +10,17 @@ import {
   Paper,
   IconButton,
 } from "@mui/material";
-import { fetchClassEvents, createChat } from "../../utils/agent";
 import { FaInfoCircle } from "react-icons/fa";
 
 const StudentInfoCard = ({
   student,
-  chatId,
-  handleSelectChat,
   handleOpenDrawer,
   setCurrentStudent,
 }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleCreateChat = async () => {
-    try {
-      const response = await createChat(student.id, navigate);
 
-      if (!response.ok) {
-        throw new Error("Failed to create chat");
-      }
-
-      const data = await response.json();
-      handleSelectChat(data.id, student);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
 
   return (
     <Box
@@ -68,28 +52,7 @@ const StudentInfoCard = ({
 
       {/* Right Row: Action Buttons */}
       <Box sx={{ display: "flex", alignItems: "center" }}>
-        {chatId ? (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              console.log("selecting existing chat: ", chatId);
-              handleSelectChat(chatId, student);
-            }}
-            sx={{ ml: 1, fontSize: "0.8rem" }} // Reduced button size
-          >
-            Chat
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreateChat}
-            sx={{ ml: 1, fontSize: "0.8rem" }} // Reduced button size
-          >
-            + Chat
-          </Button>
-        )}
+        
         <IconButton
           variant="contained"
           color="primary"

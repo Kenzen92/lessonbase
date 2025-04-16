@@ -12,20 +12,59 @@ import { fetchClassEventsForStudent } from "../../utils/agent";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { handleDeleteStudent } from "../../utils/agent";
-export default function StudentDetailsDrawer({
-  student,
-  open,
-  onClose,
-  fetchData,
-}) {
-  const navigate = useNavigate();
-  const [state, setState] = useState(null);
-  const [error, setError] = useState(null);
-  const [previousClass, setPreviousClass] = useState(null);
-  const [nextClass, setNextClass] = useState(null);
+import { createChat } from "../../utils/agent";
+
+
+  export default function StudentDetailsDrawer({
+    student,
+    open,
+    onClose,
+    fetchData,
+    setChatId,
+    setChatOpen,
+    setDrawerOpen,
+    chats
+  }) {
+    const navigate = useNavigate();
+    const [state, setState] = useState(null);
+    const [error, setError] = useState(null);
+    const [previousClass, setPreviousClass] = useState(null);
+    const [nextClass, setNextClass] = useState(null);
+    const [chatId, setChatIdState] = useState(null);
+
+    useEffect(() => {
+      if (student) {
+        const chat = chats.find((chat) =>
+          chat.participants.includes(student.id)
+      );
+      const resolvedChatId = chat ? chat.id : null;
+      setChatIdState(resolvedChatId);
+    }
+  }, [student]);
 
   const handleNavigateToClass = (classId) => {
     navigate(`/dashboard/${classId}`);
+  };
+
+  const handleSelectChat = (chatId) => {
+    setChatId(chatId);
+    setDrawerOpen(false);
+    setChatOpen(true);
+  };
+
+  const handleCreateChat = async () => {
+    try {
+      const response = await createChat(student.id, navigate);
+
+      if (!response.ok) {
+        throw new Error("Failed to create chat");
+      }
+
+      const data = await response.json();
+      handleSelectChat(data.id);
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const handleDeleteStudent = async () => {
@@ -188,6 +227,28 @@ export default function StudentDetailsDrawer({
           >
             Delete Student
           </Button>
+          {chatId ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                console.log("selecting existing chat: ", chatId);
+                handleSelectChat(chatId);
+              }}
+              sx={{ ml: 1, fontSize: "0.8rem" }} // Reduced button size
+            >
+              Chat
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreateChat}
+              sx={{ ml: 1, fontSize: "0.8rem" }} // Reduced button size
+            >
+              + Chat
+            </Button>
+          )}
         </Box>
       </Box>
     </Drawer>

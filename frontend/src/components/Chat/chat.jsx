@@ -14,7 +14,6 @@ import moment from "moment";
 import { FaWindowClose } from "react-icons/fa";
 
 const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
-  console.log("student: ", student);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
@@ -74,7 +73,7 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
       sx={{
         position: "fixed",
         bottom: 20,
-        right: 20,
+        left: 20,
         width: 300,
         overflow: "hidden",
       }}

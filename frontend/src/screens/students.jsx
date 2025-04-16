@@ -32,11 +32,7 @@ function Students() {
   const [email, setEmail] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleSelectChat = (chatId, student) => {
-    setChatId(chatId);
-    setCurrentStudent(student);
-    setChatOpen(true);
-  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,7 +53,6 @@ function Students() {
         const currentStudent = studentData.find(
           (student) => student.id === intId
         );
-        console.log(currentStudent);
         setCurrentStudent(currentStudent);
         setDrawerOpen(true);
       }
@@ -96,7 +91,7 @@ function Students() {
     }
   };
 
-  return (
+return (
     <>
       <Navigation />
       <Container>
@@ -111,6 +106,10 @@ function Students() {
           setOpen={setDrawerOpen}
           onClose={() => setDrawerOpen(false)}
           student={currentStudent}
+          setChatOpen={setChatOpen}
+          setChatId={setChatId}
+          setDrawerOpen={setDrawerOpen}
+          chats={chats}
         />
 
         <StudentListSearch
@@ -120,17 +119,10 @@ function Students() {
 
         <Grid sx={{ mt: 2 }} container spacing={2} className="cards-section">
           {filteredStudents.map((student) => {
-            const chat = chats.find((chat) =>
-              chat.participants.includes(student.id)
-            );
-            const chatId = chat ? chat.id : null;
-
             return (
               <Grid item xs={12} sm={6} md={4} key={student.id}>
                 <StudentInfoCard
                   student={student}
-                  chatId={chatId}
-                  handleSelectChat={handleSelectChat}
                   setCurrentStudent={setCurrentStudent}
                   handleOpenDrawer={setDrawerOpen}
                 />
