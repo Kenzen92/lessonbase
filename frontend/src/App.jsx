@@ -9,8 +9,7 @@ import { IconContext } from "react-icons";
 import { FaFolder } from "react-icons/fa";
 import Login from "./screens/login";
 import Signup from "./screens/signup";
-import TeacherClassEventDashboard from "./components/Dashboard/teacher_class_event_dashboard";
-import StudentClassEventDashboard from "./components/Dashboard/student_class_event_dashboard";
+import ClassEventDashboard from "./components/Dashboard/class_event_dashboard";
 import Profile from "./screens/profile";
 import PrivateRoutes from "./components/privateRoute";
 import ToastNotification from "./components/notification";
@@ -23,10 +22,10 @@ import "@fontsource/roboto/700.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Assignments from "./screens/assignments";
+import { useAuth } from "./contexts/auth_context";
 
 function App() {
-  const auth = window.sessionStorage.getItem("token");
-  const is_teacher = window.sessionStorage.getItem("is_teacher");
+  const { auth } = useAuth()
 
   return (
     <IconContext.Provider
@@ -41,11 +40,11 @@ function App() {
               <Route
                 path="/"
                 element={
-                  auth ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+                  auth.token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
                 }
               />
               <Route element={<PrivateRoutes />}>
-                <Route path="/dashboard/:id?" element={is_teacher ? <TeacherClassEventDashboard /> : <StudentClassEventDashboard />} />
+                <Route path="/dashboard/:id?" element={<ClassEventDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/students/:id?" element={<Students />} />
                 <Route path="/classes" element={<Classes />} />

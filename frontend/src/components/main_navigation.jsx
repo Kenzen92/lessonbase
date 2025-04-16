@@ -16,12 +16,13 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import { useAuth } from "../contexts/auth_context";
 
 const Navigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openLogoutDialog, setOpenLogoutDialog] = React.useState(false);
-  const is_teacher = window.sessionStorage.getItem("is_teacher");
+  const {auth} = useAuth();
 
   useEffect(() => {}, []);
 
@@ -71,7 +72,12 @@ const Navigation = () => {
       <AppBar position="static">
         <Toolbar>
           <Grid container spacing={2} alignItems="center">
-            {navItems.map((item) => (
+          {navItems.map((item) => {
+            if ((item.label === "Students" && auth.userType !== "Teacher") || (item.label === "Classes" && auth.userType !== "Teacher")) {
+              return null; // Skip rendering this item
+            }
+            return (
+
               <Grid item key={item.label} sx={{ marginLeft: item.label === "Logout" ? 'auto' : null}}>
                 <Tooltip
                   title={
@@ -99,7 +105,8 @@ const Navigation = () => {
                   </Button>
                 </Tooltip>
               </Grid>
-            ))}
+            );
+          })}
           </Grid>
         </Toolbar>
       </AppBar>

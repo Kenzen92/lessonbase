@@ -8,6 +8,8 @@ import {
   SecondaryButton,
   WarningButton,
 } from "../../styles/buttons";
+import { useAuth } from "../../contexts/auth_context";
+
 export default function ClassEventDetailsDrawer({
   open,
   handleClose,
@@ -18,6 +20,7 @@ export default function ClassEventDetailsDrawer({
   handleCancelClassEvent,
 }) {
   const eventDate = new Date(currentClassEvent?.start_time);
+  const { is_teacher } = useAuth();
   const formattedDate = `${eventDate.getDate()}/${
     eventDate.getMonth() + 1
   }/${eventDate.getFullYear()}`;
@@ -80,15 +83,17 @@ export default function ClassEventDetailsDrawer({
                   handleReloadData={handleReloadData}
                 />
               </Box>
+              {is_teacher && (
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <PrimaryButton onClick={handleOpenStudentSearch}>
+                    Edit Event
+                  </PrimaryButton>
+                  <WarningButton onClick={handleCancelClassEvent}>
+                    Cancel Class
+                  </WarningButton>
+                </Box>
+              )}
 
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <PrimaryButton onClick={handleOpenStudentSearch}>
-                  Edit Event
-                </PrimaryButton>
-                <WarningButton onClick={handleCancelClassEvent}>
-                  Cancel Class
-                </WarningButton>
-              </Box>
             </Box>
           </>
         )}

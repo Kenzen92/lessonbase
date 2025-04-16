@@ -3,9 +3,11 @@ import { Box, Typography, Button, Link, Chip } from "@mui/material";
 import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
+import { useAuth } from "../../contexts/auth_context";
 
 const ClassResources = ({ assignmentAttemptId, classId, existing_resources, handleReloadData }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const { is_teacher } = useAuth();
 
   const handleFileDrop = (files) => {
     setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -76,32 +78,39 @@ const ClassResources = ({ assignmentAttemptId, classId, existing_resources, hand
 
   return (
     <Box>
-      <Typography variant="h6" color={"#fff"}>
-        Upload Resources
+      <Typography variant="h6" color={"#fff"} mt={4}>
+        Class Resources
       </Typography>
-      <Dropzone onDrop={handleFileDrop} />
-      {existing_resources.map((resource, index) => (
-        <Chip
-          key={index}
-          label={
-            <Link
-              href={resource.file}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "inherit", textDecoration: "none" }}
-            >
-              {resource.name}
-            </Link>
-          }
-          onDelete={() => handleDeleteFile(resource.file)}
-          sx={{
-            margin: "0.5rem",
-            width: "100%",
-            justifyContent: "space-between",
-          }}
-          color="primary"
-        />
-      ))}
+      {is_teacher ? <Dropzone onDrop={handleFileDrop} /> : <Typography>Not a teacher</Typography>}
+
+      {existing_resources.length === 0 ? (
+        <Typography variant="body1" color={"#fff"} sx={{ mt: 4 }}>
+          No class resources available.
+        </Typography>
+      ) : (
+        existing_resources.map((resource, index) => (
+          <Chip
+            key={index}
+            label={
+              <Link
+                href={resource.file}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                {resource.name}
+              </Link>
+            }
+            onDelete={() => handleDeleteFile(resource.file)}
+            sx={{
+              margin: "0.5rem",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+            color="primary"
+          />
+        ))
+      )}
       {selectedFiles.map((file, index) => (
         <Chip
           key={index}

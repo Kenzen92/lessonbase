@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
+import { useAuth } from "../contexts/auth_context";
+import { useUser } from "../contexts/user_context";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -11,6 +13,8 @@ function Login() {
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
+  const { setAuth } = useAuth()
+  const { setUser } = useUser();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,10 +41,12 @@ function Login() {
 
       const data = await response.json();
       window.sessionStorage.setItem("token", data["token"]);
-      window.sessionStorage.setItem("user", JSON.stringify(data["user"]));
-      window.sessionStorage.setItem("is_teacher", data["user"]["user_type"] == "Teacher" ? "true" : "false");
+      setUser(data.user);
+      setAuth({ token: data.token, userType: data.user.user_type });
+      console.log(data.user)
       navigate("/dashboard");
     } catch (error) {
+      console.log(error)
       toast.error("Connection error. Please try again later.");
     }
   };

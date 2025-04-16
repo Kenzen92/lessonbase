@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { fetchTeacherStatistics, fetchStudentStatistics } from "../../utils/agent.js";
 import { PrimaryButton } from "../../styles/buttons";
+import { useAuth } from "../../contexts/auth_context.jsx";
 
 export default function ActionStatisticsBar({
   page,
@@ -17,12 +18,13 @@ export default function ActionStatisticsBar({
   actionText,
 }) {
   const [statistics, setStatistics] = useState(null);
-  const is_teacher = window.sessionStorage.getItem("is_teacher");
+  const { auth } = useAuth();
+  
 
   useEffect(() => {
     const fetchData = async () => {
-      let response = null
-      if (is_teacher === "teacher") response = await fetchTeacherStatistics(page);
+      let response = null;
+      if (auth.userType === "Teacher") response = await fetchTeacherStatistics(page);
       else response = await fetchStudentStatistics(page);
       setStatistics(response.data);
     };
@@ -130,12 +132,15 @@ export default function ActionStatisticsBar({
           marginTop: "1rem",
         }}
       >
+        {auth.userType === "Teacher" && (
         <PrimaryButton
-          onClick={() => actionFunction(true)}
-          sx={{ minWidth: 200 }}
-        >
-          {actionText}
-        </PrimaryButton>
+        onClick={() => actionFunction(true)}
+        sx={{ minWidth: 200 }}
+      >
+        {actionText}
+      </PrimaryButton>
+        )}
+
 
         <Box
           sx={{

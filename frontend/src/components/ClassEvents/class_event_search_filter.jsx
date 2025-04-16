@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, TextField, Typography } from "@mui/material";
 import inputStyle from "../../styles/input";
 import { PrimaryButton, SecondaryButton } from "../../styles/buttons.jsx";
+import { useAuth } from "../../contexts/auth_context.jsx";
 
 function ClassEventSearchAndFilter({
   allClassEvents,
@@ -11,7 +12,7 @@ function ClassEventSearchAndFilter({
   const [searchTerm, setSearchTerm] = useState("");
   const [previous, setPrevious] = useState(false);
   const [classGroupFilter, setClassGroupFilter] = useState({});
-
+  const { auth } = useAuth();
   useEffect(() => {
     // Utility function to check if a date is in the past
     const isPast = (date) => {
@@ -25,19 +26,21 @@ function ClassEventSearchAndFilter({
         const filteredEvents = allClassEvents[date].filter((event) => {
           const isEventPast = isPast(event.start_time);
           const lowerCaseSearch = searchTerm.toLowerCase();
-          if (!previous && isEventPast) {
+          if ((previous && !isEventPast) || (!previous && isEventPast)) {
             return false;
           }
+          
 
           return (
-            event.students.some((student) =>
+            auth.userType === "Teacher" && ( event.students.some((student) =>
               [
                 `${student.first_name.toLowerCase()} ${student.last_name.toLowerCase()}`,
                 student.first_name.toLowerCase(),
                 student.last_name.toLowerCase(),
                 student.username?.toLowerCase(),
               ].some((field) => field.includes(lowerCaseSearch))
-            ) ||
+            ))
+            ||
             (event.subject?.name.toLowerCase().includes(lowerCaseSearch) ??
               false)
           );
@@ -49,7 +52,9 @@ function ClassEventSearchAndFilter({
         return result; // Ensure reduce returns the accumulated result
       },
       {}
-    );
+    );  
+    console.log(timeFilteredClassEvents);
+    // Filter class events based on the selected class group
     setFilteredClassEvents(timeFilteredClassEvents);
   }, [searchTerm, previous, allClassEvents, classGroupFilter]);
 
@@ -66,7 +71,7 @@ function ClassEventSearchAndFilter({
       >
         <TextField
           sx={{ ...inputStyle, maxWidth: 350, marginLeft: "auto" }}
-          label="Search student, or subject"
+          label={auth.userType === "Teacher" ? "Search student, or subject" : "Search subject"}
           variant="outlined"
           fullWidth
           size="small"

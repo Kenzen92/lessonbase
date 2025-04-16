@@ -205,7 +205,7 @@ function Profile() {
         <Box
           sx={{
             marginLeft: "auto",
-            marginleft: "auto",
+            marginRight: "auto",
             flex: 1,
             justifyItems: "center",
           }}

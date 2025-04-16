@@ -13,8 +13,9 @@ import ClassEventDetailsDrawer from "../ClassEvents/class_event_details_drawer.j
 import ClassEventSearchAndFilter from "../ClassEvents/class_event_search_filter.jsx";
 import ActionStatisticsBar from "./action_statistics_bar.jsx";
 import Navigation from "../main_navigation.jsx";
+import { useAuth } from "../../contexts/auth_context.jsx";
 
-const TeacherClassEventDashboard = (classId) => {
+const ClassEventDashboard = (classId) => {
   const [classEvents, setClassEvents] = useState([]);
   const [filteredClassEvents, setFilteredClassEvents] = useState([]);
   const [error, setError] = useState(false);
@@ -25,6 +26,7 @@ const TeacherClassEventDashboard = (classId) => {
   const [students, setStudents] = useState(null);
   const [step, setStep] = useState(1);
   const [classGroups, setClassGroups] = useState(null);
+  const { auth } = useAuth();
   const fetchData = async () => {
     try {
       const classEventsData = await fetchClassEvents();
@@ -71,7 +73,6 @@ const TeacherClassEventDashboard = (classId) => {
       const fetchedSubjects = await fetchSubjects();
       setSubjects(fetchedSubjects);
       const fetchedClassGroups = await fetchClassGroups();
-      console.log(fetchedClassGroups);
       setClassGroups(fetchedClassGroups);
     } catch (error) {
       setError(error.message);
@@ -82,7 +83,7 @@ const TeacherClassEventDashboard = (classId) => {
     fetchData();
   }, []);
 
-  // Callback function to force re-render of TeacherClassEventDashboard after item deletion
+  // Callback function to force re-render of ClassEventDashboard after item deletion
   const handleReloadData = () => {
     fetchData();
   };
@@ -225,4 +226,4 @@ const TeacherClassEventDashboard = (classId) => {
   );
 };
 
-export default TeacherClassEventDashboard;
+export default ClassEventDashboard;

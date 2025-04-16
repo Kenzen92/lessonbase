@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaClock, FaInfoCircle } from "react-icons/fa";
+import { FaClock, FaFile, FaInfoCircle } from "react-icons/fa";
 import { Box, Typography, Button, Chip, IconButton } from "@mui/material";
 import { motion } from "framer-motion";
 import subjectIconMap from "../../utils/icons";
@@ -31,34 +31,46 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
           width: "100%",
         }}
       >
-        <Chip
-          icon={<IconComponent color="#fff" size={20} />}
-          label={eventData.subject.name}
-          size={"medium"}
-          sx={{
-            color: "#fff",
-            fontSize: 20,
-            mt: "auto",
-            mb: "auto",
-            height: "2.2rem",
-            minWidth: "10rem",
-            backgroundColor: eventData.subject.color,
-          }}
-        />
+      <Chip
+        icon={<IconComponent color="#fff" size={20} />}
+        label={
+          <span style={{
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "inline-block",
+            marginTop: "0.5rem",
+            maxWidth: "8rem"
+          }}>
+            {eventData.subject.name}
+          </span>
+        }
+        size="medium"
+        sx={{
+          color: "#fff",
+          fontSize: 20,
+          mt: "auto",
+          mb: "auto",
+          height: "2.2rem",
+          minWidth: "10rem",
+          backgroundColor: eventData.subject.color,
+        }}
+      />
+
         <Box
           sx={{
             display: "flex",
-            flexDirection: "column",
+            flexDirection: "row",
             alignItems: "center",
             gap: 1,
           }}
         >
-          <FaClock color="#fff" size={24} />
+          <FaClock color="#fff" size={22} />
 
           <Typography>{formattedTime}</Typography>
         </Box>
         <Typography>{eventData.duration} Minutes</Typography>
-        <Typography>Class code</Typography>
+        <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}><FaFile color="#fff" size={22} />{eventData.resources.length}</Box>
         <IconButton
           onClick={() => handleOpenDetails(eventData)}
           aria-label="details"
