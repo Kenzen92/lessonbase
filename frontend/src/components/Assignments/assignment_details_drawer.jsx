@@ -16,6 +16,9 @@ import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
 import { fetchAssignment } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
+import { useAuth } from "../../contexts/auth_context";
+import StudentAssignmentAttemptForm from "./student_assignment_attempt_form";
+
 export default function AssignmentDetailsDrawer({
   assignment,
   setCurrentAssignmentAttempt,
@@ -26,7 +29,8 @@ export default function AssignmentDetailsDrawer({
 }) {
   const [assignmentDetails, setAssignmentDetails] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-
+  const { auth } = useAuth();
+  const is_teacher = auth.userType === "Teacher ";
   const handleDeleteAssignment = async () => {
     try {
       const auth = window.sessionStorage.getItem("token");
@@ -105,34 +109,43 @@ export default function AssignmentDetailsDrawer({
               <Typography sx={{ color: "white", mb: 2 }}>
                 {assignmentDetails.description}
               </Typography>
-              <List>
-                {assignmentDetails.students.map((student) => (
-                  <Box
-                    sx={{
-                      backgroundColor: "#333",
-                      transition: "background-color 0.3s ease",
-                      "&:hover": {
-                        backgroundColor: "#444", // slightly lighter
-                      },
-                      padding: 1,
-                      margin: 1,
-                      borderRadius: 3,
-                    }}
-                  >
-                    <StudentListCard
-                      key={student.id}
-                      student={student}
-                      action={"navigate"}
-                    />
-                    <StudentAssignmentAttemptCard
-                      assignment={assignment}
-                      student={student}
-                      setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
-                      setFeedbackModalOpen={setFeedbackModalOpen}
-                    />
-                  </Box>
-                ))}
-              </List>
+              {is_teacher && (
+                <List>
+                  {assignmentDetails.students.map((student) => (
+                    <Box
+                      sx={{
+                        backgroundColor: "#333",
+                        transition: "background-color 0.3s ease",
+                        "&:hover": {
+                          backgroundColor: "#444", // slightly lighter
+                        },
+                        padding: 1,
+                        margin: 1,
+                        borderRadius: 3,
+                      }}
+                    >
+                      <StudentListCard
+                        key={student.id}
+                        student={student}
+                        action={"navigate"}
+                      />
+                      <StudentAssignmentAttemptCard
+                        assignment={assignment}
+                        student={student}
+                        setCurrentAssignmentAttempt={
+                          setCurrentAssignmentAttempt
+                        }
+                        setFeedbackModalOpen={setFeedbackModalOpen}
+                      />
+                    </Box>
+                  ))}
+                </List>
+              )}
+
+              {!is_teacher && (
+                <StudentAssignmentAttemptForm assignment={assignment} />
+              )}
+
               <Button
                 variant="contained"
                 color="primary"

@@ -5,7 +5,12 @@ import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
 import { useAuth } from "../../contexts/auth_context";
 
-const ClassResources = ({ assignmentAttemptId, classId, existing_resources, handleReloadData }) => {
+const ClassResources = ({
+  assignmentAttemptId,
+  classId,
+  existing_resources,
+  handleReloadData,
+}) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const { is_teacher } = useAuth();
 
@@ -55,7 +60,8 @@ const ClassResources = ({ assignmentAttemptId, classId, existing_resources, hand
     });
 
     if (classId) formData.append("class_id", classId);
-    if (assignmentAttemptId) formData.append("assignment_attempt_id", assignmentAttemptId);
+    if (assignmentAttemptId)
+      formData.append("assignment_attempt_id", assignmentAttemptId);
     const auth = window.sessionStorage.getItem("token");
     fetch("http://localhost:8000/class_material", {
       method: "POST",
@@ -81,7 +87,7 @@ const ClassResources = ({ assignmentAttemptId, classId, existing_resources, hand
       <Typography variant="h6" color={"#fff"} mt={4}>
         Class Resources
       </Typography>
-      {is_teacher ? <Dropzone onDrop={handleFileDrop} /> : <Typography>Not a teacher</Typography>}
+      {is_teacher ? <Dropzone onDrop={handleFileDrop} /> : <Box></Box>}
 
       {existing_resources.length === 0 ? (
         <Typography variant="body1" color={"#fff"} sx={{ mt: 4 }}>

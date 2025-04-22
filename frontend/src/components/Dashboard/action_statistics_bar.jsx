@@ -8,7 +8,10 @@ import {
   FaExclamationTriangle,
   FaFile,
 } from "react-icons/fa";
-import { fetchTeacherStatistics, fetchStudentStatistics } from "../../utils/agent.js";
+import {
+  fetchTeacherStatistics,
+  fetchStudentStatistics,
+} from "../../utils/agent.js";
 import { PrimaryButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context.jsx";
 
@@ -19,13 +22,14 @@ export default function ActionStatisticsBar({
 }) {
   const [statistics, setStatistics] = useState(null);
   const { auth } = useAuth();
-  
 
   useEffect(() => {
     const fetchData = async () => {
       let response = null;
-      if (auth.userType === "Teacher") response = await fetchTeacherStatistics(page);
+      if (auth.userType === "Teacher")
+        response = await fetchTeacherStatistics(page);
       else response = await fetchStudentStatistics(page);
+      console.log(response.data);
       setStatistics(response.data);
     };
     fetchData();
@@ -40,18 +44,23 @@ export default function ActionStatisticsBar({
         icon: <FaUser color="white" />,
       },
       {
-        key: "total_classes",
-        label: "Classes",
-        icon: <FaChalkboardTeacher color="white" />,
-      },
-      {
         key: "upcoming_classes",
         label: "Upcoming",
         icon: <FaClock color="white" />,
       },
       {
+        key: "completed_classes",
+        label: "Completed",
+        icon: <FaClock color="white" />,
+      },
+      {
+        key: "total_classes",
+        label: "Completed",
+        icon: <FaClock color="white" />,
+      },
+      auth.userType === "Teacher" && {
         key: "total_teaching_hours",
-        label: "Hours",
+        label: "Completed",
         icon: <FaClock color="white" />,
         divisor: 60,
       },
@@ -86,26 +95,14 @@ export default function ActionStatisticsBar({
     ],
     classes: [
       {
-        key: "total_classes",
+        key: "total_class_groups",
         label: "Total",
         icon: <FaChalkboardTeacher color="white" />,
       },
       {
-        key: "completed_classes",
-        label: "Completed",
-        icon: <FaClock color="white" />,
-      },
-      {
-        key: "upcoming_classes",
-        label: "Upcoming",
-        icon: <FaClock color="white" />,
-      },
-      {
-        key: "average_class_duration",
-        label: "Avg Duration",
-        icon: <FaClock color="white" />,
-        divisor: 60,
-        fixed: 1,
+        key: "average_students_per_group",
+        label: "Students/Group",
+        icon: <FaUser color="white" />,
       },
     ],
     assignments: [
@@ -133,14 +130,13 @@ export default function ActionStatisticsBar({
         }}
       >
         {auth.userType === "Teacher" && (
-        <PrimaryButton
-        onClick={() => actionFunction(true)}
-        sx={{ minWidth: 200 }}
-      >
-        {actionText}
-      </PrimaryButton>
+          <PrimaryButton
+            onClick={() => actionFunction(true)}
+            sx={{ minWidth: 200 }}
+          >
+            {actionText}
+          </PrimaryButton>
         )}
-
 
         <Box
           sx={{

@@ -139,3 +139,7 @@ export const fetchAssignmentAttempt = async (assignmentID, studentID, navigate) 
   return await apiRequest(
     `http://localhost:8000/assignment-attempt/${assignmentID}/students/${studentID}/attempt`, "GET", null, navigate);
 };
+
+export const submitAssignmentAttempt = async(assignmentID, data, navigate) => {
+  return await apiRequest(`http://localhost:8000/assignment-attempt/${assignmentID}/`, "POST", data, navigate)
+}

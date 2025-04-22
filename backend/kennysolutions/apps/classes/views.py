@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
-from apps.user_accounts.models import Student, Teacher
+from apps.user_accounts.models import ClassGroup, Student, Teacher
 from apps.subjects.models import Subject
 from apps.classes.serialisers import  ClassEventSerializer, ClassEventCreateSerializer
 from django.core.exceptions import ValidationError
@@ -163,17 +163,18 @@ def teacher_statistics(request):
         
         # Common Queries
         total_students = teacher.students.count()
-        total_classes = ClassEvent.objects.filter(teachers=teacher).count()
-        completed_classes = ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime).count()
         upcoming_classes = ClassEvent.objects.filter(teachers=teacher, start_time__gte=current_datetime).count()
         total_assignments = Assignment.objects.filter(teachers=teacher).count()
+        total_class_groups = ClassGroup.objects.filter(teachers=teacher).count()
+        average_students_per_group = (ClassGroup.objects.filter(teachers=teacher)
+            .annotate(num_students=Count('students'))
+            .aggregate(avg_students=Avg('num_students'))
+        )
 
         if page == "dashboard":
             stats = {
                 "total_students": total_students,
-                "total_classes": total_classes,
                 "upcoming_classes": upcoming_classes,
-                "total_assignments": total_assignments,
                 "pending_assignments": Assignment.objects.filter(teachers=teacher, marked=False).count(),
                 "total_teaching_hours": ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime).aggregate(Sum("duration"))["duration__sum"] or 0
             }
@@ -188,10 +189,8 @@ def teacher_statistics(request):
 
         elif page == "classes":
             stats = {
-                "total_classes": total_classes,
-                "completed_classes": completed_classes,
-                "upcoming_classes": upcoming_classes,
-                "average_class_duration": round(ClassEvent.objects.filter(teachers=teacher).aggregate(Avg("duration"))["duration__avg"], 2) or 0,
+                "total_class_groups": total_class_groups,
+                "average_students_per_group": average_students_per_group['avg_students']
             }
 
         elif page == "assignments":
@@ -359,7 +358,7 @@ class HomeworkViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return (
-            Assignment.objects.filter(teachers=user)
+            Assignment.objects.filter(Q(teachers=user) | Q(students=user))
             .select_related('subject')
             .prefetch_related('teachers', 'material')
         )

@@ -108,7 +108,7 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
 class AssignmentAttemptCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignmentAttempt
-        fields = '__all__'
+        fields = ['assignment', 'student', 'answer_text', 'submitted_files']
 
 class AssignmentAttemptDetailsSerializer(serializers.ModelSerializer):
     student = StudentSerializer(many=False, read_only=True)
