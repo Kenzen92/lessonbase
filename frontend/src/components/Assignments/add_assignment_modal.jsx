@@ -18,7 +18,7 @@ function AddAssignmentModal({
         onClose={() => setIsOpen(false)}
         aria-labelledby="create-assignment-modal"
         aria-describedby="form-to-create-assignment"
-        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 2,  }}
       >
         <Box
           sx={{
@@ -30,6 +30,7 @@ function AddAssignmentModal({
             color: "#fff",
           }}
         >
+          
           <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
             Create New Assignment
           </Typography>

@@ -20,7 +20,7 @@ from .models import Assignment, AssignmentAttempt, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import datetime, timedelta
-from django.db.models import Count, Sum, Avg, F, Q
+from django.db.models import Count, Sum, Avg, F, Q, CharField
 
 
 class ClassEventViewSet(viewsets.ViewSet):
@@ -367,7 +367,7 @@ class HomeworkViewSet(viewsets.ModelViewSet):
             .select_related('subject')
             .prefetch_related('teachers', 'material')
         )
-        
+    
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         data['teachers'] = [self.request.user.pk]  
@@ -379,16 +379,16 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_201_CREATED)
 
     def list(self, request):
-        # Define the current time
         now = timezone.now().date()
-        # Annotate each assignment with its category based on conditions
         assignments = self.get_queryset().annotate(
             category=Case(
                 When(Q(due_date__lte=now) & Q(marked=False), then=Value('Overdue')),
-                When(Q(marked=False) & Q(due_date__lt=now) & Q(due_date__gt=now), then=Value('To Mark')),
-                When(Q(created_at__date=now) & Q(due_date__gt=now), then=Value('Set')),
-                When(Q(due_date__gt=now) & Q(marked=False), then=Value('Upcoming')),
-                When(Q(marked=True), then=Value('Marked'))
+                When(Q(due_date__gt=now) & Q(marked=False), then=Value('To Mark')),
+                When(Q(set_date__lt=now) & Q(due_date__gt=now), then=Value('Set')),
+                When(Q(set_date__gt=now) & Q(marked=False), then=Value('Upcoming')),
+                When(Q(marked=True), then=Value('Marked')),
+                default=Value('Uncategorized'),  # Catch-all category
+                output_field=CharField(),
             )
         )
 

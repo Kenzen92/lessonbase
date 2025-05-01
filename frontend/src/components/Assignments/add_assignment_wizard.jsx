@@ -7,6 +7,7 @@ import {
   Box,
   TextField,
   FormControl,
+  FormHelperText,
   InputLabel,
   Select,
   MenuItem,
@@ -24,12 +25,24 @@ import { handleCreateAssignment } from "../../utils/agent";
 const validationSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
   description: yup.string(),
+  max_score: yup.number().positive("Score must be greater than 0"),
   due_date: yup
     .date()
     .typeError("Invalid date format") // This will catch invalid date inputs
     .required("Due date is required"),
-  subject: yup.number().required("Subject is required"),
-  max_score: yup.number().positive("Score must be greater than 0"),
+  subject: yup
+    .number('Subject must be a number') // *** Start by defining the target type is number ***
+    .transform((value, originalValue) => {
+      // This transform is applied *within* the number schema context.
+      // It will receive the value that Yup is trying to cast to a number.
+      // If the original input was "", transform it to null.
+      // Otherwise, let Yup's number casting handle it.
+      return originalValue === '' ? null : value;
+    })
+    .nullable() // Allow the value to be null (which the transform might produce)
+    .required('Subject is required') // Now, required checks if the final value is not null/undefined
+    .positive("Subject must be positive"), // Number-specific validation applied last
+
 });
 
 const AddAssignmentWizard = ({
@@ -150,6 +163,7 @@ const AddAssignmentWizard = ({
               name="title"
               control={control}
               render={({ field }) => (
+                <FormControl fullWidth>
                 <TextField
                   {...field}
                   fullWidth
@@ -157,9 +171,50 @@ const AddAssignmentWizard = ({
                   variant="outlined"
                   type="text"
                   error={!!errors.title}
-                  helperText={errors.title?.message}
-                  sx={{ mb: 4, ...inputStyle }}
+                  sx={{...inputStyle }}
                 />
+                <FormHelperText fullwidth sx={{ color: "error.main", mb: 2 }}>
+                  {errors.title ? errors.title.message : " "}
+                </FormHelperText>
+              </FormControl>
+              )}
+            />
+
+<Controller
+              name="subject"
+              control={control}
+              render={(
+                { field, fieldState: { error } } // Access error from fieldState
+              ) => (
+                <FormControl fullWidth error={!!error}>
+                  <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
+                    Subject
+                  </InputLabel>
+                  <Select
+                    {...field} // Spread the field properties onto the Select
+                    labelId="subject-select-label"
+                    id="subject"
+                    label="Subject" // Keep the label prop for correct a11y and notch behavior
+                    displayEmpty // To show placeholder if no subject is selected
+                    sx={{ ...inputStyle }} // Remove margin-bottom from the Select itself
+                    error={!!error} // Set error on the Select component for styling
+                  >
+                    {subjects?.map((subject) => (
+                      <MenuItem key={subject.id} value={subject.id}>
+                        {subject.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                
+                  <FormHelperText sx={{
+                    minHeight: 2,
+                    visibility: error ? 'visible' : 'hidden',
+                    color: error ? 'error.main' : 'transparent',
+                    mb: 2
+                  }}>
+                    {error ? error.message : ' '}
+                  </FormHelperText>
+                </FormControl>
               )}
             />
 
@@ -200,42 +255,6 @@ const AddAssignmentWizard = ({
                     />
                   )} // Show error
                 />
-              )}
-            />
-
-            <Controller
-              name="subject"
-              control={control}
-              render={(
-                { field, fieldState: { error } } // Access error from fieldState
-              ) => (
-                <FormControl fullWidth error={!!error}>
-                  {" "}
-                  {/* Set error on FormControl */}
-                  <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
-                    Subject
-                  </InputLabel>
-                  <Select
-                    {...field} // Spread the field properties onto the Select
-                    labelId="subject-select-label"
-                    id="subject"
-                    label="Subject"
-                    displayEmpty // To show placeholder if no subject is selected
-                    sx={{ ...inputStyle, mb: 4 }}
-                    error={!!error} // Set error on the Select component for styling
-                  >
-                    {subjects?.map((subject) => (
-                      <MenuItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {error && ( // Conditionally render error message
-                    <Typography color="error" variant="body2">
-                      {error.message}
-                    </Typography>
-                  )}
-                </FormControl>
               )}
             />
 

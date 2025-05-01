@@ -85,6 +85,7 @@ def create_required_objects(sender, **kwargs):
             description="Please complete the assigned exercises.",
             subject=subject,
             max_score=100,
+            set_date=timezone.now().date() + timedelta(days=i),
             due_date=timezone.now().date() + timedelta(days=7)
         )
         assignment.teachers.add(teacher)

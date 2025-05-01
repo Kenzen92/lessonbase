@@ -83,6 +83,7 @@ class AssignmentListSerializer(serializers.ModelSerializer):
             'max_score',
             'created_at',
             'due_date',
+            'set_date',
             'students',
         ]
 

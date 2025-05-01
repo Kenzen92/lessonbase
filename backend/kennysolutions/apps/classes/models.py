@@ -66,6 +66,10 @@ class Assignment(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     material = models.ManyToManyField(TeachingResource, related_name="homework_resource")
+    set_date = models.DateField(
+        default=timezone.now,
+        help_text="The date when the homework was assigned."
+    )
     due_date = models.DateField(
         help_text="The deadline for the homework."
     )

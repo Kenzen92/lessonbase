@@ -149,6 +149,9 @@ export default function ActionStatisticsBar({
           {statistics &&
             pageStats[page]?.map(({ key, label, icon, divisor, fixed }) => {
               let value = statistics[key];
+              if ((auth.userType !== "Teacher") && key === "total_teaching_hours") {
+                return null;
+              }
               if (divisor) value = (value / divisor).toFixed(fixed || 0);
               if (value === undefined) return null;
 
