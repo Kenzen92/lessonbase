@@ -19,8 +19,8 @@ export default function ClassEventDetailsDrawer({
   handleOpenStudentSearch,
   handleCancelClassEvent,
 }) {
+  const { auth } = useAuth();
   const eventDate = new Date(currentClassEvent?.start_time);
-  const { is_teacher } = useAuth();
   const formattedDate = `${eventDate.getDate()}/${
     eventDate.getMonth() + 1
   }/${eventDate.getFullYear()}`;
@@ -28,6 +28,7 @@ export default function ClassEventDetailsDrawer({
   const IconComponent =
     currentClassEvent?.subject?.name &&
     getSubjectIcon(currentClassEvent.subject.name);
+
   return (
     <Drawer
       anchor="right"
@@ -83,7 +84,7 @@ export default function ClassEventDetailsDrawer({
                   handleReloadData={handleReloadData}
                 />
               </Box>
-              {is_teacher && (
+              {auth.userType == "teacher" && (
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <PrimaryButton onClick={handleOpenStudentSearch}>
                     Edit Event
@@ -93,7 +94,6 @@ export default function ClassEventDetailsDrawer({
                   </WarningButton>
                 </Box>
               )}
-
             </Box>
           </>
         )}

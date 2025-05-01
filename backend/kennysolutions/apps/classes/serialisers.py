@@ -86,6 +86,38 @@ class AssignmentListSerializer(serializers.ModelSerializer):
             'students',
         ]
 
+class AssignmentCreateSerializer(serializers.ModelSerializer):
+    title = serializers.CharField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all()),
+    max_score = serializers.IntegerField()
+    due_date = serializers.DateField(),
+    students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True)
+    material = serializers.ListField(
+        child=serializers.FileField(), write_only=True, required=False
+    )
+
+    class Meta:
+        model = Assignment
+        fields = ['title', 'description', 'subject', 'max_score', 'due_date', 'students', 'material']
+
+
+    def create(self, validated_data):
+        uploaded_files = validated_data.pop('material', [])
+        students = validated_data.pop('students', [])
+        teacher = self.context["request"].user.get_real_instance()
+        assignment = Assignment.objects.create(**validated_data)
+        assignment.teachers.set([teacher])
+        assignment.students.set(students)
+
+        teaching_resources = []
+        for file in uploaded_files:
+            resource = TeachingResource.objects.create(file=file)
+            teaching_resources.append(resource)
+
+        assignment.material.set(teaching_resources)
+        return assignment
+
 class AssignmentDetailsSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
     subject = SubjectSerializer(many=False)
@@ -106,9 +138,39 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
         ]
 
 class AssignmentAttemptCreateSerializer(serializers.ModelSerializer):
+    answer_text = serializers.CharField(required=False, allow_blank=True)
+    assignment = serializers.PrimaryKeyRelatedField(queryset=Assignment.objects.all())
+    submitted_files = serializers.ListField(
+        child=serializers.FileField(), required=False
+    )
+ 
+    def validate_assignment_id(self, value):
+        if not Assignment.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Invalid assignment ID.")
+        return value
+
+    def create(self, validated_data):
+        request_user = self.context["request"].user.get_real_instance()
+
+        # if not hasattr(request_user, "student"):
+        #     raise serializers.ValidationError("Only students can submit assignments.")
+
+        assignment = validated_data["assignment"]
+        attempt = AssignmentAttempt.objects.create(
+            assignment=assignment,
+            answer_text=validated_data.get("answer_text", ""),
+            # student = self.context["request"].user 
+            student = Student.objects.last()
+        )
+
+        for file in validated_data.get("files", []):
+            attempt.submitted_files.create(file=file)  # assuming a related model for files
+
+        return attempt
+    
     class Meta:
         model = AssignmentAttempt
-        fields = ['assignment', 'student', 'answer_text', 'submitted_files']
+        fields = ['answer_text', 'submitted_files', 'assignment']
 
 class AssignmentAttemptDetailsSerializer(serializers.ModelSerializer):
     student = StudentSerializer(many=False, read_only=True)
@@ -119,9 +181,6 @@ class AssignmentAttemptDetailsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AssignmentAttemptListSerializer(serializers.ModelSerializer):
-    student = StudentSerializer(many=False, read_only=True)
-    subject = SubjectSerializer(many=False, read_only=True)
-
     class Meta:
         model = AssignmentAttempt
-        fields = ['assignment', 'student', 'submitted_at', 'accepted', 'graded']
+        fields = ['id', 'assignment', 'student', 'submitted_at', 'accepted', 'graded']

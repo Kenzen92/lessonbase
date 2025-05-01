@@ -52,7 +52,6 @@ const ClassEventWizard = ({
     handleSubmit,
     control,
     setValue,
-    watch, // Watch the start_time field
     formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
@@ -63,8 +62,6 @@ const ClassEventWizard = ({
       duration: classData?.duration || "60",
     },
   });
-
-  const startTime = watch("start_time"); // Get the current start_time value
 
   // Populate form when classDataId changes
   useEffect(() => {

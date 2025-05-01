@@ -26,7 +26,7 @@ export default function ActionStatisticsBar({
   useEffect(() => {
     const fetchData = async () => {
       let response = null;
-      if (auth.userType === "Teacher")
+      if (auth.userType === "teacher")
         response = await fetchTeacherStatistics(page);
       else response = await fetchStudentStatistics(page);
       console.log(response.data);
@@ -58,7 +58,7 @@ export default function ActionStatisticsBar({
         label: "Completed",
         icon: <FaClock color="white" />,
       },
-      auth.userType === "Teacher" && {
+      auth.userType === "teacher" && {
         key: "total_teaching_hours",
         label: "Completed",
         icon: <FaClock color="white" />,
@@ -129,7 +129,7 @@ export default function ActionStatisticsBar({
           marginTop: "1rem",
         }}
       >
-        {auth.userType === "Teacher" && (
+        {auth.userType === "teacher" && (
           <PrimaryButton
             onClick={() => actionFunction(true)}
             sx={{ minWidth: 200 }}

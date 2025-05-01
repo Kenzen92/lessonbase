@@ -28,7 +28,6 @@ function Classes() {
     const subjects = await fetchSubjects(navigate);
     if (subjects) setAllSubjects(subjects);
     const classes = await fetchClassGroups(navigate);
-    console.log(classes);
     setClasses(classes);
   };
 

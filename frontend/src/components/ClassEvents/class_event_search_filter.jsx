@@ -29,18 +29,17 @@ function ClassEventSearchAndFilter({
           if ((previous && !isEventPast) || (!previous && isEventPast)) {
             return false;
           }
-          
 
           return (
-            auth.userType === "Teacher" && ( event.students.some((student) =>
-              [
-                `${student.first_name.toLowerCase()} ${student.last_name.toLowerCase()}`,
-                student.first_name.toLowerCase(),
-                student.last_name.toLowerCase(),
-                student.username?.toLowerCase(),
-              ].some((field) => field.includes(lowerCaseSearch))
-            ))
-            ||
+            (auth.userType === "teacher" &&
+              event.students.some((student) =>
+                [
+                  `${student.first_name.toLowerCase()} ${student.last_name.toLowerCase()}`,
+                  student.first_name.toLowerCase(),
+                  student.last_name.toLowerCase(),
+                  student.username?.toLowerCase(),
+                ].some((field) => field.includes(lowerCaseSearch))
+              )) ||
             (event.subject?.name.toLowerCase().includes(lowerCaseSearch) ??
               false)
           );
@@ -52,7 +51,7 @@ function ClassEventSearchAndFilter({
         return result; // Ensure reduce returns the accumulated result
       },
       {}
-    );  
+    );
     console.log(timeFilteredClassEvents);
     // Filter class events based on the selected class group
     setFilteredClassEvents(timeFilteredClassEvents);
@@ -71,7 +70,11 @@ function ClassEventSearchAndFilter({
       >
         <TextField
           sx={{ ...inputStyle, maxWidth: 350, marginLeft: "auto" }}
-          label={auth.userType === "Teacher" ? "Search student, or subject" : "Search subject"}
+          label={
+            auth.userType === "teacher"
+              ? "Search student, or subject"
+              : "Search subject"
+          }
           variant="outlined"
           fullWidth
           size="small"

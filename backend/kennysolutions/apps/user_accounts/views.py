@@ -10,11 +10,36 @@ from rest_framework.response import Response
 from rest_framework import permissions, status
 from rest_framework.authtoken.models import Token
 from apps.user_accounts.models import ClassGroup, CustomAccount, Staff, Student, Teacher
-from .serializers import ClassGroupCreateSerializer, ClassGroupDetailsSerializer, ClassGroupListSerializer, CustomAccountSerializer, LoginSerializer, StudentSerializer, TeacherSerializer
+from .serializers import (
+    ClassGroupCreateSerializer, 
+    ClassGroupDetailsSerializer, 
+    ClassGroupListSerializer, 
+    CustomAccountSerializer, 
+    LoginSerializer, 
+    StudentSerializer, 
+    TeacherDetailSerializer, 
+    TeacherListSerializer, 
+    TeacherUpdateSerializer
+    )
 from datetime import datetime
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from rest_framework import viewsets
+
+@api_view(["GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def auth_user(request):
+    """
+    This view validates the token and returns the basic user info
+    to the auth storage context
+    """
+    user = request.user.get_real_instance()
+    if user.polymorphic_ctype.name == "teacher":
+        return Response({"user_type": "teacher"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"user_type": "student"}, status=status.HTTP_200_OK)
+
 
 
 # Create a class group API view here to use all the standard http actions directly mapped to the model
@@ -27,10 +52,12 @@ class TeacherViewSet(viewsets.ModelViewSet):
     lookup_field = 'id'
 
     def get_serializer_class(self):
-        if self.action == 'create' or self.action == 'update' or self.action == 'partial_update':
-            return TeacherSerializer
+        if self.action == 'create':
+            return TeacherDetailSerializer
+        if self.action == 'update' or self.action == 'partial_update':
+            return TeacherUpdateSerializer
         else:
-            return TeacherSerializer
+            return TeacherListSerializer
 
     def get_queryset(self):
         user = self.request.user
@@ -181,11 +208,9 @@ def login(request):
         token, created = Token.objects.get_or_create(user=user)
         
         if user.polymorphic_ctype.model == "teacher":
-            response_serializer = TeacherSerializer(user)
-            return Response({"token": f"{token}", 'user': response_serializer.data}, status=status.HTTP_200_OK)
+            return Response({"token": f"{token}", 'user_type': "teacher"}, status=status.HTTP_200_OK)
         else:
-            response_serializer = StudentSerializer(user)
-            return Response({"token": f"{token}", 'user': response_serializer.data}, status=status.HTTP_200_OK)
+            return Response({"token": f"{token}", 'user_type': "student"}, status=status.HTTP_200_OK)
     else:
         return Response({"error": f"{serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -219,7 +244,7 @@ def students(request):
 @permission_classes([IsAuthenticated])
 def teachers(request):
     queryset = Teacher.objects.all()
-    serializer = TeacherSerializer(queryset, many=True)
+    serializer = TeacherDetailSerializer(queryset, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
@@ -249,7 +274,7 @@ def profile(request):
     if request.method == 'GET':
         user = request.user.get_real_instance()
         if user.polymorphic_ctype.name == "teacher":
-            serializer = TeacherSerializer(instance=user)
+            serializer = TeacherDetailSerializer(instance=user)
         else:
             serializer = StudentSerializer(instance=user)
         
@@ -261,7 +286,7 @@ def profile(request):
         
         # Adjust serializer to handle files
         if user.polymorphic_ctype.name == "teacher":
-            serializer = TeacherSerializer(instance=user, data=request.data)
+            serializer = TeacherUpdateSerializer(instance=user, data=request.data)
         else:
             serializer = StudentSerializer(instance=user, data=request.data)
         
@@ -289,7 +314,7 @@ def profile(request):
         
         # Adjust serializer to handle files
         if user.polymorphic_ctype.name == "teacher":
-            serializer = TeacherSerializer(instance=user, data=request.data, partial=True)
+            serializer = TeacherUpdateSerializer(instance=user, data=request.data, partial=True)
         else:
             serializer = StudentSerializer(instance=user, data=request.data, partial=True)
         

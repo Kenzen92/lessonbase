@@ -51,7 +51,7 @@ class CustomAccount(PolymorphicModel, CustomUser):
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.username} is a {self.polymorphic_ctype}"
+        return f"{self.username} is a {self.polymorphic_ctype.name}"
     
  
 

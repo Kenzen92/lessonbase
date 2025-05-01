@@ -56,7 +56,7 @@ class Assignment(models.Model):
     An assignment represents any work given by a teacher to students. Assignments are connected to a specific subject.
     """
     title = models.CharField(null=False, max_length=200, help_text="Title of the assignment.")
-    description = models.TextField(max_length=1000, help_text="Detailed description of the assignment.")
+    description = models.TextField(max_length=1000, help_text="Detailed description of the assignment.", null=True, blank=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, help_text="The subject to which this assignment belongs.")
     teachers = models.ManyToManyField(CustomUser, related_name='assignments_as_teacher', help_text="Teachers assigning this work.")
     students = models.ManyToManyField(Student, related_name='assignments_as_student', help_text="Students assigned to this work.")

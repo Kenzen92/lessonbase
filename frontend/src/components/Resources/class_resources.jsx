@@ -4,6 +4,7 @@ import Dropzone from "./dropzone";
 import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
 import { useAuth } from "../../contexts/auth_context";
+import { handleDeleteClassFile } from "../../utils/agent";
 
 const ClassResources = ({
   assignmentAttemptId,
@@ -12,7 +13,7 @@ const ClassResources = ({
   handleReloadData,
 }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const { is_teacher } = useAuth();
+  const { auth } = useAuth();
 
   const handleFileDrop = (files) => {
     setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -25,17 +26,8 @@ const ClassResources = ({
   };
 
   const handleDeleteFile = (resourceURL) => {
-    const auth = window.sessionStorage.getItem("token");
     const deleteBody = JSON.stringify({ file_url: resourceURL });
-
-    fetch("http://localhost:8000/class_material", {
-      method: "DELETE",
-      headers: {
-        Authorization: `Token ${auth}`,
-        "Content-Type": "application/json",
-      },
-      body: deleteBody,
-    })
+    handleDeleteClassFile(deleteBody)
       .then((response) => {
         if (response.ok) {
           toast.success("File deleted successfully");
@@ -87,7 +79,11 @@ const ClassResources = ({
       <Typography variant="h6" color={"#fff"} mt={4}>
         Class Resources
       </Typography>
-      {is_teacher ? <Dropzone onDrop={handleFileDrop} /> : <Box></Box>}
+      {auth.userType == "teacher" ? (
+        <Dropzone onDrop={handleFileDrop} />
+      ) : (
+        <Box></Box>
+      )}
 
       {existing_resources.length === 0 ? (
         <Typography variant="body1" color={"#fff"} sx={{ mt: 4 }}>

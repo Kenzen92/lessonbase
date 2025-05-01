@@ -30,7 +30,6 @@ export default function AssignmentDetailsDrawer({
   const [assignmentDetails, setAssignmentDetails] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const { auth } = useAuth();
-  const is_teacher = auth.userType === "Teacher ";
   const handleDeleteAssignment = async () => {
     try {
       const auth = window.sessionStorage.getItem("token");
@@ -109,7 +108,7 @@ export default function AssignmentDetailsDrawer({
               <Typography sx={{ color: "white", mb: 2 }}>
                 {assignmentDetails.description}
               </Typography>
-              {is_teacher && (
+              {auth.userType == "teacher" && (
                 <List>
                   {assignmentDetails.students.map((student) => (
                     <Box
@@ -142,7 +141,7 @@ export default function AssignmentDetailsDrawer({
                 </List>
               )}
 
-              {!is_teacher && (
+              {auth.userType == "student" && (
                 <StudentAssignmentAttemptForm assignment={assignment} />
               )}
 

@@ -38,7 +38,7 @@ function Profile() {
       const user = JSON.parse(userData);
       setName(user.first_name);
       setProfileURL(user.profile_picture);
-      setSelectedSubjects(user.subjects);
+      setSelectedSubjects(user.subjects.forEach((subject) => subject.id));
     }
   };
 
@@ -130,6 +130,9 @@ function Profile() {
     formData.append("first_name", profileData.first_name);
     formData.append("last_name", profileData.last_name);
     formData.append("email", profileData.email);
+    selectedSubjects.forEach((subject) => {
+      formData.append("subjects", subject.value);
+    });
     if (profilePicture) {
       formData.append("profile_picture", profilePicture);
     }
@@ -162,26 +165,6 @@ function Profile() {
       console.log("User data updated in session storage.");
     } catch (error) {
       console.error("Error:", error.message);
-    }
-
-    const subject_url = "http://localhost:8000/subjects/";
-    const subject_data = selectedSubjects.map((entry) => entry.value);
-    const data_to_send = { subjects: subject_data };
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(subject_url, {
-        method: "POST",
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data_to_send),
-      });
-
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.log("Error: " + error.message);
     }
 
     handleReloadData();

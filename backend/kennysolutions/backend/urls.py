@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from apps.classes.views import AssignmentAttemptViewSet, ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student, HomeworkViewSet
-from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile
+from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile, auth_user
 from apps.subjects.views import all_subjects, subjects
 from . import views
 from rest_framework.routers import DefaultRouter
@@ -17,6 +17,7 @@ router.register(r'teacher', TeacherViewSet, basename="teacher")
 router.register(r'assignment-attempt', AssignmentAttemptViewSet, basename="assignment-attempt")
 
 urlpatterns = [
+    path('auth/user', auth_user),
     path('profile/', profile),
     path('create_data', views.createData),
     path('login', login),

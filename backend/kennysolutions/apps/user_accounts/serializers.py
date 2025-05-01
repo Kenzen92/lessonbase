@@ -24,7 +24,7 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['id', 'username', 'first_name', 'last_name', 'enrollment_date', 'profile_picture', 'class_groups', 'user_type', 'subjects']
 
-class TeacherSerializer(serializers.ModelSerializer):
+class TeacherDetailSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     user_type = serializers.SerializerMethodField()
 
@@ -36,8 +36,21 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'subjects', 'students', 'first_name', 'last_name', 'email', 'profile_picture', 'user_type']
         read_only_fields = ['id', 'students']
 
+class TeacherUpdateSerializer(serializers.ModelSerializer):
+    subjects = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all(), many=True)
+
+    class Meta:
+        model=Teacher
+        fields = ['username', 'subjects', 'first_name', 'last_name', 'email', 'profile_picture']
+
+class TeacherListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=Teacher
+        fields = ['id', 'first_name', 'last_name']
+
 class CustomAccountSerializer(serializers.ModelSerializer):
-    user_type = serializers.ChoiceField(choices=[(1, 'Teacher'), (2, 'Student'), (3, 'Staff')], write_only=True)
+    user_type = serializers.ChoiceField(choices=[(1, 'teacher'), (2, 'student'), (3, 'staff')], write_only=True)
 
 
     class Meta:

@@ -1,5 +1,5 @@
 // agent.js
-export const apiRequest = async (url, method = "GET", body = null, navigate) => {
+export const apiRequest = async (url, method = "GET", body = null, navigate=null) => {
   const auth = window.sessionStorage.getItem("token");
   const headers = {
     Authorization: `Token ${auth}`,
@@ -26,7 +26,6 @@ export const apiRequest = async (url, method = "GET", body = null, navigate) => 
     }
 
     if (response.status == 404) {
-      console.log("Not found");
       return null;
     }
 
@@ -140,6 +139,26 @@ export const fetchAssignmentAttempt = async (assignmentID, studentID, navigate) 
     `http://localhost:8000/assignment-attempt/${assignmentID}/students/${studentID}/attempt`, "GET", null, navigate);
 };
 
-export const submitAssignmentAttempt = async(assignmentID, data, navigate) => {
-  return await apiRequest(`http://localhost:8000/assignment-attempt/${assignmentID}/`, "POST", data, navigate)
+export const submitAssignmentAttempt = async(data, navigate) => {
+  return await apiRequest(`http://localhost:8000/assignment-attempt/`, "POST", data, navigate)
 }
+
+export const handleDeleteClassFile = async(deleteBody, navigate) => {
+  return await apiRequest(`http://localhost:8000/class_material`, "DELETE", deleteBody, navigate)
+}
+
+export const handleDeleteAssignmentFile = async(deleteBody, navigate) => {
+  return await apiRequest(`http://localhost:8000/assignment_material`, "DELETE", deleteBody, navigate)
+}
+
+export const handleSubmitAssignmentFiles = async(imageFiles, navigate) => {
+  return await apiRequest(`http://localhost:8000/assignment_material`, "POST", imageFiles, navigate)
+}
+
+export const fetchCurrentUser = async() => {
+  const response = await apiRequest('http://localhost:8000/auth/user', "GET")
+  console.log("response", response);
+  return response
+}
+
+

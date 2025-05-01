@@ -15,7 +15,7 @@ from apps.user_accounts.models import ClassGroup, Student, Teacher
 from apps.subjects.models import Subject
 from apps.classes.serialisers import  ClassEventSerializer, ClassEventCreateSerializer
 from django.core.exceptions import ValidationError
-from .serialisers import  AssignmentAttemptCreateSerializer, AssignmentAttemptDetailsSerializer, AssignmentDetailsSerializer, AssignmentListSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
+from .serialisers import  AssignmentAttemptCreateSerializer, AssignmentAttemptDetailsSerializer, AssignmentAttemptListSerializer, AssignmentCreateSerializer, AssignmentDetailsSerializer, AssignmentListSerializer, ClassEventDateOrderedSerializer, ClassEventSerializer
 from .models import Assignment, AssignmentAttempt, ClassEvent,  TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
@@ -265,6 +265,8 @@ def class_material(request):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        
+
 
 
 @api_view(['POST'])
@@ -351,6 +353,8 @@ class HomeworkViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
+        if self.action == 'create':
+            return AssignmentCreateSerializer
         if self.action == 'list':
             return AssignmentListSerializer
         return super().get_serializer_class()
@@ -359,10 +363,11 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return (
             Assignment.objects.filter(Q(teachers=user) | Q(students=user))
+            .distinct()
             .select_related('subject')
             .prefetch_related('teachers', 'material')
         )
-    
+        
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
         data['teachers'] = [self.request.user.pk]  
@@ -371,7 +376,7 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
 
     def list(self, request):
         # Define the current time
@@ -412,13 +417,31 @@ class AssignmentAttemptViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return AssignmentAttempt.objects.filter(teacher=self.request.user)
+        return AssignmentAttempt.objects.filter(assignment__teachers=self.request.user)
 
     def get_serializer_class(self):
         # Optional: return different serializer for detail vs list
         if self.action == 'create' or self.action == 'update':
             return AssignmentAttemptCreateSerializer
+        if self.action == "list":
+            return AssignmentAttemptListSerializer
         return super().get_serializer_class()
+    
+    def post(self, request):
+        # validate that the user is a student
+        user = self.request.user.get_real_instance()
+        return Response({"message": user.polymorphic_ctype.name})
+        data = request.data.copy()
+        data['submitted_files'] = request.FILES.getlist('files')
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Submission successful"}, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(detail=False, methods=['get'], url_path=r'(?P<assignment_id>\d+)/students/(?P<student_id>\d+)/attempt')
     def retrieve_by_assignment_and_student(self, request, assignment_id=None, student_id=None):
@@ -430,4 +453,5 @@ class AssignmentAttemptViewSet(ModelViewSet):
         serializer = self.get_serializer(attempt)
         return Response(serializer.data)
     
+
 

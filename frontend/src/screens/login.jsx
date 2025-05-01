@@ -13,8 +13,7 @@ function Login() {
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
-  const { setAuth } = useAuth()
-  const { setUser } = useUser();
+  const { setAuth } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,12 +40,10 @@ function Login() {
 
       const data = await response.json();
       window.sessionStorage.setItem("token", data["token"]);
-      setUser(data.user);
-      setAuth({ token: data.token, userType: data.user.user_type });
-      console.log(data.user)
+      setAuth({ token: data.token, userType: data.user_type });
       navigate("/dashboard");
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast.error("Connection error. Please try again later.");
     }
   };

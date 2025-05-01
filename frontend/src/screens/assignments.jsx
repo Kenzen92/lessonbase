@@ -5,7 +5,12 @@ import Navigation from "../components/main_navigation";
 import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
 import AddAssignmentModal from "../components/Assignments/add_assignment_modal.jsx";
-import { fetchAllAssignments } from "../utils/agent.js";
+import {
+  fetchAllAssignments,
+  fetchClassGroups,
+  fetchStudents,
+  fetchSubjects,
+} from "../utils/agent.js";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
 import { PrimaryButton } from "../styles/buttons.jsx";
@@ -21,9 +26,13 @@ function Assignments() {
   const [currentAssignment, setCurrentAssignment] = useState(false);
   const [currentAssignmentAttempt, setCurrentAssignmentAttempt] =
     useState(null);
+  const [classGroups, setClassGroups] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
+  const [allSubjects, setAllSubjects] = useState([]);
+
   const [feedbackModelOpen, setFeedbackModalOpen] = useState(false);
 
-  const is_teacher = auth.userType == "Teacher";
+  const is_teacher = auth.userType == "teacher";
   const navigate = useNavigate();
   const columns = [
     {
@@ -62,6 +71,12 @@ function Assignments() {
     const fetchData = async () => {
       const assignments = await fetchAllAssignments(navigate);
       if (assignments) setAssignments(assignments);
+      const classGroups = await fetchClassGroups();
+      if (classGroups) setClassGroups(classGroups);
+      const subjects = await fetchSubjects();
+      if (subjects) setAllSubjects(subjects);
+      const students = await fetchStudents();
+      if (students) setAllStudents(students);
     };
     fetchData();
   }, []);
@@ -80,7 +95,13 @@ function Assignments() {
           actionText="Create Assignment"
         />
 
-        <AddAssignmentModal isOpen={isOpen} setIsOpen={setIsOpen} />
+        <AddAssignmentModal
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          students={allStudents}
+          subjects={allSubjects}
+          classGroups={classGroups}
+        />
         <AssignmentFeedbackModal
           feedbackModelOpen={feedbackModelOpen}
           setFeedbackModalOpen={setFeedbackModalOpen}
