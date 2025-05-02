@@ -124,4 +124,5 @@ class MyAppConfig(AppConfig):
 
     def ready(self):
         post_migrate.connect(create_required_objects, sender=self)
+        import apps.classes.signals
 

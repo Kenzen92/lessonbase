@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
   Button,
@@ -28,21 +28,23 @@ const validationSchema = yup.object().shape({
   max_score: yup.number().positive("Score must be greater than 0"),
   due_date: yup
     .date()
-    .typeError("Invalid date format") // This will catch invalid date inputs
-    .required("Due date is required"),
+    .typeError("Invalid date format")
+    .required("Due date is required")
+    .min(yup.ref('set_date'), "Due date must be later than start date"),
+
+  set_date: yup
+    .date()
+    .typeError("Invalid date format")
+    .required("Start date is required"),
+
   subject: yup
-    .number('Subject must be a number') // *** Start by defining the target type is number ***
+    .number('Subject must be a number')
     .transform((value, originalValue) => {
-      // This transform is applied *within* the number schema context.
-      // It will receive the value that Yup is trying to cast to a number.
-      // If the original input was "", transform it to null.
-      // Otherwise, let Yup's number casting handle it.
       return originalValue === '' ? null : value;
     })
-    .nullable() // Allow the value to be null (which the transform might produce)
-    .required('Subject is required') // Now, required checks if the final value is not null/undefined
-    .positive("Subject must be positive"), // Number-specific validation applied last
-
+    .nullable()
+    .required('Subject is required')
+    .positive("Subject must be positive"),
 });
 
 const AddAssignmentWizard = ({
@@ -63,7 +65,9 @@ const AddAssignmentWizard = ({
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      due_date: dayjs(),
+      // due date 7 days from now by default
+      due_date: dayjs(new Date()).add(7, "day"),
+      set_date: dayjs(),
       subject: "",
       title: "",
       max_score: 100,
@@ -71,8 +75,14 @@ const AddAssignmentWizard = ({
     },
   });
 
+
+
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const setDateValue = useWatch({
+    control, // Pass the control object from useForm
+    name: 'set_date'
+  })
 
   const handleFileDrop = (files) => {
     setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -99,11 +109,16 @@ const AddAssignmentWizard = ({
       ? dayjs(data.due_date).format("YYYY-MM-DD")
       : null;
 
+    const formattedSetDate = data.set_date
+      ? dayjs(data.set_date).format("YYYY-MM-DD")
+      : null;
+
     // Combine form data with other state data
     const assignmentData = {
       title: data.title,
       description: data.description,
       // Format the date as needed by your backend API
+      set_date: formattedSetDate,
       due_date: formattedDueDate,
       subject: data.subject,
       max_score: data.max_score,
@@ -164,23 +179,23 @@ const AddAssignmentWizard = ({
               control={control}
               render={({ field }) => (
                 <FormControl fullWidth>
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="Title"
-                  variant="outlined"
-                  type="text"
-                  error={!!errors.title}
-                  sx={{...inputStyle }}
-                />
-                <FormHelperText fullwidth sx={{ color: "error.main", mb: 2 }}>
-                  {errors.title ? errors.title.message : " "}
-                </FormHelperText>
-              </FormControl>
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="Title"
+                    variant="outlined"
+                    type="text"
+                    error={!!errors.title}
+                    sx={{ ...inputStyle }}
+                  />
+                  <FormHelperText fullwidth sx={{ color: "error.main", mb: 2 }}>
+                    {errors.title ? errors.title.message : " "}
+                  </FormHelperText>
+                </FormControl>
               )}
             />
 
-<Controller
+            <Controller
               name="subject"
               control={control}
               render={(
@@ -205,7 +220,7 @@ const AddAssignmentWizard = ({
                       </MenuItem>
                     ))}
                   </Select>
-                
+
                   <FormHelperText sx={{
                     minHeight: 2,
                     visibility: error ? 'visible' : 'hidden',
@@ -236,6 +251,29 @@ const AddAssignmentWizard = ({
             />
 
             <Controller
+              name="set_date"
+              control={control}
+              render={(
+                { field, fieldState: { error } } // Access error here
+              ) => (
+                <DatePicker
+                  label="Start Date"
+                  value={field.value} // Important: Bind the value
+                  onChange={field.onChange} // Important: Bind the onChange
+                  fullWidth
+                  sx={{ ...inputStyle, width: "100%", mb: 4 }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      error={!!error}
+                      helperText={error?.message}
+                    />
+                  )} // Show error
+                />
+              )}
+            />
+
+            <Controller
               name="due_date"
               control={control}
               render={(
@@ -246,6 +284,7 @@ const AddAssignmentWizard = ({
                   value={field.value} // Important: Bind the value
                   onChange={field.onChange} // Important: Bind the onChange
                   fullWidth
+                  minDate={setDateValue || dayjs()}
                   sx={{ ...inputStyle, width: "100%", mb: 4 }}
                   renderInput={(params) => (
                     <TextField

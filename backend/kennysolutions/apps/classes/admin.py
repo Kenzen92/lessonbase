@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, ClassEvent, TeachingResource, Assignment, Feedback
+from .models import AssignmentAttempt, Event, ClassEvent, TeachingResource, Assignment, Feedback
 
 # Inline classes for related models
 class TeachingResourceInline(admin.TabularInline):
@@ -51,6 +51,20 @@ class AssignmentAdmin(admin.ModelAdmin):
     ordering = ('due_date',)
     filter_horizontal = ('teachers', 'students', 'material')
 
+# Create the inline class for Feedback
+class FeedbackInline(admin.TabularInline): # Or admin.StackedInline
+    model = Feedback
+    extra = 1 # Number of empty forms to display for adding new feedback
+    fields = ('teacher', 'score', 'text') # Fields to display in the inline form
+
+
+
+@admin.register(AssignmentAttempt)  
+class AssignmentAttemptAdmin(admin.ModelAdmin):
+    list_display = ('id', 'assignment', 'student', 'graded')
+    search_fields = ('assignment__title', 'student__username')
+    ordering = ('-assignment__due_date',)
+    inlines = [FeedbackInline] # Add the FeedbackInline here
 
 
 @admin.register(Feedback)

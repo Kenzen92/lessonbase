@@ -38,7 +38,7 @@ const AssignmentCard = ({
 
       <Box>
         <Typography variant="body1" gutterBottom>
-          {assignment.description}
+          {assignment.id}
         </Typography>
         <Typography variant="body2" gutterBottom>
           Due Date: {new Date(assignment.due_date).toLocaleDateString()}

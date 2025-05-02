@@ -93,6 +93,7 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all()),
     max_score = serializers.IntegerField()
     due_date = serializers.DateField(),
+    set_date = serializers.DateField(default=datetime.now(timezone.utc).date())
     students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True)
     material = serializers.ListField(
         child=serializers.FileField(), write_only=True, required=False
@@ -100,7 +101,7 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Assignment
-        fields = ['title', 'description', 'subject', 'max_score', 'due_date', 'students', 'material']
+        fields = ['title', 'description', 'subject', 'max_score', 'set_date', 'due_date', 'students', 'material']
 
 
     def create(self, validated_data):
@@ -134,6 +135,7 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
             'teachers',
             'max_score',
             'created_at',
+            'set_date',
             'due_date',
             'students',
         ]
