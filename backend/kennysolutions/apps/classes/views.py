@@ -382,38 +382,21 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         now = timezone.now().date()
         assignments = self.get_queryset().annotate(
             category=Case(
-                # 1. Highest priority: Marked assignments (regardless of dates)
-                When(Q(marked=True), then=Value('Marked')),
-
-                # 2. Not Marked, check for Overdue (due date in the past or today)
-                #    Implicitly, if it's not Marked and Overdue, set_date must be <= now
-                #    because assignments with set_date > now are handled in 'Upcoming'.
-                When(Q(marked=False) & Q(due_date__lte=now), then=Value('Overdue')),
-
-                # 3. Not Marked, not Overdue, check for Upcoming (set date in the future)
+                When(Q(marked=True), then=Value('Complete')),
                 When(Q(marked=False) & Q(set_date__gt=now), then=Value('Upcoming')),
-
-                # 4. Not Marked, not Overdue, not Upcoming: Must be Set/Active
-                #    This covers marked=False, set_date <= now, and due_date > now
-                #    (i.e., started but not yet due).
-                #    You can choose one category name like 'Active' or 'Set' or 'Current'.
-                #    Let's use 'Active' for clarity to combine the previous 'Set' and 'To Mark' concept
-                #    which had overlapping definitions.
-                When(Q(marked=False), then=Value('Set')), # Catches anything not marked, overdue, or upcoming
-
-                # 5. Fallback - should theoretically not be hit if dates are always present
+                When(Q(marked=False) & Q(to_mark=False), then=Value('Set')),
+                When(Q(marked=False) & Q(to_mark=True), then=Value('To Mark')),
                 default=Value('Uncategorized'),
                 output_field=CharField(),
             )
-        )
+        ).order_by('due_date')
 
         # Serialize assignments by category
         categorized_data = {
-            "Overdue": [],
             "To Mark": [],
             "Set": [],
             "Upcoming": [],
-            "Marked": [],
+            "Complete": [],
         }
 
         # Assign each annotated assignment to the appropriate category list

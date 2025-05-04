@@ -68,7 +68,7 @@ class ClassEventSerializer(serializers.ModelSerializer):
 
 class AssignmentListSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
-    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+    subject = SubjectSerializer()
     teachers = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), many=True)
     students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True)
 

@@ -73,6 +73,7 @@ class Assignment(models.Model):
     due_date = models.DateField(
         help_text="The deadline for the homework."
     )
+    to_mark = models.BooleanField(null=False, blank=False, default=False)
     marked = models.BooleanField(null=False, blank=False, default=False)
 
     def __str__(self):

@@ -36,34 +36,29 @@ function Assignments() {
   const navigate = useNavigate();
   const columns = [
     {
-      label: is_teacher ? "Overdue" : "Late", // Set label to the original name
-      name: "Overdue", // Set name to the teacher's default
-      color: "#400702",
-      description: "Assignments that were due but not submitted in time.",
-    },
-    {
       label: is_teacher ? "To Mark" : "Submitted", // Set label to the original name
       name: "To Mark", // Set name to the teacher's default
       color: "#FF8C00",
       description: "Assignments awaiting grading or feedback.",
     },
     {
-      label: is_teacher ? "Set" : "To Do", // Set label to the original name
+      label: is_teacher ? "Ongoing" : "To Do", // Set label to the original name
       name: "Set", // Set name to the teacher's default
       color: "#2F4F4F",
-      description: "Newly set assignments that need to be reviewed.",
+      description: "Set assignments that need to be submitted.",
     },
     {
       label: "Upcoming", // Set label to the original name
       name: "Upcoming", // Set name to the teacher's default
       color: "#4682B4",
-      description: "Assignments scheduled for the near future.",
+      description: "Assignments scheduled to be set in the future.",
     },
     {
-      label: "Marked", // Set label to the original name
-      name: "Marked", // Set name to the teacher's default
+      label: "Complete", // Set label to the original name
+      name: "Complete", // Set name to the teacher's default
       color: "#006400",
-      description: "Assignments that have been reviewed and marked.",
+      description:
+        "Assignments that all students submitted and were reviewed and marked.",
     },
   ];
 
