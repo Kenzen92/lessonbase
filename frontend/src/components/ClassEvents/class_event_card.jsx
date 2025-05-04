@@ -31,31 +31,33 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
           width: "100%",
         }}
       >
-      <Chip
-        icon={<IconComponent color="#fff" size={20} />}
-        label={
-          <span style={{
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            display: "inline-block",
-            marginTop: "0.5rem",
-            maxWidth: "8rem"
-          }}>
-            {eventData.subject.name}
-          </span>
-        }
-        size="medium"
-        sx={{
-          color: "#fff",
-          fontSize: 20,
-          mt: "auto",
-          mb: "auto",
-          height: "2.2rem",
-          minWidth: "10rem",
-          backgroundColor: eventData.subject.color,
-        }}
-      />
+        <Chip
+          icon={<IconComponent color="#fff" size={20} />}
+          label={
+            <span
+              style={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: "inline-block",
+                marginTop: "0.5rem",
+                maxWidth: "8rem",
+              }}
+            >
+              {eventData.subject.code}
+            </span>
+          }
+          size="medium"
+          sx={{
+            color: "#fff",
+            fontSize: 20,
+            mt: "auto",
+            mb: "auto",
+            height: "2.2rem",
+            minWidth: "10rem",
+            backgroundColor: eventData.subject.color,
+          }}
+        />
 
         <Box
           sx={{
@@ -70,7 +72,10 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
           <Typography>{formattedTime}</Typography>
         </Box>
         <Typography>{eventData.duration} Minutes</Typography>
-        <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}><FaFile color="#fff" size={22} />{eventData.resources.length}</Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <FaFile color="#fff" size={22} />
+          {eventData.resources.length}
+        </Box>
         <IconButton
           onClick={() => handleOpenDetails(eventData)}
           aria-label="details"

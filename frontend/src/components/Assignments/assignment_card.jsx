@@ -1,34 +1,61 @@
-import React, { useState } from "react";
+import React from "react";
 import { Box, Chip, Typography, Button } from "@mui/material";
 import subjectIconMap from "../../utils/icons";
 import EventNoteIcon from "@mui/icons-material/EventNote";
+import { FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
 
 const AssignmentCard = ({
   assignment,
   setDrawerOpen,
   setCurrentAssignment,
 }) => {
-  const date_today = new Date(); // Get the current date and time
-  const IconComponent = subjectIconMap[assignment.subject.name];
-  // Convert assignment.due_date to a Date object for reliable comparison
+  // Add null checks for assignment and its properties for safety
+  if (!assignment || !assignment.subject) {
+    return null; // Or render a placeholder/error state
+  }
+
+  // Use a fallback icon if the subject's icon is not found
+  const IconComponent =
+    subjectIconMap[assignment.subject.name] || FaUserGraduate;
+
+  const date_today = new Date();
   const dueDateObj = new Date(assignment.due_date);
 
-  // --- Simpler Date Formatting Logic ---
-  const formattedDueDate = dueDateObj.toLocaleDateString(undefined, {
-    weekday: "long", // e.g., "Tuesday"
-    day: "numeric", // e.g., "23"
-    month: "long", // e.g., "March"
-  });
+  // To compare just the dates and ignore the time
+  const today_midnight = new Date(
+    date_today.getFullYear(),
+    date_today.getMonth(),
+    date_today.getDate()
+  );
+  const dueDate_midnight = new Date(
+    dueDateObj.getFullYear(),
+    dueDateObj.getMonth(),
+    dueDateObj.getDate()
+  );
 
-  // Determine if the assignment is late
-  // It's late if it's not marked AND the due date is before today's date/time
-  const isLate = !assignment.marked && dueDateObj < date_today;
+  const timeDifference = dueDate_midnight.getTime() - today_midnight.getTime();
+  const numDayDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+
+  const isLate = !assignment.marked && numDayDifference < 0;
+  const dueToday = !assignment.marked && numDayDifference === 0;
+  // Show days remaining only if not marked and due in the future
+  const daysRemaining = !assignment.marked && numDayDifference > 0;
+
+  // Define reusable styles for the Chip label span to handle truncation
+  const chipLabelTruncateStyles = {
+    "& .MuiChip-label": {
+      display: "inline-block",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+  };
 
   return (
     <Box
       sx={{
         boxShadow: 2,
-        p: 0.2,
+        p: 1, // Increased padding for better internal spacing
         marginTop: 1,
         borderColor: "#fff",
         borderRadius: "10px",
@@ -48,90 +75,57 @@ const AssignmentCard = ({
         sx={{
           display: "flex",
           flexDirection: "row",
-          justifyContent: "space-between",
+          gap: 1, // Use gap for consistent spacing between chips
+          alignItems: "center", // Vertically align chips
+          mb: 2,
+          flexWrap: "wrap", // Allow chips to wrap if space is limited
         }}
       >
+        {/* Subject Chip */}
         <Chip
-          icon={<IconComponent color="#fff" size={14} />}
-          label={
-            <span
-              style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "inline-block",
-                marginTop: "0.5rem",
-                maxWidth: "8rem",
-              }}
-            >
-              {assignment.subject.name}
-            </span>
-          }
-          size="small"
+          icon={<IconComponent style={{ color: "#fff" }} size={14} />}
+          label={assignment.subject.code}
+          size="small" // Ensure consistent small size
           sx={{
-            color: "#fff",
-            fontSize: 12,
-            mt: "auto",
-            mb: "auto",
-            width: 135,
+            ...chipLabelTruncateStyles, // Apply truncation styles
+            color: "#fff", // Keep text color white
             backgroundColor: assignment.subject.color,
           }}
         />
-        {
-          isLate ? (
-            <Chip
-              key={assignment.id} // Chip key probably belongs outside if rendering multiple
-              label={"Late"}
-              color="error"
-              size="small"
-              sx={{
-                margin: "0.5rem",
-                width: 75,
-                justifyContent: "center",
-              }}
-            />
-          ) : // Removed debugging Typography elements
-          null // Render nothing when not late, or render a different chip/indicator
-        }
-      </Box>
-      <Box>
-        {/* --- Dressed-up Due Date --- */}
-        <Box
-          sx={{
-            display: "flex", // Arrange children (label and value) horizontally
-            alignItems: "center", // Vertically align them in the middle
-            // Add some bottom margin if you want space below this line,
-            // replacing the previous Typography's gutterBottom effect
-            marginBottom: 1, // Adjust spacing as needed
-          }}
-        >
-          {/* Optional: Add an icon */}
-          <EventNoteIcon
+
+        {/* Status Chip (Late or Today) */}
+        {isLate || dueToday ? (
+          <Chip
+            icon={<FaExclamationTriangle style={{ color: "fff" }} size={14} />}
+            key={`${assignment.id}-status`} // Added a more specific key for uniqueness
+            label={isLate ? "Late" : "Today"}
+            color={isLate ? "error" : "warning"}
+            size="small" // Ensure consistent small size
             sx={{
-              marginRight: 0.5,
-              fontSize: "small",
-              color: "text.secondary",
+              color: "#fff", // Ensure text color is white on colored chips
+              // No label truncation needed for these short labels
             }}
           />
+        ) : null}
 
-          {/* Label "Due Date:" */}
-          <Typography
-            variant="caption" // Use a smaller or different variant for the label
-            color="text.secondary" // Use a secondary color to make it less prominent
-            sx={{ marginRight: 1 }} // Add spacing between the label and the date value
-          >
-            Due Date:
-          </Typography>
-
-          {/* Value (the formatted date) */}
-          <Typography variant="body2">
-            {" "}
-            {/* Or keep 'body1' if preferred */}
-            {formattedDueDate}
-          </Typography>
-        </Box>
-        {/* --- End Dressed-up Due Date --- */}
-
+        {/* Days Remaining Chip */}
+        {daysRemaining ? (
+          <Chip
+            icon={<EventNoteIcon style={{ color: "#fff" }} size={14} />}
+            label={`${numDayDifference} ${
+              numDayDifference === 1 ? "Day" : "Days"
+            }`}
+            size="small" // Ensure consistent small size
+            sx={{
+              ...chipLabelTruncateStyles, // Apply truncation styles
+              color: "#fff", // Keep text color white
+              backgroundColor: "#333",
+            }}
+          />
+        ) : null}
+      </Box>
+      {/* Centered the button */}
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
         <Button
           variant="contained"
           size="small"

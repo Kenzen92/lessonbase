@@ -10,11 +10,13 @@ def create_required_objects(sender, **kwargs):
     from apps.classes.models import ClassEvent, Assignment, AssignmentAttempt, Feedback
 
 
-    for name, color in Subject.reserved_names:
+    # Loop now unpacks name, code, and color
+    for name, code, color in Subject.reserved_names:
+        # Use get_or_create with name and code for uniqueness check
         subject, created = Subject.objects.get_or_create(name=name)
-        if not subject.color:
-            subject.color = color
-            subject.save()
+        subject.code = code
+        subject.color = color
+        subject.save()
 
     # Create some students and a teacher
     student_1, student_1_created = Student.objects.get_or_create(username="student_1", first_name="Jim", last_name="Bob", email="jimbob@test.com")

@@ -60,6 +60,7 @@ class Assignment(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, help_text="The subject to which this assignment belongs.")
     teachers = models.ManyToManyField(CustomUser, related_name='assignments_as_teacher', help_text="Teachers assigning this work.")
     students = models.ManyToManyField(Student, related_name='assignments_as_student', help_text="Students assigned to this work.")
+    class_groups = models.ManyToManyField(ClassGroup, related_name='assignment_as_class_group')
     max_score = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text="Maximum score that can be achieved for this assignment."
