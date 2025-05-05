@@ -15,11 +15,12 @@ import Chat from "../components/Chat/chat";
 import { fetchStudents, fetchChats } from "../utils/agent";
 import StudentDetailsDrawer from "../components/Students/student_details_drawer";
 import { useParams } from "react-router-dom";
-import { PrimaryButton } from "../styles/buttons";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 import StudentListSearch from "../components/Students/student_list_search";
+import { useUser } from "../contexts/user_context";
 
 function Students() {
+  const { userId } = useUser();
   const { id } = useParams();
   const [showStudentForm, setshowStudentForm] = useState(false);
   const [students, setStudents] = useState([]);
@@ -28,26 +29,33 @@ function Students() {
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
   const [currentStudent, setCurrentStudent] = useState(null);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [email, setEmail] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-
-
   useEffect(() => {
+    // Add a check to make sure userId is available before fetching data that depends on it
+    if (userId === null) {
+      console.log("userId is null, skipping data fetch in Students effect");
+      return; // Don't fetch if userId is not yet available
+    }
+
     const fetchData = async () => {
+      console.log("Fetching student/chat data for userId:", userId); // Log the userId being used
       const studentData = await fetchStudents();
       setStudents(studentData);
       setFilteredStudents(studentData);
-      setCurrentUserId(window.sessionStorage.getItem("user").id);
+
       const chatData = await fetchChats();
       const processedChats = chatData.map((chat) => {
         return {
           ...chat,
-          participants: chat.participants.filter((id) => id !== currentUserId),
+          // Now userId should be the value from the context when this runs
+          participants: chat.participants.filter((id) => id !== userId),
         };
       });
       setChats(processedChats);
+
+      // The rest of your logic for handling the ID from params
       if (id != undefined) {
         const intId = parseInt(id, 10);
         const currentStudent = studentData.find(
@@ -57,8 +65,9 @@ function Students() {
         setDrawerOpen(true);
       }
     };
+
     fetchData();
-  }, []);
+  }, [userId, id]); // <-- Added userId and id to the dependency array
 
   // Function to handle form submission
   const handleFormSubmit = async (e) => {
@@ -91,7 +100,7 @@ function Students() {
     }
   };
 
-return (
+  return (
     <>
       <Navigation />
       <Container>

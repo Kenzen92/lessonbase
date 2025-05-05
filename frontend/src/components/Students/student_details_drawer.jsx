@@ -7,40 +7,46 @@ import {
   Button,
   Drawer,
   Avatar,
+  Chip,
 } from "@mui/material";
 import { fetchClassEventsForStudent } from "../../utils/agent";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { handleDeleteStudent } from "../../utils/agent";
 import { createChat } from "../../utils/agent";
+import {
+  PrimaryButton,
+  SecondaryButton,
+  WarningButton,
+} from "../../styles/buttons";
+import ClassGroupChip from "../ClassGroups/class_group_chip";
 
+export default function StudentDetailsDrawer({
+  student,
+  open,
+  onClose,
+  fetchData,
+  setChatId,
+  setChatOpen,
+  setDrawerOpen,
+  chats,
+}) {
+  const navigate = useNavigate();
+  const [previousClass, setPreviousClass] = useState(null);
+  const [nextClass, setNextClass] = useState(null);
+  const [chatId, setChatIdState] = useState(null);
+  // Added error state for potential API call issues
+  const [error, setError] = useState(null);
 
-  export default function StudentDetailsDrawer({
-    student,
-    open,
-    onClose,
-    fetchData,
-    setChatId,
-    setChatOpen,
-    setDrawerOpen,
-    chats
-  }) {
-    const navigate = useNavigate();
-    const [state, setState] = useState(null);
-    const [error, setError] = useState(null);
-    const [previousClass, setPreviousClass] = useState(null);
-    const [nextClass, setNextClass] = useState(null);
-    const [chatId, setChatIdState] = useState(null);
-
-    useEffect(() => {
-      if (student) {
-        const chat = chats.find((chat) =>
-          chat.participants.includes(student.id)
-      );
+  useEffect(() => {
+    if (student) {
+      const chat = chats.find((chat) => chat.participants.includes(student.id));
       const resolvedChatId = chat ? chat.id : null;
       setChatIdState(resolvedChatId);
+    } else {
+      setChatIdState(null);
     }
-  }, [student]);
+  }, [student, chats]);
 
   const handleNavigateToClass = (classId) => {
     navigate(`/dashboard/${classId}`);
@@ -54,6 +60,10 @@ import { createChat } from "../../utils/agent";
 
   const handleCreateChat = async () => {
     try {
+      // Ensure student and student.id are available before creating chat
+      if (!student || !student.id) {
+        throw new Error("Student details not available to create chat.");
+      }
       const response = await createChat(student.id, navigate);
 
       if (!response.ok) {
@@ -67,8 +77,12 @@ import { createChat } from "../../utils/agent";
     }
   };
 
-  const handleDeleteStudent = async () => {
+  const deleteStudent = async () => {
     try {
+      // Ensure student and student.id are available before deleting
+      if (!student || !student.id) {
+        throw new Error("Student details not available to delete.");
+      }
       const data = await handleDeleteStudent(student?.id, navigate);
       toast.success(data.message);
       onClose();
@@ -79,8 +93,15 @@ import { createChat } from "../../utils/agent";
   };
 
   const handleFetchClassEvents = async () => {
+    setError(null); // Clear previous errors
     try {
-      const data = await fetchClassEventsForStudent(student?.id, navigate);
+      // Ensure student and student.id are available before fetching events
+      if (!student || !student.id) {
+        setPreviousClass(null);
+        setNextClass(null);
+        return; // Exit if no student or student id
+      }
+      const data = await fetchClassEventsForStudent(student.id, navigate);
       const now = new Date();
 
       const pastClasses = data.filter(
@@ -90,52 +111,75 @@ import { createChat } from "../../utils/agent";
         (event) => new Date(event.start_time) > now
       );
 
-      const lastClass =
-        pastClasses.length > 0 ? pastClasses[pastClasses.length - 1] : null;
-      const upcomingClass = futureClasses.length > 0 ? futureClasses[0] : null;
+      // Sort past classes by start time descending to get the last one
+      pastClasses.sort(
+        (a, b) => new Date(b.start_time) - new Date(a.start_time)
+      );
+      // Sort future classes by start time ascending to get the next one
+      futureClasses.sort(
+        (a, b) => new Date(a.start_time) - new Date(b.start_time)
+      );
+
+      const lastClass = pastClasses.length > 0 ? pastClasses[0] : null; // Get the first after sorting descending
+      const upcomingClass = futureClasses.length > 0 ? futureClasses[0] : null; // Get the first after sorting ascending
 
       // format the start_time into human readable format
       const formatTime = (time) => {
+        if (!time) return "N/A";
         const date = new Date(time);
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ][date.getDay()];
-        const dayNumber = date.getDate();
-        const hours = date.getHours();
-        var minutes = date.getMinutes();
-        if (minutes == "0") minutes = "00";
-        const ampm = hours >= 12 ? "pm" : "am";
-        hours >= 12 ? hours - 12 : hours;
-        return `${days}, ${dayNumber} ${hours}:${minutes} ${ampm}`;
+        const options = {
+          weekday: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        };
+        return date.toLocaleString(undefined, options);
       };
 
-      lastClass && (lastClass.start_time = formatTime(lastClass.start_time));
-      upcomingClass &&
-        (upcomingClass.start_time = formatTime(upcomingClass.start_time));
-      setPreviousClass(lastClass);
-      setNextClass(upcomingClass);
+      setPreviousClass(
+        lastClass
+          ? { ...lastClass, start_time: formatTime(lastClass.start_time) }
+          : null
+      );
+      setNextClass(
+        upcomingClass
+          ? {
+              ...upcomingClass,
+              start_time: formatTime(upcomingClass.start_time),
+            }
+          : null
+      );
     } catch (error) {
-      console.log(error);
-      setError(error.message);
+      console.error("Error fetching class events:", error);
+      setError("Failed to load class schedule.");
+      setPreviousClass(null);
+      setNextClass(null);
     }
   };
 
   useEffect(() => {
     if (student && student.id) {
-      // Check if student is defined and has an id
       handleFetchClassEvents();
     } else {
       setPreviousClass(null);
       setNextClass(null);
+      setError(null); // Clear error when no student is selected
     }
   }, [student, navigate]);
+
+  // Format enrollment date
+  const formatEnrollmentDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      const options = { year: "numeric", month: "long", day: "numeric" };
+      return date.toLocaleDateString(undefined, options);
+    } catch (e) {
+      console.error("Invalid date format:", dateString);
+      return dateString; // Return original if formatting fails
+    }
+  };
 
   return (
     <Drawer
@@ -145,111 +189,196 @@ import { createChat } from "../../utils/agent";
       sx={{ backdropFilter: "blur(2px)" }}
     >
       <Box
-        sx={{ width: 500, p: 3, height: "100%", backgroundColor: "#252525" }}
+        sx={{
+          width: 500,
+          p: 3,
+          height: "100%",
+          backgroundColor: "#252525",
+          color: "white",
+        }}
       >
         {student ? (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "flex-start",
-            }}
-          >
-            <Avatar
-              alt={student.first_name}
-              src={student.profile_picture}
-              sx={{ width: 56, height: 56, mr: 2 }}
-            >
-              {student.first_name ? student.first_name[0] : null}
-            </Avatar>
-            <Typography
-              variant="h6"
-              sx={{ color: "white", mb: 2, textAlign: "center" }}
-            >
-              {student.first_name} {student.last_name}
-            </Typography>
-            <Divider sx={{ color: "white" }} />
-          </Box>
-        ) : (
-          <Typography sx={{ color: "white" }}>No Student selected.</Typography>
-        )}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <List>
-            {previousClass ? (
-              <>
-                <Typography sx={{ mt: 2, color: "#fff" }}>
-                  Previous Class:{" "}
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  sx={{ mt: 2, width: "100%" }}
-                  onClick={() => handleNavigateToClass(previousClass.id)}
-                >
-                  {previousClass.subject.name} {previousClass.start_time}
-                </Button>
-              </>
-            ) : (
-              <Typography sx={{ mt: 2, color: "#fff" }}>
-                No Previous Class
-              </Typography>
-            )}
-            {nextClass ? (
-              <>
-                <Typography sx={{ mt: 2, color: "#fff" }}>
-                  Next Class:{" "}
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  sx={{ mt: 2, width: "100%" }}
-                  onClick={() => handleNavigateToClass(previousClass.id)}
-                >
-                  {nextClass.subject.name} {nextClass.start_time}
-                </Button>
-              </>
-            ) : (
-              <Typography sx={{ mt: 2, color: "#fff" }}>
-                No Next Class
-              </Typography>
-            )}
-          </List>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2, width: "100%" }}
-            onClick={() => handleDeleteStudent}
-          >
-            Delete Student
-          </Button>
-          {chatId ? (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                console.log("selecting existing chat: ", chatId);
-                handleSelectChat(chatId);
+          <>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center", // Changed to center for vertical alignment
+                justifyContent: "flex-start",
+                mb: 3, // Added margin bottom
               }}
-              sx={{ ml: 1, fontSize: "0.8rem" }} // Reduced button size
             >
-              Chat
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleCreateChat}
-              sx={{ ml: 1, fontSize: "0.8rem" }} // Reduced button size
+              <Avatar
+                alt={student.first_name}
+                src={student.profile_picture}
+                sx={{ width: 64, height: 64, mr: 2 }} // Increased avatar size slightly
+              >
+                {student.first_name ? student.first_name[0] : null}
+              </Avatar>
+              <Typography
+                variant="h5" // Increased font size
+                sx={{ color: "white", fontWeight: "bold" }} // Added bold font weight
+              >
+                {student.first_name} {student.last_name}
+              </Typography>
+            </Box>
+            <Divider sx={{ bgcolor: "#444", my: 2 }} /> {/* Themed divider */}
+            {/* General Information Section */}
+            <Box sx={{ mb: 3 }}>
+              {" "}
+              {/* Added margin bottom for section */}
+              <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+                General Information
+              </Typography>
+              <Box sx={{ ml: 2 }}>
+                {" "}
+                {/* Indent details */}
+                <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
+                  <strong>Enrollment Date:</strong>{" "}
+                  {formatEnrollmentDate(student.enrollment_date)}
+                </Typography>
+                {/* Add other general details here as needed */}
+                {/*
+                  <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
+                      <strong>Student ID:</strong> {student.id}
+                  </Typography>
+                  */}
+              </Box>
+            </Box>
+            <Divider sx={{ bgcolor: "#444", my: 2 }} />
+            {/* Class Schedule Section */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+                Class Schedule
+              </Typography>
+              <Box sx={{ ml: 2 }}>
+                {error && <Typography color="error">{error}</Typography>}
+                {!error && (
+                  <>
+                    {previousClass ? (
+                      <Box
+                        sx={{
+                          mb: 1,
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "space-evenly",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          <Typography
+                            variant="body1"
+                            sx={{ color: "#ccc", mb: 0.5 }}
+                          >
+                            <strong>Previous Class:</strong>{" "}
+                            {previousClass.subject.name}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#bbb", mb: 0.5, ml: 1 }}
+                          >
+                            {previousClass.start_time}
+                          </Typography>
+                        </Box>
+                        <SecondaryButton
+                          size="small" // Made button smaller
+                          onClick={() =>
+                            handleNavigateToClass(previousClass.id)
+                          }
+                          sx={{ mt: 0.5 }} // Added some margin top
+                        >
+                          View Class
+                        </SecondaryButton>
+                      </Box>
+                    ) : (
+                      <Typography variant="body1" sx={{ color: "#ccc", mb: 1 }}>
+                        No Previous Class Found.
+                      </Typography>
+                    )}
+                    {nextClass ? (
+                      <Box
+                        sx={{
+                          mb: 1,
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "space-evenly",
+                        }}
+                      >
+                        <Box sx={{ display: "flex", flexDirection: "column" }}>
+                          <Typography
+                            variant="body1"
+                            sx={{ color: "#ccc", mb: 0.5 }}
+                          >
+                            <strong>Next Class:</strong>{" "}
+                            {nextClass.subject.name}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#bbb", mb: 0.5, ml: 1 }}
+                          >
+                            {nextClass.start_time}
+                          </Typography>
+                        </Box>
+                        <SecondaryButton
+                          size="small"
+                          onClick={() => handleNavigateToClass(nextClass.id)}
+                          sx={{ mt: 0.5 }}
+                        >
+                          View Class
+                        </SecondaryButton>
+                      </Box>
+                    ) : (
+                      <Typography variant="body1" sx={{ color: "#ccc", mb: 1 }}>
+                        No Upcoming Class Found.
+                      </Typography>
+                    )}
+                  </>
+                )}
+              </Box>
+            </Box>
+            <Divider sx={{ bgcolor: "#444", my: 2 }} />
+            <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+              Class Groups
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                mb: 2,
+              }}
             >
-              + Chat
-            </Button>
-          )}
-        </Box>
+              {student.class_groups.map((group) => {
+                return <ClassGroupChip key={group.id} classGroup={group} />; // <-- Added 'return'
+              })}
+            </Box>
+            <Divider sx={{ bgcolor: "#444", my: 2 }} />
+            {/* Actions Section */}
+            <Box
+              sx={{ display: "flex", justifyContent: "space-around", mt: 3 }}
+            >
+              {" "}
+              {/* Adjusted spacing and margin top */}
+              <PrimaryButton
+                variant="contained" // Use contained variant for primary action
+                onClick={
+                  chatId ? () => handleSelectChat(chatId) : handleCreateChat
+                }
+              >
+                {chatId ? "Open Chat" : "Create Chat"}
+              </PrimaryButton>
+              <WarningButton
+                variant="contained" // Use contained variant for warning action
+                onClick={deleteStudent}
+              >
+                Delete Student
+              </WarningButton>
+            </Box>
+          </>
+        ) : (
+          <Typography sx={{ color: "white", textAlign: "center", mt: 4 }}>
+            No Student selected.
+          </Typography>
+        )}
       </Box>
     </Drawer>
   );

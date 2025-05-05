@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const token = window.sessionStorage.getItem("token");
-    console.log("token", token);
 
     if (token && !auth.userType) {
       fetchCurrentUser()

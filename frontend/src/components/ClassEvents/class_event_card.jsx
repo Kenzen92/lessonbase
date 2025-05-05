@@ -24,6 +24,10 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
           alignItems: "center",
           justifyContent: "space-between",
           backgroundColor: "#292929",
+          transition: "background-color 0.3s ease",
+          "&:hover": {
+            backgroundColor: "#333",
+          },
           borderRadius: "15px",
           mb: 1,
           p: 1,

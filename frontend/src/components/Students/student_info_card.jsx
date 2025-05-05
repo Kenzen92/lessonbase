@@ -11,17 +11,9 @@ import {
   IconButton,
 } from "@mui/material";
 import { FaInfoCircle } from "react-icons/fa";
+import ClassGroupChip from "../ClassGroups/class_group_chip";
 
-const StudentInfoCard = ({
-  student,
-  handleOpenDrawer,
-  setCurrentStudent,
-}) => {
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
-
-
-
+const StudentInfoCard = ({ student, handleOpenDrawer, setCurrentStudent }) => {
   return (
     <Box
       sx={{
@@ -36,10 +28,14 @@ const StudentInfoCard = ({
         display: "flex",
         alignItems: "center", // Align items vertically in the bar
         justifyContent: "space-between", // Distribute space between left and right sections
+        backgroundColor: "#292929",
+        transition: "background-color 0.3s ease",
+        "&:hover": {
+          backgroundColor: "#333",
+        },
       }}
     >
-      {/* Left Column: Avatar and Name */}
-      <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Box sx={{ display: "flex", alignItems: "center", minWidth: 150 }}>
         <Avatar
           alt={student.first_name}
           src={student.profile_picture}
@@ -50,9 +46,13 @@ const StudentInfoCard = ({
         <Typography variant="subtitle1">{`${student.first_name} ${student.last_name}`}</Typography>
       </Box>
 
-      {/* Right Row: Action Buttons */}
+      <Box sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
+        {student.class_groups.map((group) => {
+          return <ClassGroupChip key={group.id} classGroup={group} />; // <-- Added 'return'
+        })}
+      </Box>
+
       <Box sx={{ display: "flex", alignItems: "center" }}>
-        
         <IconButton
           variant="contained"
           color="primary"

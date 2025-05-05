@@ -26,14 +26,23 @@ export default function ActionStatisticsBar({
   useEffect(() => {
     const fetchData = async () => {
       let response = null;
-      if (auth.userType === "teacher")
-        response = await fetchTeacherStatistics(page);
-      else response = await fetchStudentStatistics(page);
-      console.log(response.data);
-      setStatistics(response.data);
+
+      // --- Modification Starts Here ---
+      // Check if auth object, token, and specifically userType are available
+      if (auth && auth.token && auth.userType !== null) {
+        if (auth.userType === "teacher") {
+          response = await fetchTeacherStatistics(page);
+          setStatistics(response.data); // Assuming response.data contains the stats
+        } else {
+          // Assuming any other userType means student for this context
+          response = await fetchStudentStatistics(page);
+          setStatistics(response.data); // Assuming response.data contains the stats
+        }
+      }
     };
+
     fetchData();
-  }, [page]);
+  }, [page, auth?.token, auth?.userType]);
 
   // Define stats per page
   const pageStats = {
@@ -149,7 +158,10 @@ export default function ActionStatisticsBar({
           {statistics &&
             pageStats[page]?.map(({ key, label, icon, divisor, fixed }) => {
               let value = statistics[key];
-              if ((auth.userType !== "Teacher") && key === "total_teaching_hours") {
+              if (
+                auth.userType !== "Teacher" &&
+                key === "total_teaching_hours"
+              ) {
                 return null;
               }
               if (divisor) value = (value / divisor).toFixed(fixed || 0);

@@ -14,6 +14,7 @@ function Login() {
   const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
   const { setAuth } = useAuth();
+  const { getUser } = useUser();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,6 +42,7 @@ function Login() {
       const data = await response.json();
       window.sessionStorage.setItem("token", data["token"]);
       setAuth({ token: data.token, userType: data.user_type });
+      getUser();
       navigate("/dashboard");
     } catch (error) {
       console.log(error);
