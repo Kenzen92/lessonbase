@@ -1,6 +1,7 @@
 // This file stores data related to the current user
 import { createContext, useContext, useState, useEffect } from "react";
 import { fetchProfileData } from "../utils/agent";
+import { FaCommentsDollar } from "react-icons/fa";
 
 export const UserContext = createContext(null);
 
@@ -61,28 +62,32 @@ export function UserProvider({ children }) {
     // and add checks for them here as well.
   };
 
+  const getUser = async () => {
+    // Make a request to the profile endpoint and set the user data that comes back
+    fetchProfileData()
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user data", err);
+        // Consider what should happen on failure - maybe clear token or set error state
+      });
+  };
+
   useEffect(() => {
     const token = window.sessionStorage.getItem("token");
-    // A more robust check than just !id might be needed if the API never returns id.
-    // Checking if essential info like username is null might be better.
-    // However, keeping !id as per original logic, but be mindful of its limitation if ID is missing.
+
     if (token && userId === null) {
       // Check if token exists and user ID hasn't been set yet
       fetchProfileData()
         .then((data) => {
-          console.log("user data received: ", data); // Log the received data
           setUser(data);
-          // Note: State updates from setId, setUsername, etc. are asynchronous.
-          // Logging the state variables (id, username, etc.) immediately here
-          // might show their *previous* values, not the values just set by setUser.
-          // To see the state after update, use React DevTools or another useEffect hook.
         })
         .catch((err) => {
           console.error("Failed to fetch user data", err);
-          // Consider what should happen on failure - maybe clear token or set error state
         });
     }
-  }, [userId]); // Added 'id' to dependencies. This effect runs on mount, and if 'id' ever changes from null to a value.
+  }, [userId]);
 
   return (
     <UserContext.Provider
@@ -95,7 +100,8 @@ export function UserProvider({ children }) {
         profilePicture,
         classGroups,
         subjects,
-        setUser, // Still expose setUser if other parts of the app need to manually set user data
+        setUser,
+        getUser,
       }}
     >
       {children}

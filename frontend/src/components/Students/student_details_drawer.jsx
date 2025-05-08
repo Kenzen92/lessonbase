@@ -202,176 +202,221 @@ export default function StudentDetailsDrawer({
             <Box
               sx={{
                 display: "flex",
-                alignItems: "center", // Changed to center for vertical alignment
-                justifyContent: "flex-start",
-                mb: 3, // Added margin bottom
+                flexDirection: "column",
+                justifyContent: "space-between",
+                height: "100%",
               }}
             >
-              <Avatar
-                alt={student.first_name}
-                src={student.profile_picture}
-                sx={{ width: 64, height: 64, mr: 2 }} // Increased avatar size slightly
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center", // Changed to center for vertical alignment
+                  justifyContent: "space-between",
+                  mb: 3, // Added margin bottom
+                }}
               >
-                {student.first_name ? student.first_name[0] : null}
-              </Avatar>
-              <Typography
-                variant="h5" // Increased font size
-                sx={{ color: "white", fontWeight: "bold" }} // Added bold font weight
-              >
-                {student.first_name} {student.last_name}
-              </Typography>
-            </Box>
-            <Divider sx={{ bgcolor: "#444", my: 2 }} /> {/* Themed divider */}
-            {/* General Information Section */}
-            <Box sx={{ mb: 3 }}>
-              {" "}
-              {/* Added margin bottom for section */}
-              <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
-                General Information
-              </Typography>
-              <Box sx={{ ml: 2 }}>
-                {" "}
-                {/* Indent details */}
-                <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
-                  <strong>Enrollment Date:</strong>{" "}
-                  {formatEnrollmentDate(student.enrollment_date)}
+                <Avatar
+                  alt={student.first_name}
+                  src={student.profile_picture}
+                  sx={{ width: 64, height: 64, mr: 2 }} // Increased avatar size slightly
+                >
+                  {student.first_name ? student.first_name[0] : null}
+                </Avatar>
+                <Typography
+                  variant="h5" // Increased font size
+                  sx={{ color: "white", fontWeight: "bold" }} // Added bold font weight
+                >
+                  {student.first_name} {student.last_name}
                 </Typography>
-                {/* Add other general details here as needed */}
-                {/*
+              </Box>
+
+              {/* General Information Section */}
+              <Box sx={{ mb: 3 }}>
+                <Divider sx={{ bgcolor: "#444", my: 2 }} />{" "}
+                <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+                  General Information
+                </Typography>
+                <Box sx={{ ml: 2 }}>
+                  {" "}
+                  {/* Indent details */}
+                  <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
+                    <strong>Enrollment Date:</strong>{" "}
+                    {formatEnrollmentDate(student.enrollment_date)}
+                  </Typography>
+                  {/* Add other general details here as needed */}
+                  {/*
                   <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
                       <strong>Student ID:</strong> {student.id}
                   </Typography>
                   */}
+                </Box>
               </Box>
-            </Box>
-            <Divider sx={{ bgcolor: "#444", my: 2 }} />
-            {/* Class Schedule Section */}
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
-                Class Schedule
-              </Typography>
-              <Box sx={{ ml: 2 }}>
-                {error && <Typography color="error">{error}</Typography>}
-                {!error && (
-                  <>
-                    {previousClass ? (
-                      <Box
-                        sx={{
-                          mb: 1,
-                          display: "flex",
-                          flexDirection: "row",
-                          justifyContent: "space-evenly",
-                        }}
-                      >
-                        <Box sx={{ display: "flex", flexDirection: "column" }}>
-                          <Typography
-                            variant="body1"
-                            sx={{ color: "#ccc", mb: 0.5 }}
-                          >
-                            <strong>Previous Class:</strong>{" "}
-                            {previousClass.subject.name}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "#bbb", mb: 0.5, ml: 1 }}
-                          >
-                            {previousClass.start_time}
-                          </Typography>
-                        </Box>
-                        <SecondaryButton
-                          size="small" // Made button smaller
-                          onClick={() =>
-                            handleNavigateToClass(previousClass.id)
-                          }
-                          sx={{ mt: 0.5 }} // Added some margin top
+
+              {/* Class Schedule Section */}
+              <Box sx={{ mb: 3 }}>
+                <Divider sx={{ bgcolor: "#444", my: 2 }} />
+                <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+                  Class Schedule
+                </Typography>
+                <Box sx={{ ml: 2 }}>
+                  {error && <Typography color="error">{error}</Typography>}
+                  {!error && (
+                    <>
+                      {previousClass ? (
+                        <Box
+                          sx={{
+                            mb: 1,
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            p: 1,
+                            backgroundColor: "#333",
+                            borderRadius: 5,
+                            alignItems: "center",
+                          }}
                         >
-                          View Class
-                        </SecondaryButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" sx={{ color: "#ccc", mb: 1 }}>
-                        No Previous Class Found.
-                      </Typography>
-                    )}
-                    {nextClass ? (
-                      <Box
-                        sx={{
-                          mb: 1,
-                          display: "flex",
-                          flexDirection: "row",
-                          justifyContent: "space-evenly",
-                        }}
-                      >
-                        <Box sx={{ display: "flex", flexDirection: "column" }}>
-                          <Typography
-                            variant="body1"
-                            sx={{ color: "#ccc", mb: 0.5 }}
+                          <Box
+                            sx={{ display: "flex", flexDirection: "column" }}
                           >
-                            <strong>Next Class:</strong>{" "}
-                            {nextClass.subject.name}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "#bbb", mb: 0.5, ml: 1 }}
+                            <Typography
+                              variant="h6"
+                              sx={{ color: "#ccc", mb: 0.5 }}
+                            >
+                              Previous Class
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "#bbb", mb: 0.5, ml: 2 }}
+                            >
+                              {previousClass.subject.name}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "#bbb", mb: 0.5, ml: 2 }}
+                            >
+                              {previousClass.start_time}
+                            </Typography>
+                          </Box>
+                          <SecondaryButton
+                            size="small" // Made button smaller
+                            onClick={() =>
+                              handleNavigateToClass(previousClass.id)
+                            }
+                            sx={{ mt: 0.5, maxHeight: 48 }} // Added some margin top
                           >
-                            {nextClass.start_time}
-                          </Typography>
+                            View Class
+                          </SecondaryButton>
                         </Box>
-                        <SecondaryButton
-                          size="small"
-                          onClick={() => handleNavigateToClass(nextClass.id)}
-                          sx={{ mt: 0.5 }}
+                      ) : (
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "#ccc", mb: 1 }}
                         >
-                          View Class
-                        </SecondaryButton>
-                      </Box>
-                    ) : (
-                      <Typography variant="body1" sx={{ color: "#ccc", mb: 1 }}>
-                        No Upcoming Class Found.
-                      </Typography>
-                    )}
-                  </>
-                )}
+                          No Previous Class Found.
+                        </Typography>
+                      )}
+                      {nextClass ? (
+                        <Box
+                          sx={{
+                            mb: 1,
+                            display: "flex",
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            p: 1,
+                            backgroundColor: "#333",
+                            borderRadius: 5,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Box
+                            sx={{ display: "flex", flexDirection: "column" }}
+                          >
+                            <Typography
+                              variant="h6"
+                              sx={{ color: "#ccc", mb: 0.5 }}
+                            >
+                              Next Class
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "#bbb", mb: 0.5, ml: 1 }}
+                            >
+                              {nextClass.subject.name}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: "#bbb", mb: 0.5, ml: 1 }}
+                            >
+                              {nextClass.start_time}
+                            </Typography>
+                          </Box>
+                          <SecondaryButton
+                            size="small"
+                            onClick={() => handleNavigateToClass(nextClass.id)}
+                            sx={{ mt: 0.5 }}
+                          >
+                            View Class
+                          </SecondaryButton>
+                        </Box>
+                      ) : (
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "#ccc", mb: 1 }}
+                        >
+                          No Upcoming Class Found.
+                        </Typography>
+                      )}
+                    </>
+                  )}
+                </Box>
               </Box>
-            </Box>
-            <Divider sx={{ bgcolor: "#444", my: 2 }} />
-            <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
-              Class Groups
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                mb: 2,
-              }}
-            >
-              {student.class_groups.map((group) => {
-                return <ClassGroupChip key={group.id} classGroup={group} />; // <-- Added 'return'
-              })}
-            </Box>
-            <Divider sx={{ bgcolor: "#444", my: 2 }} />
-            {/* Actions Section */}
-            <Box
-              sx={{ display: "flex", justifyContent: "space-around", mt: 3 }}
-            >
-              {" "}
-              {/* Adjusted spacing and margin top */}
-              <PrimaryButton
-                variant="contained" // Use contained variant for primary action
-                onClick={
-                  chatId ? () => handleSelectChat(chatId) : handleCreateChat
-                }
-              >
-                {chatId ? "Open Chat" : "Create Chat"}
-              </PrimaryButton>
-              <WarningButton
-                variant="contained" // Use contained variant for warning action
-                onClick={deleteStudent}
-              >
-                Delete Student
-              </WarningButton>
+              <Box>
+                <Divider sx={{ bgcolor: "#444", my: 2 }} />
+                <Typography variant="h6" sx={{ color: "#fff", mb: 1 }}>
+                  Class Groups
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                    mb: 2,
+                  }}
+                >
+                  {student.class_groups.map((group) => {
+                    return <ClassGroupChip key={group.id} classGroup={group} />; // <-- Added 'return'
+                  })}
+                </Box>
+              </Box>
+              <Box>
+                <Divider sx={{ bgcolor: "#444", my: 2 }} />
+                {/* Actions Section */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-around",
+                    mt: 3,
+                  }}
+                >
+                  {" "}
+                  {/* Adjusted spacing and margin top */}
+                  <PrimaryButton
+                    variant="contained" // Use contained variant for primary action
+                    onClick={
+                      chatId ? () => handleSelectChat(chatId) : handleCreateChat
+                    }
+                  >
+                    {chatId ? "Open Chat" : "Create Chat"}
+                  </PrimaryButton>
+                  <WarningButton
+                    variant="contained" // Use contained variant for warning action
+                    onClick={deleteStudent}
+                  >
+                    Delete Student
+                  </WarningButton>
+                </Box>
+              </Box>
             </Box>
           </>
         ) : (
