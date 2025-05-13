@@ -1,15 +1,16 @@
 from django.urls import path, include
 
-from apps.classes.views import AssignmentAttemptViewSet, ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student, HomeworkViewSet
+from apps.classes.views import ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student
 from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile, auth_user
 from apps.subjects.views import all_subjects, subjects
+from apps.assignments.views import AssignmentAttemptViewSet, AssignmentViewSet
 from . import views
 from rest_framework.routers import DefaultRouter
 
 from apps.storage.views import serve_mongo_file
 
 router = DefaultRouter()
-router.register(r'assignment', HomeworkViewSet, basename='assignment')
+router.register(r'assignment', AssignmentViewSet, basename='assignment')
 router.register(r'class-group', ClassGroupViewSet, basename="class-group")
 router.register(r'class-event', ClassEventViewSet, basename="class-event")
 router.register(r'student', StudentViewSet, basename="student")

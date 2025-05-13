@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.user_accounts',  
     'apps.classes',
     'apps.storage',
+    'apps.assignments',
     'backend',
 ]
 

@@ -1,7 +1,9 @@
 # your_app/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import AssignmentAttempt, Assignment
+
+from apps.assignments.models import AssignmentAttempt
+
 
 @receiver(post_save, sender=AssignmentAttempt)
 def check_assignment_graded_status(sender, instance, created, **kwargs):

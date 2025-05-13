@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AssignmentAttempt, Event, ClassEvent, TeachingResource, Assignment, Feedback
+from .models import Event, ClassEvent, TeachingResource
 
 # Inline classes for related models
 class TeachingResourceInline(admin.TabularInline):
@@ -8,13 +8,6 @@ class TeachingResourceInline(admin.TabularInline):
     fields = ('name', 'description', 'file', 'subject', 'upload_date')
     readonly_fields = ('upload_date',)
     show_change_link = True
-
-
-class FeedbackInline(admin.TabularInline):
-    model = Feedback
-    extra = 1
-    fields = ('teacher', 'text', 'score', 'created_at')
-    readonly_fields = ('created_at',)
 
 
 # Admin classes
@@ -43,33 +36,4 @@ class TeachingResourceAdmin(admin.ModelAdmin):
     ordering = ('-upload_date',)
 
 
-@admin.register(Assignment)
-class AssignmentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'subject', 'max_score', 'due_date', 'marked')
-    search_fields = ('title', 'subject__name')
-    list_filter = ('subject', 'marked', 'due_date')
-    ordering = ('due_date',)
-    filter_horizontal = ('teachers', 'students', 'material')
 
-# Create the inline class for Feedback
-class FeedbackInline(admin.TabularInline): # Or admin.StackedInline
-    model = Feedback
-    extra = 1 # Number of empty forms to display for adding new feedback
-    fields = ('teacher', 'score', 'text') # Fields to display in the inline form
-
-
-
-@admin.register(AssignmentAttempt)  
-class AssignmentAttemptAdmin(admin.ModelAdmin):
-    list_display = ('id', 'assignment', 'student', 'graded')
-    search_fields = ('assignment__title', 'student__username')
-    ordering = ('-assignment__due_date',)
-    inlines = [FeedbackInline] # Add the FeedbackInline here
-
-
-@admin.register(Feedback)
-class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('id', 'assignmentAttempt', 'teacher', 'score', 'created_at')
-    search_fields = ('assignment__title', 'teacher__username', 'teacher__email')
-    list_filter = ('score', 'created_at')
-    ordering = ('-created_at',)
