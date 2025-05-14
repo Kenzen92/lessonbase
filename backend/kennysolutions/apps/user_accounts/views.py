@@ -308,10 +308,10 @@ def profile(request):
         else:
             print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
     elif request.method == 'PATCH':
         user = request.user.get_real_instance()
         files = request.FILES
-        
         # Adjust serializer to handle files
         if user.polymorphic_ctype.name == "teacher":
             serializer = TeacherUpdateSerializer(instance=user, data=request.data, partial=True)
@@ -326,8 +326,11 @@ def profile(request):
             for file_key in files:
                 uploaded_file = files[file_key]
                 
-                # Create a GridFSStorage instance
+                # Create a GridFSStorage ins    tance
                 gridfs_storage = GridFSStorage()
+                file_name = gridfs_storage._save(uploaded_file.name, uploaded_file, context='profile_pictures')
+                file_url = gridfs_storage.url(file_name)
+                serializer.data['profile_picture'] = file_url
             return Response(serializer.data)
         else:
             print(serializer.errors)
