@@ -85,6 +85,10 @@ export const handleCreateClassGroup = async (classGroupData, navigate) => {
   return await apiRequest("http://localhost:8000/class-group/", "POST", classGroupData, navigate);
 };
 
+export const handleUpdateClassGroup = async (classGroupData, currentClassId, navigate) => {
+  return await apiRequest(`http://localhost:8000/class-group/${currentClassId}/`, "PATCH", classGroupData, navigate);
+};
+
 export const fetchTeacherStatistics = async (page, navigate) => {
   return await apiRequest(`http://localhost:8000/teacher-statistics?page=${page}`, "GET", null, navigate);
 };  

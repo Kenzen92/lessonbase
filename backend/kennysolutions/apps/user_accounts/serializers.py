@@ -109,7 +109,8 @@ class ClassGroupDetailsSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class ClassGroupListSerializer(serializers.ModelSerializer):
+    subjects = SubjectSerializer(many=True, read_only=True)
     class Meta:
         model = ClassGroup
-        fields = ['id', 'name', 'description', 'class_code', 'students']
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'subjects']
         read_only_fields = ['id']

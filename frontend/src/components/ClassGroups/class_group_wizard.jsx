@@ -14,7 +14,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import StudentSearch from "../Students/student_search";
 import inputStyle from "../../styles/input";
-import { handleCreateClassGroup } from "../../utils/agent";
+import {
+  handleCreateClassGroup,
+  handleUpdateClassGroup,
+} from "../../utils/agent";
 import { toast } from "react-toastify";
 
 const validationSchema = yup.object().shape({
@@ -51,7 +54,7 @@ const ClassWizard = ({
     defaultValues: {
       name: currentClass?.name || "",
       description: currentClass?.description || "",
-      subjects: currentClass?.subjects || [],
+      subjects: currentClass.subjects.map((subject) => subject.id),
       class_code: currentClass?.class_code || "",
     },
   });
@@ -59,9 +62,13 @@ const ClassWizard = ({
   // Populate form when currentClassId changes
   useEffect(() => {
     if (currentClass) {
+      console.log(currentClass);
       setValue("name", currentClass.name);
       setValue("description", currentClass.description);
-      setValue("subjects", currentClass.subjects);
+      setValue(
+        "subjects",
+        currentClass.subjects.map((subject) => subject.id)
+      );
       setValue("class_code", currentClass.class_code);
       setSelectedStudents(currentClass.students || []);
     }
@@ -78,7 +85,11 @@ const ClassWizard = ({
   const onSubmit = async (data) => {
     data["students"] = selectedStudents;
     try {
-      const response = await handleCreateClassGroup(data);
+      console.log("current class id: ", currentClassId);
+      const response = currentClassId
+        ? await handleUpdateClassGroup(data, currentClassId)
+        : await handleCreateClassGroup(data);
+      console.log(response);
       toast.success(
         currentClassId
           ? "Class group updated successfully!"
@@ -87,6 +98,7 @@ const ClassWizard = ({
       handleClose();
       fetchData();
     } catch (error) {
+      console.error(error);
       toast.error("Failed to save class group. Please try again.");
     }
   };

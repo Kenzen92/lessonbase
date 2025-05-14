@@ -53,7 +53,7 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
 class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = SubjectSerializer(many=False, read_only=True)
+    subject = SubjectSerializer(many=True, read_only=True)
     resources = TeachingResourceSerializer(many=True, read_only=True)
 
     class Meta:

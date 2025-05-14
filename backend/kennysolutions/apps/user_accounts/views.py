@@ -467,3 +467,21 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Update the class group
+        """
+        print("updating")
+        instance = self.get_object()
+        data = request.data.copy()
+        teacher_list = data.get("teachers")
+        if not teacher_list:
+            data['teachers'] = [self.request.user]
+        else:
+            data['teachers'].append(self.request.user.pk) if self.request.user.pk not in data['teachers'] else None
+        serializer = self.get_serializer(instance, data=data)
+        if not serializer.is_valid(raise_exception=True):
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
