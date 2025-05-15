@@ -25,7 +25,7 @@ import Assignments from "./screens/assignments";
 import { useAuth } from "./contexts/auth_context";
 
 function App() {
-  const { auth } = useAuth()
+  const { auth } = useAuth();
 
   return (
     <IconContext.Provider
@@ -40,15 +40,22 @@ function App() {
               <Route
                 path="/"
                 element={
-                  auth.token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+                  auth.token ? (
+                    <Navigate to="/dashboard" />
+                  ) : (
+                    <Navigate to="/login" />
+                  )
                 }
               />
               <Route element={<PrivateRoutes />}>
-                <Route path="/dashboard/:id?" element={<ClassEventDashboard />} />
+                <Route
+                  path="/dashboard/:id?"
+                  element={<ClassEventDashboard />}
+                />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/students/:id?" element={<Students />} />
                 <Route path="/class-groups/:id?" element={<Classes />} />
-                <Route path="/assignments" element={<Assignments />} />
+                <Route path="/assignments/:id?" element={<Assignments />} />
               </Route>
             </Routes>
           </Router>

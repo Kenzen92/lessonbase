@@ -76,7 +76,6 @@ export const fetchClassEvents = async (navigate) => {
 }
 
 export const fetchClassEventsForStudent = async ( studentID, navigate) => {
-  console.log(studentID);
   return await apiRequest(`http://localhost:8000/class-event/student/${studentID}`,  "GET", null, navigate);
 };
 
@@ -118,7 +117,6 @@ export const editClassGroup = async (id, groupData, navigate) => {
 };
 
 export const fetchClassGroup = async (groupId, navigate) => {
-  console.log("Fetching class group with ID: ", groupId);
   return await apiRequest(`http://localhost:8000/class-group/${groupId}`, "GET", null, navigate);
 }
 
@@ -161,7 +159,6 @@ export const handleSubmitAssignmentFiles = async(imageFiles, navigate) => {
 
 export const fetchCurrentUser = async() => {
   const response = await apiRequest('http://localhost:8000/auth/user', "GET")
-  console.log("response", response);
   return response
 }
 

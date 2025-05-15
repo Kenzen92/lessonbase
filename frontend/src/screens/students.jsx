@@ -14,7 +14,7 @@ import {
 import Chat from "../components/Chat/chat";
 import { fetchStudents, fetchChats } from "../utils/agent";
 import StudentDetailsDrawer from "../components/Students/student_details_drawer";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 import StudentListSearch from "../components/Students/student_list_search";
 import { useUser } from "../contexts/user_context";
@@ -31,16 +31,15 @@ function Students() {
   const [currentStudent, setCurrentStudent] = useState(null);
   const [email, setEmail] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Add a check to make sure userId is available before fetching data that depends on it
     if (userId === null) {
-      console.log("userId is null, skipping data fetch in Students effect");
       return; // Don't fetch if userId is not yet available
     }
 
     const fetchData = async () => {
-      console.log("Fetching student/chat data for userId:", userId); // Log the userId being used
       const studentData = await fetchStudents();
       setStudents(studentData);
       setFilteredStudents(studentData);
@@ -113,7 +112,10 @@ function Students() {
         <StudentDetailsDrawer
           open={drawerOpen}
           setOpen={setDrawerOpen}
-          onClose={() => setDrawerOpen(false)}
+          onClose={() => {
+            setDrawerOpen(false);
+            navigate("/students");
+          }}
           student={currentStudent}
           setChatOpen={setChatOpen}
           setChatId={setChatId}
@@ -133,7 +135,10 @@ function Students() {
                 <StudentInfoCard
                   student={student}
                   setCurrentStudent={setCurrentStudent}
-                  handleOpenDrawer={setDrawerOpen}
+                  handleOpenDrawer={() => {
+                    setDrawerOpen(true);
+                    navigate(`/students/${student.id}`);
+                  }}
                 />
               </Grid>
             );

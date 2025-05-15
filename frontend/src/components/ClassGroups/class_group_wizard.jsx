@@ -84,11 +84,9 @@ const ClassWizard = ({
   const onSubmit = async (data) => {
     data["students"] = selectedStudents;
     try {
-      console.log("current class id: ", currentClassId);
       const response = currentClassId
         ? await handleUpdateClassGroup(data, currentClassId)
         : await handleCreateClassGroup(data);
-      console.log(response);
       toast.success(
         currentClassId
           ? "Class group updated successfully!"

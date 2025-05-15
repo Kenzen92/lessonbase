@@ -52,7 +52,6 @@ function ClassEventSearchAndFilter({
       },
       {}
     );
-    console.log(timeFilteredClassEvents);
     // Filter class events based on the selected class group
     setFilteredClassEvents(timeFilteredClassEvents);
   }, [searchTerm, previous, allClassEvents, classGroupFilter]);

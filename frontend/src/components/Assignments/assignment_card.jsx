@@ -3,12 +3,14 @@ import { Box, Chip, Typography, Button } from "@mui/material";
 import subjectIconMap from "../../utils/icons";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import { FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const AssignmentCard = ({
   assignment,
   setDrawerOpen,
   setCurrentAssignment,
 }) => {
+  const navigate = useNavigate();
   // Add null checks for assignment and its properties for safety
   if (!assignment || !assignment.subject) {
     return null; // Or render a placeholder/error state
@@ -132,6 +134,7 @@ const AssignmentCard = ({
           sx={{ mb: 1 }}
           onClick={() => {
             setCurrentAssignment(assignment);
+            navigate(`/assignments/${assignment.id}`);
             setDrawerOpen(true);
           }}
         >

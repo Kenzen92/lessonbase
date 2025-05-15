@@ -15,7 +15,6 @@ export function AuthProvider({ children }) {
     if (token && !auth.userType) {
       fetchCurrentUser()
         .then((data) => {
-          console.log("auth data: ", data);
           setAuth({
             token,
             userType: data.user_type, // adapt this to your actual key

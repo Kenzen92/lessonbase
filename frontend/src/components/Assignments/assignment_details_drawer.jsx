@@ -112,6 +112,7 @@ export default function AssignmentDetailsDrawer({
                 <List>
                   {assignmentDetails.students.map((student) => (
                     <Box
+                      key={student.id}
                       sx={{
                         backgroundColor: "#333",
                         transition: "background-color 0.3s ease",

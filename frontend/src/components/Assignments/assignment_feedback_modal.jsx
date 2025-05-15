@@ -35,9 +35,7 @@ function AssignmentFeedbackModal({
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      console.log("fetching assignment feedback data");
-    };
+    const fetchData = async () => {};
     fetchData();
   }, []);
 
@@ -84,10 +82,10 @@ function AssignmentFeedbackModal({
                 {currentAssignmentAttempt.student.name}
               </Typography>
               <ClassResources
-                  assignmentId={currentAssignmentAttempt?.id}
-                  existing_resources={currentAssignmentAttempt?.submitted_files}
-                  handleReloadData={null} //TODO fixme
-                />
+                assignmentId={currentAssignmentAttempt?.id}
+                existing_resources={currentAssignmentAttempt?.submitted_files}
+                handleReloadData={null} //TODO fixme
+              />
 
               <Typography>Feedback form here</Typography>
               <form onSubmit={handleSubmit}>

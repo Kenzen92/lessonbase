@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "../components/main_navigation";
 import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
@@ -13,7 +12,6 @@ import {
 } from "../utils/agent.js";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
-import { PrimaryButton } from "../styles/buttons.jsx";
 import AssignmentFeedbackModal from "../components/Assignments/assignment_feedback_modal.jsx";
 import { useAuth } from "../contexts/auth_context.jsx";
 
@@ -29,11 +27,11 @@ function Assignments() {
   const [classGroups, setClassGroups] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [allSubjects, setAllSubjects] = useState([]);
-
   const [feedbackModelOpen, setFeedbackModalOpen] = useState(false);
-
-  const is_teacher = auth.userType == "teacher";
   const navigate = useNavigate();
+  const { id } = useParams();
+  const is_teacher = auth.userType == "teacher";
+
   const columns = [
     {
       label: is_teacher ? "To Mark" : "Submitted", // Set label to the original name
@@ -72,9 +70,25 @@ function Assignments() {
       if (subjects) setAllSubjects(subjects);
       const students = await fetchStudents();
       if (students) setAllStudents(students);
+
+      // The rest of your logic for handling the ID from params
+      if (id != undefined) {
+        let currentAssignment = null;
+        const intId = parseInt(id, 10);
+        for (let key in assignments) {
+          currentAssignment = assignments[key].find(
+            (assignment) => assignment.id === intId
+          );
+          if (currentAssignment) {
+            setCurrentAssignment(currentAssignment);
+            setDrawerOpen(true);
+            break;
+          }
+        }
+      }
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -106,7 +120,10 @@ function Assignments() {
         <AssignmentDetailsDrawer
           open={drawerOpen}
           setOpen={setDrawerOpen}
-          onClose={() => setDrawerOpen(false)}
+          onClose={() => {
+            setDrawerOpen(false);
+            navigate("/assignments");
+          }}
           assignment={currentAssignment}
           setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
           setFeedbackModalOpen={setFeedbackModalOpen}

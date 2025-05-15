@@ -31,7 +31,6 @@ function Login() {
         },
         body: JSON.stringify(payload),
       });
-      console.log(response);
       if (!response.ok) {
         toast.error("Username or password not correct");
         setUsernameError(true);

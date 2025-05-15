@@ -27,7 +27,6 @@ export function UserProvider({ children }) {
 
     // Check if each property exists before setting the state
     if (userData.id !== undefined) {
-      console.log("setting user id: ", userData.id);
       setUserId(userData.id);
     }
     if (userData.username !== undefined) {
