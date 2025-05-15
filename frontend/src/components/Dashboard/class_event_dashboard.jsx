@@ -14,8 +14,10 @@ import ClassEventSearchAndFilter from "../ClassEvents/class_event_search_filter.
 import ActionStatisticsBar from "./action_statistics_bar.jsx";
 import Navigation from "../main_navigation.jsx";
 import { useAuth } from "../../contexts/auth_context.jsx";
+import { useParams } from "react-router-dom"; // <-- import useParams
+import { useNavigate } from "react-router-dom";
 
-const ClassEventDashboard = (classId) => {
+const ClassEventDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
   const [filteredClassEvents, setFilteredClassEvents] = useState([]);
   const [error, setError] = useState(false);
@@ -27,6 +29,9 @@ const ClassEventDashboard = (classId) => {
   const [step, setStep] = useState(1);
   const [classGroups, setClassGroups] = useState(null);
   const { auth } = useAuth();
+  const { id } = useParams(); // <-- get the id from the URL
+  const navigate = useNavigate();
+
   const fetchData = async () => {
     try {
       const classEventsData = await fetchClassEvents();
@@ -59,12 +64,13 @@ const ClassEventDashboard = (classId) => {
         const updatedCurrentEvent = classEventsData[currentEventIndex];
         setCurrentClassEvent(updatedCurrentEvent);
       }
-      if (classId.classId != undefined) {
-        const id = parseInt(classId.classId, 10);
+      if (id != undefined) {
+        const classId = parseInt(id, 10);
         const classIdIndex = classEventsData.findIndex(
-          (event) => event.id === id
+          (event) => event.id === classId
         );
         setCurrentClassEvent(classEventsData[classIdIndex]);
+        navigate(`/dashboard/${classId}`); // Push to new URL
         setDrawerOpen(true);
       }
 
@@ -81,7 +87,7 @@ const ClassEventDashboard = (classId) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [id]);
 
   // Callback function to force re-render of ClassEventDashboard after item deletion
   const handleReloadData = () => {
@@ -97,10 +103,12 @@ const ClassEventDashboard = (classId) => {
   const handleOpenDetails = (eventData) => {
     setCurrentClassEvent(eventData);
     setDrawerOpen(true);
+    navigate(`/dashboard/${eventData.id}`); // Push to new URL
   };
 
   const handleCloseDetails = () => {
     setCurrentClassEvent(null);
+    navigate("/dashboard");
     setDrawerOpen(false);
   };
 

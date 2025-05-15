@@ -14,7 +14,7 @@ import Profile from "./screens/profile";
 import PrivateRoutes from "./components/privateRoute";
 import ToastNotification from "./components/notification";
 import Students from "./screens/students";
-import Classes from "./screens/classes";
+import Classes from "./screens/class-groups";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
@@ -47,7 +47,7 @@ function App() {
                 <Route path="/dashboard/:id?" element={<ClassEventDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/students/:id?" element={<Students />} />
-                <Route path="/classes" element={<Classes />} />
+                <Route path="/class-groups/:id?" element={<Classes />} />
                 <Route path="/assignments" element={<Assignments />} />
               </Route>
             </Routes>

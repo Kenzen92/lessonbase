@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Navigation from "../components/main_navigation";
+import Navigation from "../components/main_navigation.jsx";
 import ClassGroupCard from "../components/ClassGroups/class_group_card.jsx";
 import { useNavigate } from "react-router-dom";
 import { Container, Box, Button, Grid, Modal } from "@mui/material";
@@ -11,6 +11,7 @@ import {
 import ClassWizard from "../components/ClassGroups/class_group_wizard.jsx";
 import ClassDetailsDrawer from "../components/ClassGroups/class_group_details_drawer.jsx";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
+import { useParams } from "react-router-dom";
 
 function Classes() {
   const [showClassForm, setshowClassForm] = useState(false);
@@ -20,6 +21,7 @@ function Classes() {
   const [currentClassId, setCurrentClassId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const fetchData = async () => {
@@ -28,22 +30,30 @@ function Classes() {
     const subjects = await fetchSubjects(navigate);
     if (subjects) setAllSubjects(subjects);
     const classes = await fetchClassGroups(navigate);
+    if (id !== undefined) {
+      const classGroup = classes.find((classGroup) => classGroup.id === parseInt(id, 10));
+      if (classGroup) {
+        setCurrentClassId(classGroup.id);
+        setIsDrawerOpen(true);
+      }
+    }
     setClasses(classes);
   };
 
   const handleOpenStudentSearch = () => {
-    console.log("handling it");
     setStep(1);
     setshowClassForm(true);
   };
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [id]);
 
   const handleOpenDrawer = async (classGroupId) => {
     setCurrentClassId(classGroupId);
     setIsDrawerOpen(true);
+    navigate(`/class-groups/${classGroupId}`); // Push to new URL
+
   };
 
   return (
@@ -59,7 +69,10 @@ function Classes() {
         <ClassDetailsDrawer
           classGroupId={currentClassId}
           open={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
+          onClose={() => {
+            setIsDrawerOpen(false);   
+            navigate('/class-groups'); // Remove the ID from the URL
+          }}
           handleReloadData={fetchData}
           allStudents={allStudents}
           allSubjects={allSubjects}

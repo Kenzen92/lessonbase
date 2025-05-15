@@ -54,7 +54,7 @@ const ClassWizard = ({
     defaultValues: {
       name: currentClass?.name || "",
       description: currentClass?.description || "",
-      subjects: currentClass.subjects.map((subject) => subject.id),
+      subjects: currentClass?.subjects.map((subject) => subject.id) || [],
       class_code: currentClass?.class_code || "",
     },
   });
@@ -62,7 +62,6 @@ const ClassWizard = ({
   // Populate form when currentClassId changes
   useEffect(() => {
     if (currentClass) {
-      console.log(currentClass);
       setValue("name", currentClass.name);
       setValue("description", currentClass.description);
       setValue(

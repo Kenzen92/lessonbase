@@ -378,7 +378,7 @@ function Profile() {
         </IconButton>
 
         <Typography variant="h5" sx={{ mt: 2, mb: 1 }}>
-          {userName}'s Profile
+          {userName ? `${userName}'s Profile` : ""}
         </Typography>
 
         {loading ? (

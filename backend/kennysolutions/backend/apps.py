@@ -37,6 +37,7 @@ def create_required_objects(sender, **kwargs):
     if teacher_created:
         teacher.set_password("teacher")
     teacher.students.add(student_1, student_2, student_3)
+    teacher.subjects.add(Subject.objects.order_by('?').first())
     teacher.save()
     student_1.save()
     student_2.save()
