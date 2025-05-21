@@ -121,6 +121,7 @@ class AssignmentAttemptCreateSerializer(serializers.ModelSerializer):
 class AssignmentAttemptDetailsSerializer(serializers.ModelSerializer):
     student = StudentSerializer(many=False, read_only=True)
     subject = SubjectSerializer(many=False, read_only=True)
+    assignment = AssignmentDetailsSerializer(many=False, read_only=True)
 
     class Meta:
         model = AssignmentAttempt

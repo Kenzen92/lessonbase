@@ -30,7 +30,7 @@ const validationSchema = yup.object().shape({
     .date()
     .typeError("Invalid date format")
     .required("Due date is required")
-    .min(yup.ref('set_date'), "Due date must be later than start date"),
+    .min(yup.ref("set_date"), "Due date must be later than start date"),
 
   set_date: yup
     .date()
@@ -38,12 +38,12 @@ const validationSchema = yup.object().shape({
     .required("Start date is required"),
 
   subject: yup
-    .number('Subject must be a number')
+    .number("Subject must be a number")
     .transform((value, originalValue) => {
-      return originalValue === '' ? null : value;
+      return originalValue === "" ? null : value;
     })
     .nullable()
-    .required('Subject is required')
+    .required("Subject is required")
     .positive("Subject must be positive"),
 });
 
@@ -75,14 +75,12 @@ const AddAssignmentWizard = ({
     },
   });
 
-
-
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const setDateValue = useWatch({
     control, // Pass the control object from useForm
-    name: 'set_date'
-  })
+    name: "set_date",
+  });
 
   const handleFileDrop = (files) => {
     setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
@@ -221,13 +219,15 @@ const AddAssignmentWizard = ({
                     ))}
                   </Select>
 
-                  <FormHelperText sx={{
-                    minHeight: 2,
-                    visibility: error ? 'visible' : 'hidden',
-                    color: error ? 'error.main' : 'transparent',
-                    mb: 2
-                  }}>
-                    {error ? error.message : ' '}
+                  <FormHelperText
+                    sx={{
+                      minHeight: 2,
+                      visibility: error ? "visible" : "hidden",
+                      color: error ? "error.main" : "transparent",
+                      mb: 2,
+                    }}
+                  >
+                    {error ? error.message : " "}
                   </FormHelperText>
                 </FormControl>
               )}
@@ -392,9 +392,6 @@ const AddAssignmentWizard = ({
           <form onSubmit={handleSubmit(handleFinalSubmit)}>
             <Typography variant="h6" gutterBottom>
               Add Files (Optional)
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 4 }}>
-              Add files for this assignment (Optional)
             </Typography>
             <Box
               sx={{

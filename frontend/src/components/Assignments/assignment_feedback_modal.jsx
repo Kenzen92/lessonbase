@@ -15,6 +15,7 @@ import {
   Select,
   MenuItem,
   FormControl,
+  TextareaAutosize,
 } from "@mui/material";
 import {
   fetchStudents,
@@ -36,6 +37,7 @@ function AssignmentFeedbackModal({
 
   useEffect(() => {
     const fetchData = async () => {};
+    console.log(currentAssignmentAttempt);
     fetchData();
   }, []);
 
@@ -76,17 +78,30 @@ function AssignmentFeedbackModal({
           {currentAssignmentAttempt ? (
             <Box>
               <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
-                {currentAssignmentAttempt.assignment.title}
+                TItle: {currentAssignmentAttempt.assignment.title}
               </Typography>
               <Typography variant="h6" sx={{ mb: 2, textAlign: "center" }}>
-                {currentAssignmentAttempt.student.name}
+                Student: {currentAssignmentAttempt.student.first_name}
               </Typography>
               <ClassResources
                 assignmentId={currentAssignmentAttempt?.id}
                 existing_resources={currentAssignmentAttempt?.submitted_files}
                 handleReloadData={null} //TODO fixme
               />
-
+              <Typography variant="h6">Submitted Text</Typography>
+              <TextareaAutosize
+                aria-label="minimum height"
+                minRows={2}
+                placeholder="No text answer submitted"
+                style={{
+                  width: "95%",
+                  paddingTop: "8px",
+                  paddingBottom: "8px",
+                  paddingLeft: "4",
+                  paddingRight: "4",
+                }}
+                value={currentAssignmentAttempt.answer_text || ""}
+              />
               <Typography>Feedback form here</Typography>
               <form onSubmit={handleSubmit}>
                 <Button
