@@ -47,7 +47,6 @@ const ClassEventWizard = ({
   handleReloadData,
 }) => {
   const [selectedStudents, setSelectedStudents] = useState([]);
-
   const {
     handleSubmit,
     control,
@@ -58,7 +57,7 @@ const ClassEventWizard = ({
     defaultValues: {
       start_date: classData?.start_date ? dayjs(classData.start_date) : dayjs(), // Use Dayjs
       start_time: classData?.start_time || dayjs().format("HH:mm"), // Format as HH:mm for TimePicker
-      subject: classData?.subject || "",
+      subject: classData?.subject.id || null,
       duration: classData?.duration || "60",
     },
   });
@@ -66,7 +65,7 @@ const ClassEventWizard = ({
   // Populate form when classDataId changes
   useEffect(() => {
     if (classData) {
-      setValue("subject", classData.subject);
+      setValue("subject", classData.subject.id);
       setValue("class_code", classData.class_code);
       setValue("start_date", dayjs(classData.start_date)); // Use Dayjs
       setValue("start_time", classData.start_time);

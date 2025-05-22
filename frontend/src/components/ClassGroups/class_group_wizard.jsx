@@ -43,7 +43,6 @@ const ClassWizard = ({
   const currentClass = currentClassId
     ? classes.find((cls) => cls.id === currentClassId)
     : null;
-
   const {
     handleSubmit,
     control,
@@ -64,6 +63,7 @@ const ClassWizard = ({
     if (currentClass) {
       setValue("name", currentClass.name);
       setValue("description", currentClass.description);
+      console.log("setting value", currentClass.subjects);
       setValue(
         "subjects",
         currentClass.subjects.map((subject) => subject.id)
@@ -137,6 +137,7 @@ const ClassWizard = ({
           <Controller
             name="subjects"
             control={control}
+            
             render={({ field }) => (
               <FormControl fullWidth>
                 <InputLabel id="subjects-select-label" sx={{ color: "#fff" }}>
