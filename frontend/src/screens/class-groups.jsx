@@ -30,8 +30,11 @@ function Classes() {
     const subjects = await fetchSubjects(navigate);
     if (subjects) setAllSubjects(subjects);
     const classes = await fetchClassGroups(navigate);
+    console.log(classes);
     if (id !== undefined) {
-      const classGroup = classes.find((classGroup) => classGroup.id === parseInt(id, 10));
+      const classGroup = classes.find(
+        (classGroup) => classGroup.id === parseInt(id, 10)
+      );
       if (classGroup) {
         setCurrentClassId(classGroup.id);
         setIsDrawerOpen(true);
@@ -53,7 +56,6 @@ function Classes() {
     setCurrentClassId(classGroupId);
     setIsDrawerOpen(true);
     navigate(`/class-groups/${classGroupId}`); // Push to new URL
-
   };
 
   return (
@@ -70,8 +72,8 @@ function Classes() {
           classGroupId={currentClassId}
           open={isDrawerOpen}
           onClose={() => {
-            setIsDrawerOpen(false);   
-            navigate('/class-groups'); // Remove the ID from the URL
+            setIsDrawerOpen(false);
+            navigate("/class-groups"); // Remove the ID from the URL
           }}
           handleReloadData={fetchData}
           allStudents={allStudents}
@@ -82,7 +84,7 @@ function Classes() {
 
         <Grid container spacing={2} className="cards-section">
           {classes.map((data) => (
-            <Grid item xs={12} sm={6} md={4} key={data.id}>
+            <Grid item xs={12} sm={8} md={6} key={data.id}>
               <ClassGroupCard
                 data={data}
                 onClick={() => handleOpenDrawer(data.id)}

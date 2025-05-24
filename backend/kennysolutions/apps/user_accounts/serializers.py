@@ -16,6 +16,7 @@ class StudentSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     class_groups = ClassGroupUserSerializer(many=True, read_only=True)
     user_type = serializers.SerializerMethodField()
+    
 
     def get_user_type(self, obj):
         return obj.__class__.__name__
@@ -110,6 +111,7 @@ class ClassGroupDetailsSerializer(serializers.ModelSerializer):
 
 class ClassGroupListSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
+    students = StudentSerializer(many=True, read_only=True)
     class Meta:
         model = ClassGroup
         fields = ['id', 'name', 'description', 'class_code', 'students', 'subjects']
