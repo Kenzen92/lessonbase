@@ -3,7 +3,7 @@ from django.urls import path, include
 from apps.classes.views import ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student
 from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile, auth_user
 from apps.subjects.views import all_subjects, subjects
-from apps.assignments.views import AssignmentAttemptViewSet, AssignmentViewSet
+from apps.assignments.views import AssignmentAttemptViewSet, AssignmentViewSet, FeedbackViewSet
 from . import views
 from rest_framework.routers import DefaultRouter
 
@@ -16,6 +16,7 @@ router.register(r'class-event', ClassEventViewSet, basename="class-event")
 router.register(r'student', StudentViewSet, basename="student")
 router.register(r'teacher', TeacherViewSet, basename="teacher")
 router.register(r'assignment-attempt', AssignmentAttemptViewSet, basename="assignment-attempt")
+router.register(r'feedback', FeedbackViewSet, basename='feedback')
 
 urlpatterns = [
     path('auth/user', auth_user),

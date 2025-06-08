@@ -85,13 +85,15 @@ def create_required_objects(sender, **kwargs):
     # Create some assignments
     for i in range(5):
         subject = Subject.objects.order_by('?').first()
-        assignment = Assignment.objects.create(
+        assignment, created = Assignment.objects.get_or_create(
             title=f"Homework {i + 1}",
             description="Please complete the assigned exercises.",
-            subject=subject,
-            max_score=100,
-            set_date=timezone.now().date() + timedelta(days=i),
-            due_date=timezone.now().date() + timedelta(days=7)
+            defaults={
+                    "max_score": 100,
+                    "set_date": timezone.now().date() + timedelta(days=i),
+                    "due_date": timezone.now().date() + timedelta(days=7),
+                    "subject": subject,
+                }
         )
         assignment.teachers.add(teacher)
         assignment.students.add(student_1, student_2, student_3)

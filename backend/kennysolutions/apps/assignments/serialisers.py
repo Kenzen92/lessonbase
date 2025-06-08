@@ -5,7 +5,7 @@ from apps.subjects.models import Subject
 from apps.user_accounts.models import Teacher, Student
 from apps.classes.models import TeachingResource
 from apps.subjects.serializers import SubjectSerializer
-from apps.assignments.models import Assignment, AssignmentAttempt
+from apps.assignments.models import Assignment, AssignmentAttempt, Feedback
 
 
 
@@ -131,3 +131,9 @@ class AssignmentAttemptListSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssignmentAttempt
         fields = ['id', 'assignment', 'student', 'submitted_at', 'accepted', 'graded']
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['id', 'assignmentAttempt', 'teacher', 'text', 'created_at', 'score', 'submitted_files']
+

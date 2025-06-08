@@ -1,16 +1,16 @@
 from django.shortcuts import get_object_or_404
+from apps.user_accounts.models import Teacher
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import status
-from apps.assignments.models import Assignment, AssignmentAttempt
-from rest_framework import viewsets
+from apps.assignments.models import Assignment, AssignmentAttempt, Feedback
+from rest_framework import viewsets, status
 from django.utils import timezone
 from django.db.models import  Q, CharField, Case, When, Value
 
-from apps.assignments.serialisers import AssignmentAttemptCreateSerializer, AssignmentAttemptDetailsSerializer, AssignmentAttemptListSerializer, AssignmentCreateSerializer, AssignmentDetailsSerializer, AssignmentListSerializer
+from apps.assignments.serialisers import AssignmentAttemptCreateSerializer, AssignmentAttemptDetailsSerializer, AssignmentAttemptListSerializer, AssignmentCreateSerializer, AssignmentDetailsSerializer, AssignmentListSerializer, FeedbackSerializer
 
 
 class AssignmentViewSet(viewsets.ModelViewSet):
@@ -98,7 +98,6 @@ class AssignmentAttemptViewSet(ModelViewSet):
     def post(self, request):
         # validate that the user is a student
         user = self.request.user.get_real_instance()
-        return Response({"message": user.polymorphic_ctype.name})
         data = request.data.copy()
         data['submitted_files'] = request.FILES.getlist('files')
         serializer_class = self.get_serializer_class()
@@ -121,3 +120,34 @@ class AssignmentAttemptViewSet(ModelViewSet):
         serializer = self.get_serializer(attempt)
         return Response(serializer.data)
     
+class FeedbackViewSet(ModelViewSet):
+    serializer_class = FeedbackSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    """
+    Feedback is almost always queried in relation to a specific assignment which must be passed as a query param
+
+    Getting an error where the current user is always an anonymous user
+    """
+    def get_queryset(self):
+        user = self.request.user.get_real_instance()
+        return Feedback.objects.filter(Q(teacher=user) | Q(student=user))
+
+    def list(self, request):
+        # Attempt to get assignment attempt ID from the query params
+        assignment_attempt_id = request.GET.get('assignment_attempt_id')
+
+        try:
+            assignmentAttempt = AssignmentAttempt.objects.get(id=assignment_attempt_id)
+        except AssignmentAttempt.DoesNotExist:
+            return Response({'error': 'Assigment attempt does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+        user = request.user.get_real_instance()
+        if isinstance(user, Teacher):
+            feedbacks = Feedback.objects.filter(teacher=user, assignmentAttempt=assignmentAttempt)
+        else:
+            feedbacks = Feedback.objects.filter(student=user, assignmentAttempt=assignmentAttempt)
+
+        serializer = self.serializer_class(feedbacks, many=True)
+        return Response(serializer.data)
