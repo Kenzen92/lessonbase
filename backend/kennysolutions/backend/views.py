@@ -9,51 +9,6 @@ from apps.user_accounts.models import CustomAccount, Student, Teacher
 from apps.subjects.models import Subject
 from .serializers import ChatSerializer, MessageSerializer
 
-@api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
-def createData(request):
-    # Create 5 new teachers using faker
-    fake = Faker()
-    for _ in range(5):
-        teacher = Teacher.objects.create(
-            username=fake.user_name(),
-            password=fake.password(),
-            email=fake.email(),
-            first_name=fake.first_name(),
-            last_name=fake.last_name(),
-            hire_date=fake.date_this_decade(),
-        )
-
-    # Create 5 new students using faker
-    for _ in range(5):
-        student = Student.objects.create(
-            username=fake.user_name(),
-            password=fake.password(),
-            email=fake.email(),
-            first_name=fake.first_name(),
-            last_name=fake.last_name(),
-            enrollment_date=fake.date_this_decade(),
-        )
-
-    # Create 20 class events using faker
-    for _ in range(20):
-        class_event = ClassEvent.objects.create(
-            name=fake.text(max_nb_chars=50),
-            start_time=fake.date_time(),
-            duration=fake.random_int(min=1, max=6),
-            subject=Subject.objects.order_by('?').first()
-        )
-        # Add random students and teachers to the class event
-        for _ in range(fake.random_int(min=1, max=5)):  # Add 1 to 5 random students
-            class_event.students.add(Student.objects.order_by('?').first())
-        for _ in range(fake.random_int(min=1, max=3)):  # Add 1 to 3 random teachers
-            class_event.teachers.add(Teacher.objects.order_by('?').first())
-
-    return Response(200)
-
-
-
-
 class ChatListCreateView(generics.ListCreateAPIView):
     serializer_class = ChatSerializer
     authentication_classes = [TokenAuthentication]
