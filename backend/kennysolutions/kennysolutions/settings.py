@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,12 +23,17 @@ BASE_URL = 'http://localhost:8000'
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^=vhmj#+iion5cz12z*5s#j-fcud#q9(e1s$_37gn)e-$tc=-n'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('ENVIRONMENT') == 'development'
+HOSTNAME = os.environ.get('HOSTNAME')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [    
+    HOSTNAME,
+    'localhost',
+    '127.0.0.1'
+    ]
 
 
 # Application definition
@@ -94,11 +100,10 @@ CHANNEL_LAYERS = {
     },
 }
 
-from urllib.parse import quote_plus
 
 # Encoded credentials (this step ensures any special characters in the password are correctly parsed)
-MONGO_USERNAME = quote_plus(os.environ.get('MONGO_USERNAME'))
-MONGO_PASSWORD = quote_plus(os.environ.get('MONGO_PASSWORD'))
+MONGO_USERNAME = os.environ.get('MONGO_USERNAME')
+MONGO_PASSWORD = os.environ.get('MONGO_PASSWORD')
 
 # Full MongoDB connection string
 MONGO_URI = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.mongodb.net/?retryWrites=true&w=majority&authSource=admin"
@@ -107,7 +112,8 @@ MONGO_URI = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.m
 
 # If using pymongo with a custom storage backend
 MONGO_HOST = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.mongodb.net"
-
+MONGO_DB_NAME = str(os.environ.get('MONGO_DB_NAME'))
+MONGO_PORT = str(os.environ.get('MONGO_PORT'))
 
 # Use the custom GridFS storage backend for file storage
 DEFAULT_FILE_STORAGE = 'apps.storage.storage_backends.GridFSStorage'
@@ -116,17 +122,29 @@ GRIDFS_COLLECTION = 'files'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),   
-        'USER': os.environ.get('POSTGRES_USER'),    
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'), 
-        'HOST': os.environ.get('POSTGRES_HOST', 'db'),  # Default to db if not set
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),  # Default PostgreSQL port
+
+if DATABASE_URL:
+    # ✅ Production or any environment using DATABASE_URL
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+        )
     }
-}
+else:
+    # ✅ Development using local Postgres environment variables
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'mydb'),
+            'USER': os.environ.get('POSTGRES_USER', 'myuser'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'mypassword'),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
+    }
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -174,6 +192,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

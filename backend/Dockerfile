@@ -1,32 +1,41 @@
-# Use an official Python runtime as a parent image
+# Use an official Python runtime
 FROM python:3.12
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    ENVIRONMENT=production
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y curl build-essential libpq-dev  gcc && \
+    apt-get clean
+
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     mv /root/.local/bin/poetry /usr/local/bin/
 
-# Disable Poetry's virtual environments (since this is inside a Docker container)
-ENV POETRY_VIRTUALENVS_CREATE=false
-
-ENV PYTHONUNBUFFERED=1
-
 # Set work directory
 WORKDIR /app
 
-# Copy pyproject.toml and poetry.lock first to leverage Docker cache
+# Copy dependency files first
 COPY pyproject.toml poetry.lock /app/
 
 # Install dependencies
 RUN poetry install --no-root --no-interaction
 
-# Copy the rest of the project files
+# Copy the rest of the app
 COPY . /app/
 
-# Set the workdir to the Django project directory
+# Set workdir to Django project directory (adjust if different)
 WORKDIR /app/kennysolutions
 
-# Expose the port for Django's development server
+# Expose Django/Gunicorn port
 EXPOSE 8000
 
-# Run migrations and start the Django server
-CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+
+# Set the default command
+CMD ["/app/entrypoint.sh"]

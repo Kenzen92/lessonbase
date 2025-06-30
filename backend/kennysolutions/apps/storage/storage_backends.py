@@ -11,7 +11,15 @@ class GridFSStorage(Storage):
     def __init__(self, db_name=None, collection='fs'):  # Provide a default collection name 'fs'
         self.db_name = db_name or settings.MONGO_DB_NAME
         self.collection = collection or 'fs'
-
+        # Debug print all values from settings
+        print("🔧 MongoDB Configuration Debug:")
+        print(f"MONGO_USERNAME: {settings.MONGO_USERNAME}")
+        print(f"MONGO_PASSWORD: {settings.MONGO_PASSWORD}")
+        print(f"MONGO_URI: {settings.MONGO_URI}")
+        print(f"MONGO_HOST: {settings.MONGO_HOST}")
+        print(f"MONGO_DB_NAME: {settings.MONGO_DB_NAME}")
+        print(f"MONGO_PORT: {settings.MONGO_PORT}")
+        print(f"GRIDFS_COLLECTION: {settings.GRIDFS_COLLECTION}")
         # Initialize the MongoDB client using the full URI
         self.client = MongoClient(settings.MONGO_URI)
         self.db = self.client[self.db_name]

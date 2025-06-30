@@ -21,7 +21,6 @@ router.register(r'feedback', FeedbackViewSet, basename='feedback')
 urlpatterns = [
     path('auth/user', auth_user),
     path('profile/', profile),
-    path('create_data', views.createData),
     path('login', login),
     path('logout/', logout),
     path('class-event/student/<int:student_id>/', class_events_for_student), 

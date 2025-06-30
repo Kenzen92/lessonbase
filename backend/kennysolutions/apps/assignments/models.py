@@ -75,12 +75,12 @@ class Feedback(Model):
     """
     Feedback is associated to an assignment
     """
-    assignmentAttempt = models.ForeignKey(AssignmentAttempt, on_delete=models.CASCADE, related_name="feedback_entries", null=True)
-    teacher = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    text = models.TextField(max_length=2000, blank=True, help_text="Teacher's feedback text.")
-    created_at = models.DateTimeField(auto_now_add=True)
-    score = models.SmallIntegerField(null=True, blank=False)
-    submitted_files = models.ManyToManyField(TeachingResource, blank=True, related_name="feedbacks")
+    assignmentAttempt = ForeignKey(AssignmentAttempt, on_delete=CASCADE, related_name="feedback_entries", null=True)
+    teacher = ForeignKey(CustomUser, on_delete=CASCADE)
+    text = TextField(max_length=2000, blank=True, help_text="Teacher's feedback text.")
+    created_at = DateTimeField(auto_now_add=True)
+    score = SmallIntegerField(null=True, blank=False)
+    submitted_files = ManyToManyField(TeachingResource, blank=True, related_name="feedbacks")
 
 
     def __str__(self):

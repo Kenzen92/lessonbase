@@ -21,6 +21,8 @@ openai = "1.35.3"
 python-docx = "1.1.2"
 pymongo = "4.8.0"
 mongoengine = "0.29.0"
+gunicorn = "^23.0.0"
+dj-database-url = "^3.0.0"
 
 
 [build-system]
