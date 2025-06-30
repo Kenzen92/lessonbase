@@ -97,25 +97,21 @@ CHANNEL_LAYERS = {
 from urllib.parse import quote_plus
 
 # Encoded credentials (this step ensures any special characters in the password are correctly parsed)
-MONGO_USERNAME = quote_plus('jameskenny')
-MONGO_PASSWORD = quote_plus('hXZZqSAk1B3bBs3b')
+MONGO_USERNAME = quote_plus(os.environ.get('MONGO_USERNAME'))
+MONGO_PASSWORD = quote_plus(os.environ.get('MONGO_PASSWORD'))
 
 # Full MongoDB connection string
-MONGO_URI = "mongodb+srv://jameskenny:hXZZqSAk1B3bBs3b@cluster0.vihugpn.mongodb.net/?retryWrites=true&w=majority&authSource=admin"
+MONGO_URI = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.mongodb.net/?retryWrites=true&w=majority&authSource=admin"
 
 
 
 # If using pymongo with a custom storage backend
 MONGO_HOST = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@cluster0.vihugpn.mongodb.net"
-MONGO_PORT = 27017  # Typically not needed with MongoDB Atlas (use srv)
-MONGO_DB_NAME = 'kennysolutions'
+
 
 # Use the custom GridFS storage backend for file storage
 DEFAULT_FILE_STORAGE = 'apps.storage.storage_backends.GridFSStorage'
 GRIDFS_COLLECTION = 'files'
-
-
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -125,13 +121,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_DB'),   
-        # 'NAME': 'postgres',
         'USER': os.environ.get('POSTGRES_USER'),    
-        # 'USER': 'postgres',
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'), 
-        # 'PASSWORD': 'kenny',
-        'HOST': 'db',
-        'PORT': '5432',
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),  # Default to db if not set
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),  # Default PostgreSQL port
     }
 }
 
