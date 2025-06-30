@@ -5,8 +5,9 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework import status
 from apps.assignments.models import Assignment, AssignmentAttempt, Feedback
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from django.utils import timezone
 from django.db.models import  Q, CharField, Case, When, Value
 
@@ -120,6 +121,12 @@ class AssignmentAttemptViewSet(ModelViewSet):
         serializer = self.get_serializer(attempt)
         return Response(serializer.data)
     
+
+class FeedbackViewSet(ModelViewSet):
+    serializer_class = FeedbackSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Feedback.objects.all()
 class FeedbackViewSet(ModelViewSet):
     serializer_class = FeedbackSerializer
     authentication_classes = [TokenAuthentication]

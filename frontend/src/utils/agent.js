@@ -162,6 +162,9 @@ export const fetchCurrentUser = async() => {
   return response
 }
 
+export const handleSubmitAssignmentFeedback = async() => {
+  const response = await apiRequest('http://localhost:8000/feedback', "POST", feedbackData, navigate)
+}
 export const fetchFeedback = async (assignment_attempt_id) => {
   return await apiRequest(`http://localhost:8000/feedback?assignment_attempt_id=${assignment_attempt_id}`)
 }

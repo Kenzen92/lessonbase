@@ -1,4 +1,4 @@
-from django.db import models
+from django.db.models import Model, CharField, TextField, BooleanField, Q, DateField, ManyToManyField, PositiveIntegerField, ForeignKey, DateTimeField, CASCADE, SmallIntegerField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from apps.subjects.models import Subject
@@ -8,47 +8,62 @@ from apps.classes.models import TeachingResource
 # Create your models here.
 
 
-class Assignment(models.Model):
+class Assignment(Model):
     """
     An assignment represents any work given by a teacher to students. Assignments are connected to a specific subject.
     """
-    title = models.CharField(null=False, max_length=200, help_text="Title of the assignment.")
-    description = models.TextField(max_length=1000, help_text="Detailed description of the assignment.", null=True, blank=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, help_text="The subject to which this assignment belongs.")
-    teachers = models.ManyToManyField(CustomUser, related_name='assignments_as_teacher', help_text="Teachers assigning this work.")
-    students = models.ManyToManyField(Student, related_name='assignments_as_student', help_text="Students assigned to this work.")
-    class_groups = models.ManyToManyField(ClassGroup, related_name='assignment_as_class_group')
-    max_score = models.PositiveIntegerField(
+    title = CharField(null=False, max_length=200, help_text="Title of the assignment.")
+    description = TextField(max_length=1000, help_text="Detailed description of the assignment.", null=True, blank=True)
+    subject = ForeignKey(Subject, on_delete=CASCADE, help_text="The subject to which this assignment belongs.")
+    teachers = ManyToManyField(CustomUser, related_name='assignments_as_teacher', help_text="Teachers assigning this work.")
+    students = ManyToManyField(Student, related_name='assignments_as_student', help_text="Students assigned to this work.")
+    class_groups = ManyToManyField(ClassGroup, related_name='assignment_as_class_group')
+    max_score = PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(100)],
         help_text="Maximum score that can be achieved for this assignment."
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    material = models.ManyToManyField(TeachingResource, related_name="homework_resource")
-    set_date = models.DateField(
+    created_at = DateTimeField(auto_now_add=True)
+    material = ManyToManyField(TeachingResource, related_name="homework_resource")
+    set_date = DateField(
         default=timezone.now,
         help_text="The date when the homework was assigned."
     )
-    due_date = models.DateField(
+    due_date = DateField(
         help_text="The deadline for the homework."
     )
-    to_mark = models.BooleanField(null=False, blank=False, default=False)
-    marked = models.BooleanField(null=False, blank=False, default=False)
+    to_mark = BooleanField(null=False, blank=False, default=False)
+    marked = BooleanField(null=False, blank=False, default=False)
 
     def __str__(self):
         return f"{self.title} - {self.subject.name}"
     
+    @property
+    def get_progress(self):
+        """
+        Evaluates the progress of this assignment in terms of how many students have submitted an accepted assignment
+        """
+        numberOfStudents = self.students.count()
+        if numberOfStudents == 0:
+            return 0  # Avoid division by zero if no students are assigned
 
-class AssignmentAttempt(models.Model):
+        accepted_attempts_count = self.attempts.filter(
+            Q(graded=True) & Q(accepted=True)
+        ).count()
+
+        return (accepted_attempts_count / numberOfStudents) * 100
+
+
+class AssignmentAttempt(Model):
     """
     Represents an attempt by a student to complete and submit an assignment.
     """
-    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="attempts")
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="assignment_attempts")
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    answer_text = models.TextField(blank=True, help_text="Student's written response.")
-    submitted_files = models.ManyToManyField(TeachingResource, blank=True, related_name="assignment_attempts")
-    graded = models.BooleanField(default=False)
-    accepted = models.BooleanField(default=False)
+    assignment = ForeignKey(Assignment, on_delete=CASCADE, related_name="attempts")
+    student = ForeignKey(Student, on_delete=CASCADE, related_name="assignment_attempts")
+    submitted_at = DateTimeField(auto_now_add=True)
+    answer_text = TextField(blank=True, help_text="Student's written response.")
+    submitted_files = ManyToManyField(TeachingResource, blank=True, related_name="assignment_attempts")
+    graded = BooleanField(default=False)
+    accepted = BooleanField(default=False)
     class Meta:
         unique_together = ('assignment', 'student')  # Prevent multiple attempts if needed
 
@@ -56,7 +71,7 @@ class AssignmentAttempt(models.Model):
         return f"{self.student} - {self.assignment.title}"
 
 
-class Feedback(models.Model):
+class Feedback(Model):
     """
     Feedback is associated to an assignment
     """

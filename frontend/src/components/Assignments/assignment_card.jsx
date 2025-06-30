@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Chip, Typography, Button } from "@mui/material";
+import { Box, Chip, Typography, Button, LinearProgress } from "@mui/material";
 import subjectIconMap from "../../utils/icons";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import { FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
@@ -15,6 +15,7 @@ const AssignmentCard = ({
   if (!assignment || !assignment.subject) {
     return null; // Or render a placeholder/error state
   }
+  console.log("assignment", assignment);
 
   // Use a fallback icon if the subject's icon is not found
   const IconComponent =
@@ -70,6 +71,9 @@ const AssignmentCard = ({
         },
       }}
     >
+      <Box sx={{ width: "100%" }}>
+        <LinearProgress variant="determinate" value={assignment.progress} />
+      </Box>
       <Typography variant="h6" gutterBottom>
         {assignment.title}
       </Typography>

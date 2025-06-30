@@ -9,11 +9,13 @@ from apps.assignments.models import Assignment, AssignmentAttempt, Feedback
 
 
 
+
 class AssignmentListSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for ForeignKey and ManyToMany fields to support both read and write operations
     subject = SubjectSerializer()
     teachers = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), many=True)
     students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True)
+    progress = serializers.SerializerMethodField()
 
     class Meta:
         model = Assignment
@@ -28,7 +30,12 @@ class AssignmentListSerializer(serializers.ModelSerializer):
             'due_date',
             'set_date',
             'students',
+            'progress'
         ]
+
+    def get_progress(self, obj):
+        # Call the property directly on the object instance
+        return obj.get_progress
 
 class AssignmentCreateSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
@@ -68,6 +75,7 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
     subject = SubjectSerializer(many=False)
     teachers = serializers.PrimaryKeyRelatedField(queryset=Teacher.objects.all(), many=True)
     students = StudentSerializer(many=True)
+    progress = serializers.SerializerMethodField()
 
     class Meta:
         model = Assignment
@@ -81,7 +89,12 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
             'set_date',
             'due_date',
             'students',
+            'progress'
         ]
+
+    def get_progress(self, obj):
+        # Call the property directly on the object instance
+        return obj.get_progress
 
 class AssignmentAttemptCreateSerializer(serializers.ModelSerializer):
     answer_text = serializers.CharField(required=False, allow_blank=True)

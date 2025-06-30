@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  LinearProgress,
 } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
@@ -85,9 +86,15 @@ export default function AssignmentDetailsDrawer({
         >
           {assignmentDetails ? (
             <>
+              <Box sx={{ width: "100%" }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={assignmentDetails?.progress || 0}
+                />
+              </Box>
               <Typography
                 variant="h6"
-                sx={{ color: "white", mb: 2, textAlign: "center" }}
+                sx={{ color: "white", mb: 2, mt: 2, textAlign: "center" }}
               >
                 {assignmentDetails.title}
               </Typography>
