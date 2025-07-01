@@ -210,7 +210,8 @@ AUTH_USER_MODEL = 'user_accounts.CustomAccount'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://127.0.0.1:3000"
+    "http://127.0.0.1:3000",
+    "https://kennysolutions-8cf06dbf8504.herokuapp.com",
 ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
