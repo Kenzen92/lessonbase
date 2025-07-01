@@ -5,6 +5,7 @@ import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth_context";
 import { useUser } from "../contexts/user_context";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -18,7 +19,7 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const url = "http://localhost:8000/login";
+    const url = `${BASE_URL}/login`;
     const payload = {
       username: username,
       password: password,

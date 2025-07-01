@@ -1,3 +1,5 @@
+const WEBSOCKET_URL = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
+
 class WebSocketService {
     static instance = null;
     callbacks = {};
@@ -14,7 +16,7 @@ class WebSocketService {
     }
 
     connect(roomName, token) {
-        const path = `ws://localhost:8000/ws/chat/${roomName}/?token=${token}`;
+        const path = `${WEBSOCKET_URL}/chat/${roomName}/?token=${token}`;
         this.socketRef = new WebSocket(path);
 
         this.socketRef.onopen = () => {

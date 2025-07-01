@@ -20,6 +20,7 @@ import StudentSearch from "../Students/student_search";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
 import { toast } from "react-toastify";
 import inputStyle from "../../styles/input";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 // Define your validation schema *outside* the component for better performance
 const validationSchema = yup.object().shape({
@@ -115,7 +116,7 @@ const ClassEventWizard = ({
 
     try {
       const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/class-event/", {
+      const response = await fetch(`${BASE_URL}/class-event/`, {
         method: classData ? "PUT" : "POST", // Use PUT for updates, POST for new entries
         headers: {
           Authorization: `Token ${auth}`,

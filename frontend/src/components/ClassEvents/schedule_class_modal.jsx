@@ -1,28 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { renderTimeViewClock } from "@mui/x-date-pickers/timeViewRenderers";
 import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  Button,
   Box,
-  Grid,
   Modal,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { fetchStudents, fetchSubjects } from "../../utils/agent.js";
 import ClassEventWizard from "./class_event_wizard.jsx";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 const ScheduleClassModal = ({
   handleReloadData,
   classData,
-  modalOpen,
   handleClose,
   students,
   subjects,
@@ -94,7 +82,7 @@ const ScheduleClassModal = ({
 
     try {
       const auth = window.sessionStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/class-event/", {
+      const response = await fetch(`${BASE_URL}/class-event/`, {
         method: classData ? "PUT" : "POST", // Update if classData exists, else create
         headers: {
           Authorization: `Token ${auth}`,

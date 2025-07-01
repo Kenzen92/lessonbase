@@ -18,6 +18,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 import StudentListSearch from "../components/Students/student_list_search";
 import { useUser } from "../contexts/user_context";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 function Students() {
   const { userId } = useUser();
@@ -73,7 +74,7 @@ function Students() {
     e.preventDefault();
     setshowStudentForm(false);
 
-    const url = "http://localhost:8000/new-student/";
+    const url = `${BASE_URL}/new-student/`;
     const payload = { email };
     const auth = window.sessionStorage.getItem("token");
 

@@ -1,4 +1,5 @@
-// agent.js
+export const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+
 export const apiRequest = async (url, method = "GET", body = null, navigate=null) => {
   const auth = window.sessionStorage.getItem("token");
   const headers = {
@@ -48,123 +49,123 @@ export const handleUnauthorizedRequest = (navigate) => {
   navigate("/login");
 };
 export const fetchStudents = async (navigate) => {
-  return await apiRequest("http://localhost:8000/student", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/student`, "GET", null, navigate);
 };
 
 export const fetchSubjects = async (navigate) => {
-  return await apiRequest("http://localhost:8000/subjects", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/subjects`, "GET", null, navigate);
 };
 
 export const fetchAllSubjects = async (navigate) => {
-  return await apiRequest("http://localhost:8000/subjects/all", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/subjects/all`, "GET", null, navigate);
 };
 
 export const fetchAllAssignments = async (navigate) => {
-  return await apiRequest("http://localhost:8000/assignment", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/assignment`, "GET", null, navigate);
 };
 
 export const fetchAssignment = async (assignment_id, navigate) => {
-    return await apiRequest(`http://localhost:8000/assignment/${assignment_id}`, "GET", null, navigate);
+    return await apiRequest(`${BASE_URL}/assignment/${assignment_id}`, "GET", null, navigate);
 }
 
 export const handleCreateAssignment = async (formData, navigate) => {
-  return await apiRequest("http://localhost:8000/assignment/", "POST", formData, navigate);
+  return await apiRequest(`${BASE_URL}/assignment/`, "POST", formData, navigate);
 };
 
 export const fetchClassEvents = async (navigate) => {
-  return await apiRequest("http://localhost:8000/class-event", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-event`, "GET", null, navigate);
 }
 
 export const fetchClassEventsForStudent = async ( studentID, navigate) => {
-  return await apiRequest(`http://localhost:8000/class-event/student/${studentID}`,  "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-event/student/${studentID}`,  "GET", null, navigate);
 };
 
 
 export const handleCreateClassGroup = async (classGroupData, navigate) => {
-  return await apiRequest("http://localhost:8000/class-group/", "POST", classGroupData, navigate);
+  return await apiRequest(`${BASE_URL}/class-group/`, "POST", classGroupData, navigate);
 };
 
 export const handleUpdateClassGroup = async (classGroupData, currentClassId, navigate) => {
-  return await apiRequest(`http://localhost:8000/class-group/${currentClassId}/`, "PATCH", classGroupData, navigate);
+  return await apiRequest(`${BASE_URL}/class-group/${currentClassId}/`, "PATCH", classGroupData, navigate);
 };
 
 export const fetchTeacherStatistics = async (page, navigate) => {
-  return await apiRequest(`http://localhost:8000/teacher-statistics?page=${page}`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/teacher-statistics?page=${page}`, "GET", null, navigate);
 };  
 
 export const fetchStudentStatistics = async (page, navigate) => {
-  return await apiRequest(`http://localhost:8000/student-statistics?page=${page}`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/student-statistics?page=${page}`, "GET", null, navigate);
 };  
 
 export const cancelClassEvent = async (eventID, navigate) => {
-  return await apiRequest(`http://localhost:8000/class-event/${eventID}/`, "DELETE", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-event/${eventID}/`, "DELETE", null, navigate);
 }
 
 export const createChat = async (studentID, navigate) => {
-  return await apiRequest("http://localhost:8000/chats/", "POST", { participants: [studentID] }, navigate);
+  return await apiRequest(`${BASE_URL}/chats/`, "POST", { participants: [studentID] }, navigate);
 };
 
 export const fetchChats = async (navigate) => {
-  return await apiRequest("http://localhost:8000/chats/", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/chats/`, "GET", null, navigate);
 };
 
 export const fetchClassGroups = async (navigate) => {
-  return await apiRequest("http://localhost:8000/class-group", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-group`, "GET", null, navigate);
 };
 
 export const editClassGroup = async (id, groupData, navigate) => {
-  return await apiRequest(`http://localhost:8000/class-group/${id}/`, "PATCH", groupData, navigate);
+  return await apiRequest(`${BASE_URL}/class-group/${id}/`, "PATCH", groupData, navigate);
 };
 
 export const fetchClassGroup = async (groupId, navigate) => {
-  return await apiRequest(`http://localhost:8000/class-group/${groupId}`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-group/${groupId}`, "GET", null, navigate);
 }
 
 export const editTeacherProfile = async (id, profileData, navigate) => {
-  return await apiRequest(`http://localhost:8000/teacher/${id}/`, "PATCH", profileData, navigate);
+  return await apiRequest(`${BASE_URL}/teacher/${id}/`, "PATCH", profileData, navigate);
 };
 
 export const fetchProfileData = async (navigate) => {
-  return await apiRequest("http://localhost:8000/profile", "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/profile`, "GET", null, navigate);
 };
 
 export const fetchStudentProfile = async (id, navigate) => {
-  return await apiRequest(`http://localhost:8000/student/${id}`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/student/${id}`, "GET", null, navigate);
 };
 
 export const handleDeleteStudent = async (id, navigate) => {
-  return await apiRequest(`http://localhost:8000/student/${id}/`, "DELETE", null, navigate);
+  return await apiRequest(`${BASE_URL}/student/${id}/`, "DELETE", null, navigate);
 };
 
 export const fetchAssignmentAttempt = async (assignmentID, studentID, navigate) => {
   return await apiRequest(
-    `http://localhost:8000/assignment-attempt/${assignmentID}/students/${studentID}/attempt`, "GET", null, navigate);
+    `${BASE_URL}/assignment-attempt/${assignmentID}/students/${studentID}/attempt`, "GET", null, navigate);
 };
 
 export const submitAssignmentAttempt = async(data, navigate) => {
-  return await apiRequest(`http://localhost:8000/assignment-attempt/`, "POST", data, navigate)
+  return await apiRequest(`${BASE_URL}/assignment-attempt/`, "POST", data, navigate)
 }
 
 export const handleDeleteClassFile = async(deleteBody, navigate) => {
-  return await apiRequest(`http://localhost:8000/class_material`, "DELETE", deleteBody, navigate)
+  return await apiRequest(`${BASE_URL}/class_material`, "DELETE", deleteBody, navigate)
 }
 
 export const handleDeleteAssignmentFile = async(deleteBody, navigate) => {
-  return await apiRequest(`http://localhost:8000/assignment_material`, "DELETE", deleteBody, navigate)
+  return await apiRequest(`${BASE_URL}/assignment_material`, "DELETE", deleteBody, navigate)
 }
 
 export const handleSubmitAssignmentFiles = async(imageFiles, navigate) => {
-  return await apiRequest(`http://localhost:8000/assignment_material`, "POST", imageFiles, navigate)
+  return await apiRequest(`${BASE_URL}/assignment_material`, "POST", imageFiles, navigate)
 }
 
 export const fetchCurrentUser = async() => {
-  const response = await apiRequest('http://localhost:8000/auth/user', "GET")
+  const response = await apiRequest(`${BASE_URL}/auth/user`, "GET")
   return response
 }
 
-export const handleSubmitAssignmentFeedback = async() => {
-  const response = await apiRequest('http://localhost:8000/feedback', "POST", feedbackData, navigate)
+export const handleSubmitAssignmentFeedback = async(feedbackData, navigate) => {
+  const response = await apiRequest(`${BASE_URL}/feedback`, "POST", feedbackData, navigate)
 }
 export const fetchFeedback = async (assignment_attempt_id) => {
-  return await apiRequest(`http://localhost:8000/feedback?assignment_attempt_id=${assignment_attempt_id}`)
+  return await apiRequest(`${BASE_URL}/feedback?assignment_attempt_id=${assignment_attempt_id}`)
 }

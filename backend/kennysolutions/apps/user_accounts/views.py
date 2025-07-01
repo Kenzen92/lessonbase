@@ -25,6 +25,7 @@ from datetime import datetime
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from rest_framework import viewsets
+BASE_URL = settings.BASE_URL
 
 @api_view(["GET"])
 @authentication_classes([TokenAuthentication])
@@ -356,8 +357,8 @@ def new_student(request):
     teacher.students.add(student)
     student.save()
     # No need to specify 'templates' in the path
-    msg_plain = render_to_string('invitation_email.txt', {'token': token})
-    msg_html = render_to_string('invitation_email.html', {'token': token})
+    msg_plain = render_to_string('invitation_email.txt', {'token': token, 'confirm_account': f"{BASE_URL}/confirm_account/"})
+    msg_html = render_to_string('invitation_email.html', {'token': token, 'confirm_account': f"{BASE_URL}/confirm_account/"})
     subject = 'Here is your invitation to join Kennysolutions'
     
     send_mail(
@@ -381,8 +382,8 @@ def confirm_account(request):
             account = CustomAccount.objects.get(confirmation_token=token)
         except CustomAccount.DoesNotExist:
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-       
-        return render(request, "student_account_signup.html", {"token": token, confirm_account: "http://localhost:8000/confirm_account/"})
+
+        return render(request, "student_account_signup.html", {"token": token, "confirm_account": f"{BASE_URL}/confirm_account/"})
     elif request.method == 'POST':
         if request.data['username'] and request.data['password1']:
             token=request.data.get('token')
@@ -396,7 +397,7 @@ def confirm_account(request):
             account.save()
             account.confirmation_token = None # clear the token
             # Perform any additional actions here like redirecting to a success page, etc.
-            return render(request, "account_confirmation.html")
+            return render(request, "account_confirmation.html", {"BASE_URL": BASE_URL})
         else:
             return Response({"error": "No username or password"}, status=status.HTTP_400_BAD_REQUEST)
         

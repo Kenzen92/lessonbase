@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useAuth } from "../contexts/auth_context";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const Navigation = () => {
   useEffect(() => {}, []);
 
   const handleLogoutConfirm = async () => {
-    const url = "http://localhost:8000/logout/";
+    const url = `${BASE_URL}/logout/`;
     const auth = window.sessionStorage.getItem("token");
 
     try {

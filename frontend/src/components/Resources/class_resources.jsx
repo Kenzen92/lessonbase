@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
 import { useAuth } from "../../contexts/auth_context";
 import { handleDeleteClassFile } from "../../utils/agent";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 const ClassResources = ({
   assignmentAttemptId,
@@ -55,7 +56,7 @@ const ClassResources = ({
     if (assignmentAttemptId)
       formData.append("assignment_attempt_id", assignmentAttemptId);
     const auth = window.sessionStorage.getItem("token");
-    fetch("http://localhost:8000/class_material", {
+    fetch(`${BASE_URL}/class_material`, {
       method: "POST",
       headers: {
         Authorization: `Token ${auth}`,

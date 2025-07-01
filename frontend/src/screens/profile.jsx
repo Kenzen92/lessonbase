@@ -25,6 +25,7 @@ import { fetchProfileData, fetchAllSubjects } from "../utils/agent";
 // Assume inputStyle is defined elsewhere, but we'll integrate styles directly
 import inputStyle from "../styles/input";
 import { useUser } from "../contexts/user_context";
+const BASE_URL = import.meta.env.VITE_BASE_URL
 
 // Styled components for modern look (optional, can use sx prop too)
 const ProfileContainer = styled(Box)(({ theme }) => ({
@@ -102,7 +103,7 @@ function Profile() {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       // Use values from Formik for submission
-      const url = "http://localhost:8000/profile/";
+      const url = `${BASE_URL}/profile/`;
       const formData = new FormData();
 
       formData.append("username", values.username);
