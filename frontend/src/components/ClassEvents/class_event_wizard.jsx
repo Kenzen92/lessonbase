@@ -20,7 +20,7 @@ import StudentSearch from "../Students/student_search";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
 import { toast } from "react-toastify";
 import inputStyle from "../../styles/input";
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 // Define your validation schema *outside* the component for better performance
 const validationSchema = yup.object().shape({

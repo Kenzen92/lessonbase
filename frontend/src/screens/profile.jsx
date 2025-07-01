@@ -25,7 +25,7 @@ import { fetchProfileData, fetchAllSubjects } from "../utils/agent";
 // Assume inputStyle is defined elsewhere, but we'll integrate styles directly
 import inputStyle from "../styles/input";
 import { useUser } from "../contexts/user_context";
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 // Styled components for modern look (optional, can use sx prop too)
 const ProfileContainer = styled(Box)(({ theme }) => ({

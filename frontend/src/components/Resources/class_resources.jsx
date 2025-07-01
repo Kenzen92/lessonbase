@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
 import { useAuth } from "../../contexts/auth_context";
 import { handleDeleteClassFile } from "../../utils/agent";
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 const ClassResources = ({
   assignmentAttemptId,

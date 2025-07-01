@@ -6,7 +6,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import ClassEventWizard from "./class_event_wizard.jsx";
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 const ScheduleClassModal = ({
   handleReloadData,

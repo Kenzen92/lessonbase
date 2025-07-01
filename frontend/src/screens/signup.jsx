@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Select from 'react-select'
 import '../styles/signup.css'
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 function Signup() {
     const [username, setUsername] = useState('');

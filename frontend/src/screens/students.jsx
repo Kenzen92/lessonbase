@@ -18,7 +18,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 import StudentListSearch from "../components/Students/student_list_search";
 import { useUser } from "../contexts/user_context";
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 function Students() {
   const { userId } = useUser();

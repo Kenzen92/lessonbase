@@ -5,7 +5,7 @@ import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth_context";
 import { useUser } from "../contexts/user_context";
-const BASE_URL = import.meta.env.VITE_BASE_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
 function Login() {
   const [username, setUsername] = useState("");
