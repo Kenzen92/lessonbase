@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 echo "🛠 Environment: $ENVIRONMENT"
+
+cd /app/kennysolutions
 
 # Run migrations
 poetry run python manage.py migrate
