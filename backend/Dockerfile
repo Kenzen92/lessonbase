@@ -7,9 +7,8 @@ ENV PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y curl build-essential libpq-dev  gcc && \
+RUN apt-get update && apt-get install -y curl build-essential libpq-dev gcc && \
     apt-get clean
-
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
@@ -27,15 +26,13 @@ RUN poetry install --no-root --no-interaction
 # Copy the rest of the app
 COPY . /app/
 
-# Set workdir to Django project directory (adjust if different)
-WORKDIR /app/kennysolutions
-
-# Expose Django/Gunicorn port
-EXPOSE 8000
-
+# Copy entrypoint and make it executable (must be after copying files)
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
+
+# Expose Django/Gunicorn port
+EXPOSE 8000
 
 # Set the default command
 CMD ["/app/entrypoint.sh"]
