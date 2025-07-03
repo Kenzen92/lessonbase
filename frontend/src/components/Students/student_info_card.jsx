@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import {
   Box,
@@ -10,7 +10,19 @@ import { FaInfoCircle } from "react-icons/fa";
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'; // Icon for chat button
 import ClassGroupChip from "../ClassGroups/class_group_chip";
 
-const StudentInfoCard = ({ student, setDrawerOpen, setCurrentStudent, handleOpenChat }) => {
+const StudentInfoCard = ({ student, setDrawerOpen, setCurrentStudent, setChatOpen, chats }) => {
+
+    const [chatId, setChatIdState] = useState(null);
+
+    useEffect(() => {
+      if (student) {
+        const chat = chats.find((chat) => chat.participants.includes(student.id));
+        const resolvedChatId = chat ? chat.id : null;
+        setChatIdState(resolvedChatId);
+      } else {
+        setChatIdState(null);
+      }
+    }, [student, chats]);
 
   return (
     <Box
@@ -23,6 +35,7 @@ const StudentInfoCard = ({ student, setDrawerOpen, setCurrentStudent, handleOpen
         boxShadow: 5,
         border: 2,
         borderColor: "#333",
+        zIndex: 1,
         display: "flex",
         alignItems: "center", // Align items vertically in the bar
         justifyContent: "space-between", // Distribute space between left and right sections
@@ -64,18 +77,17 @@ const StudentInfoCard = ({ student, setDrawerOpen, setCurrentStudent, handleOpen
           variant="contained"
           size="small" // Make the button smaller
           startIcon={<ChatBubbleOutlineIcon sx={{ color: 'white' }} />}
-          onClick={() => {
+          onClick={(event) => {
             setCurrentStudent(student);
-            // Assuming handleOpenChat is a function passed as a prop
-            if (handleOpenChat) {
-              handleOpenChat(student);
-            }
+            event.stopPropagation();
+            setChatOpen(true);
           }}
           sx={{
             minWidth: 'auto',
             py: 0.8,
             px: 1.5,
             fontSize: "0.75rem",
+            zIndex: 2,
             backgroundColor: 'primary.main', // You can explicitly set button background if needed
             color: 'white', // Set button text and icon color to white
             '& .MuiButton-startIcon': {

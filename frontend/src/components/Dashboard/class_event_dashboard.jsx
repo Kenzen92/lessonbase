@@ -41,9 +41,8 @@ const ClassEventDashboard = () => {
       classEventsData.forEach((event) => {
         // Extract the date from the start_time of the event
         const eventDate = new Date(event.start_time);
-        const formattedDate = `${eventDate.getDate()}/${
-          eventDate.getMonth() + 1
-        }/${eventDate.getFullYear()}`; // Format: DD/MM/YYYY
+        const formattedDate = `${eventDate.getDate()}/${eventDate.getMonth() + 1
+          }/${eventDate.getFullYear()}`; // Format: DD/MM/YYYY
 
         // Check if the date exists as a key in the dateClassMap
         if (dateClassMap[formattedDate]) {
@@ -202,17 +201,25 @@ const ClassEventDashboard = () => {
             justifyContent: "center",
           }}
         >
-          <Box
+         <Box
             sx={{
+              position: 'absolute', // Crucial for positioning
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)', // Centers the box
+
+              // Define the width of your modal content here
+              // Option 1: Max width, responsive up to a point (common)
+              maxWidth: '500px',
+              width: { xs: '60%', sm: '50%', md: '30%' },
               backgroundColor: "#333",
               padding: 4,
               borderRadius: 2,
               boxShadow: 24,
-              width: "900px",
-              maxWidth: "90%",
               color: "white",
-              alignItems: "center",
-              justifyContent: "center",
+              outline: 'none', // Remove focus outline
+              maxHeight: '90vh', // Prevent modal from getting too tall
+              overflowY: 'auto', // Add scroll if content exceeds maxHeight
             }}
           >
             <ClassEventWizard

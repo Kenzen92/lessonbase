@@ -140,7 +140,7 @@ const ClassEventWizard = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3}}>
         {step === 1 && (
           <form onSubmit={handleSubmit(handleNext)}>
             <Controller

@@ -38,6 +38,8 @@ export default function StudentDetailsDrawer({
   // Added error state for potential API call issues
   const [error, setError] = useState(null);
 
+  console.log(student);
+
   useEffect(() => {
     if (student) {
       const chat = chats.find((chat) => chat.participants.includes(student.id));
@@ -244,11 +246,15 @@ export default function StudentDetailsDrawer({
                     {formatEnrollmentDate(student.enrollment_date)}
                   </Typography>
                   {/* Add other general details here as needed */}
-                  {/*
+                  
                   <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
                       <strong>Student ID:</strong> {student.id}
                   </Typography>
-                  */}
+
+                  <Typography variant="body1" sx={{ color: "#ccc", mb: 0.5 }}>
+                      <strong>Student ID:</strong> {student.birthdate}
+                  </Typography>
+                 
                 </Box>
               </Box>
 

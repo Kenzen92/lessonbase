@@ -80,7 +80,7 @@ const ClassResources = ({
       <Typography variant="h6" color={"#fff"} mt={4}>
         Class Resources
       </Typography>
-      {auth.userType == "teacher" && assignmentAttemptId ? (
+      {auth.userType == "teacher" ? (
         <Dropzone onDrop={handleFileDrop} />
       ) : (
         <Box></Box>
