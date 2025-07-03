@@ -129,21 +129,19 @@ function Students() {
           setFilteredStudents={setFilteredStudents}
         />
 
-        <Grid sx={{ mt: 2 }} container spacing={2} className="cards-section">
-          {filteredStudents.map((student) => {
-            return (
-              <Grid item xs={12} sm={6} md={4} key={student.id}>
-                <StudentInfoCard
-                  student={student}
-                  setCurrentStudent={setCurrentStudent}
-                  handleOpenDrawer={() => {
-                    setDrawerOpen(true);
-                    navigate(`/students/${student.id}`);
-                  }}
-                />
-              </Grid>
-            );
-          })}
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          {filteredStudents.map((student) => (
+            <Grid item xs={12} key={student.id}>
+              <StudentInfoCard
+                student={student}
+                setCurrentStudent={setCurrentStudent}
+                setDrawerOpen={setDrawerOpen}
+                chats={chats}
+                setChatOpen={setChatOpen}
+                setChatId={setChatId}
+              />
+            </Grid>
+          ))}
         </Grid>
 
         <Modal
