@@ -83,7 +83,6 @@ const StudentInfoCard = ({ student, setDrawerOpen, setCurrentStudent, setChatOpe
             setChatOpen(true);
           }}
           sx={{
-            minWidth: 'auto',
             py: 0.8,
             px: 1.5,
             fontSize: "0.75rem",

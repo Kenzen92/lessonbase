@@ -8,6 +8,12 @@ import subjectIconMap from "../../utils/icons";
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const navigate = useNavigate();
   const startTime = new Date(eventData.start_time);
+  const now = new Date();
+  
+  // Compare only the dates by setting both times to midnight
+  const startDate = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const isFutureClass = startDate > todayDate;
 
   const IconComponent = subjectIconMap[eventData.subject.name];
   const formattedTime = new Intl.DateTimeFormat("en-US", {
@@ -15,6 +21,8 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
     minute: "numeric",
     hour12: false,
   }).format(startTime);
+
+  const todaysLocalDate = new Date().toLocaleDateString('en-GB');
 
   return (
     <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }}>
@@ -83,7 +91,7 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <FaUsers color="#fff" size={20} />
             <Typography sx={{ color: "#fff", opacity: 0.9 }}>
-              {eventData.students_count || 0}
+              {eventData.students.length|| 0}
             </Typography>
           </Box>
 
@@ -111,13 +119,19 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
             <IconButton
               onClick={() => navigate(`/interactive-classroom/${eventData.id}`)}
               aria-label="start class"
+              disabled={isFutureClass}
               sx={{
                 color: "#fff",
                 backgroundColor: "rgba(0, 255, 0, 0.2)",
-                opacity: 0.9,
+                opacity: isFutureClass ? 0.5 : 0.9,
                 "&:hover": {
-                  backgroundColor: "rgba(0, 255, 0, 0.3)",
+                  backgroundColor: isFutureClass 
+                    ? "rgba(0, 255, 0, 0.2)" 
+                    : "rgba(0, 255, 0, 0.3)",
                 },
+                "&.Mui-disabled": {
+                  backgroundColor: "rgba(0, 255, 0, 0.1)",
+                }
               }}
             >
               <FaPlay color="#fff" size={16} />

@@ -1,7 +1,8 @@
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
-
-
+from datetime import timedelta
+from django.utils import timezone
+import random
 
 
 def create_required_objects(sender, **kwargs):
@@ -43,19 +44,41 @@ def create_required_objects(sender, **kwargs):
     student_2.save()
     student_3.save()
 
-    # Create some class events in the future
-    from datetime import timedelta
-    from django.utils import timezone
-    for i in range(10):
-        subject = Subject.objects.order_by('?').first()
-        class_event, created = ClassEvent.objects.get_or_create(
-            start_time=timezone.now() + timedelta(days=i),
-            duration=60,
-            subject=subject,
-        )
-        class_event.students.add(student_1, student_2, student_3)
-        class_event.teachers.add(teacher)
-        class_event.save()
+    # Ensure there are at least 5 upcoming classes
+    now = timezone.now()
+    future_classes = ClassEvent.objects.filter(start_time__gt=now).count()
+    classes_to_create = max(0, 5 - future_classes)
+    
+    if classes_to_create > 0:
+        # Get all available students
+        all_students = [student_1, student_2, student_3]
+        durations = [45, 60, 90]  # Variety of class durations
+        
+        for i in range(classes_to_create):
+            # Randomly select 1-3 students
+            num_students = random.randint(1, 3)
+            selected_students = random.sample(all_students, num_students)
+            
+            # Random subject
+            subject = Subject.objects.order_by('?').first()
+            
+            # Random day in next 14 days, random hour between 9 AM and 5 PM
+            random_days = random.randint(1, 14)
+            random_hour = random.randint(9, 17)
+            start_time = now + timedelta(days=random_days)
+            start_time = start_time.replace(hour=random_hour, minute=0)
+            
+            # Random duration
+            duration = random.choice(durations)
+            
+            class_event = ClassEvent.objects.create(
+                start_time=start_time,
+                duration=duration,
+                subject=subject,
+            )
+            class_event.students.add(*selected_students)
+            class_event.teachers.add(teacher)
+            class_event.save()
 
     # Create some class groups of students and teachers
     from apps.user_accounts.models import ClassGroup

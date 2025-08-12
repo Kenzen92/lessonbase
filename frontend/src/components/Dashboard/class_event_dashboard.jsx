@@ -31,6 +31,7 @@ const ClassEventDashboard = () => {
   const { auth } = useAuth();
   const { id } = useParams(); // <-- get the id from the URL
   const navigate = useNavigate();
+  const todaysLocalDate = new Date().toLocaleDateString('en-GB');
 
   const fetchData = async () => {
     try {
@@ -41,8 +42,7 @@ const ClassEventDashboard = () => {
       classEventsData.forEach((event) => {
         // Extract the date from the start_time of the event
         const eventDate = new Date(event.start_time);
-        const formattedDate = `${eventDate.getDate()}/${eventDate.getMonth() + 1
-          }/${eventDate.getFullYear()}`; // Format: DD/MM/YYYY
+        const formattedDate = eventDate.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY with consistent formatting
 
         // Check if the date exists as a key in the dateClassMap
         if (dateClassMap[formattedDate]) {
@@ -157,7 +157,13 @@ const ClassEventDashboard = () => {
             width: "100%",
           }}
         >
-          {Object.keys(filteredClassEvents).map((date) => (
+          {Object.keys(filteredClassEvents)
+            .sort((a, b) => {
+              const [aDay, aMonth, aYear] = a.split('/').map(Number);
+              const [bDay, bMonth, bYear] = b.split('/').map(Number);
+              return new Date(aYear, aMonth - 1, aDay) - new Date(bYear, bMonth - 1, bDay);
+            })
+            .map((date) => (
             <Box
               key={date}
               sx={{
@@ -176,7 +182,7 @@ const ClassEventDashboard = () => {
                 }}
               >
                 <Typography sx={{ marginLeft: "1rem" }} variant="h6">
-                  {date}
+                  {date === todaysLocalDate ? "Today" : date}
                 </Typography>
                 {filteredClassEvents[date].map((classEvent, index) => (
                   <ClassEventCard
