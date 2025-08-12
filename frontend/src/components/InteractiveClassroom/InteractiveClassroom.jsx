@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Grid, Paper } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
 import Whiteboard from './Whiteboard';
 import VideoChat from './VideoChat';
 import TextChat from './TextChat';
 
 const InteractiveClassroom = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [selectedTool, setSelectedTool] = useState('pen');
+
+  useEffect(() => {
+  if (!id) {
+    navigate('/dashboard');
+    return;
+  }
+  
+  // Load class event details or set up WebSocket connection
+}, [id, navigate]);
 
   return (
     <Box sx={{ height: '100vh', backgroundColor: '#1a1a1a', p: 2 }}>
@@ -20,7 +32,7 @@ const InteractiveClassroom = () => {
               borderRadius: '16px',
             }}
           >
-            <Whiteboard selectedTool={selectedTool} setSelectedTool={setSelectedTool} />
+            <Whiteboard selectedTool={selectedTool} setSelectedTool={setSelectedTool} roomId={id} />
           </Paper>
         </Grid>
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Box, IconButton, Paper, Tooltip } from '@mui/material';
 import { Stage, Layer, Line } from 'react-konva';
 import { 
@@ -11,13 +11,30 @@ import {
   FaRedo,
   FaTrash
 } from 'react-icons/fa';
+import WhiteboardSocketService from '../../services/whiteboardSocket';
 
-const Whiteboard = ({ selectedTool, setSelectedTool }) => {
+const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
   const stageRef = useRef(null);
   const [lines, setLines] = useState([]);
   const [history, setHistory] = useState([]);
   const [historyStep, setHistoryStep] = useState(0);
   const isDrawing = useRef(false);
+  const [socketService, setSocketService] = useState(null);
+  const lastEmitTime = useRef(0);
+  const EMIT_THROTTLE = 30; // ms between emissions
+
+  useEffect(() => {
+    const service = new WhiteboardSocketService(roomId);
+    setSocketService(service);
+
+    service.subscribeToDrawingEvents((event) => {
+      handleRemoteDrawingEvent(event);
+    });
+
+    return () => {
+      service.disconnect();
+    };
+  }, [roomId]);
   
   const tools = [
     { name: 'pen', icon: FaPen, tooltip: 'Pen' },
@@ -27,10 +44,70 @@ const Whiteboard = ({ selectedTool, setSelectedTool }) => {
     { name: 'arrow', icon: FaArrowRight, tooltip: 'Arrow' },
   ];
 
+  const handleRemoteDrawingEvent = useCallback((event) => {
+    switch (event.type) {
+      case 'draw_start':
+        setLines(prevLines => [...prevLines, event.payload.line]);
+        break;
+      case 'draw_update':
+        setLines(prevLines => {
+          const lineToUpdate = prevLines.find(line => line.id === event.payload.lineId);
+          if (!lineToUpdate) return prevLines;
+          
+          lineToUpdate.points = lineToUpdate.points.concat(event.payload.newPoints);
+          return [...prevLines.slice(0, -1), lineToUpdate];
+        });
+        break;
+      case 'draw_end':
+        if (event.payload.historyStep > historyStep) {
+          setHistory(prevHistory => [...prevHistory, lines]);
+          setHistoryStep(event.payload.historyStep);
+        }
+        break;
+      case 'undo':
+        if (historyStep > 0) {
+          setHistoryStep(historyStep - 1);
+          setLines(history[historyStep - 1]);
+        }
+        break;
+      case 'redo':
+        if (historyStep < history.length - 1) {
+          setHistoryStep(historyStep + 1);
+          setLines(history[historyStep + 1]);
+        }
+        break;
+      case 'clear':
+        setLines([]);
+        setHistory([[]]);
+        setHistoryStep(0);
+        break;
+      case 'sync_response':
+        setLines(event.payload.lines);
+        setHistory(event.payload.history);
+        setHistoryStep(event.payload.historyStep);
+        break;
+      default:
+        console.warn('Unknown event type:', event.type);
+    }
+  }, [history, historyStep]);
+
+  const emitDrawingEvent = useCallback((type, payload = {}) => {
+    const now = Date.now();
+    if (now - lastEmitTime.current >= EMIT_THROTTLE) {
+      socketService?.emitDrawingEvent(type, payload);
+      lastEmitTime.current = now;
+    }
+  }, [socketService]);
+
   const handleMouseDown = (e) => {
     isDrawing.current = true;
     const pos = e.target.getStage().getPointerPosition();
-    setLines([...lines, { tool: selectedTool, points: [pos.x, pos.y] }]);
+    const newLine = { tool: selectedTool, points: [pos.x, pos.y], id: Date.now() };
+    const newLines = [...lines, newLine];
+    setLines(newLines);
+    emitDrawingEvent('draw_start', { 
+      line: newLine
+    });
   };
 
   const handleMouseMove = (e) => {
@@ -39,39 +116,65 @@ const Whiteboard = ({ selectedTool, setSelectedTool }) => {
     const stage = e.target.getStage();
     const point = stage.getPointerPosition();
     const lastLine = lines[lines.length - 1];
-    lastLine.points = lastLine.points.concat([point.x, point.y]);
+    const newPoints = [point.x, point.y];
+    lastLine.points = lastLine.points.concat(newPoints);
 
-    lines.splice(lines.length - 1, 1, lastLine);
-    setLines([...lines]);
+    const newLines = [...lines.slice(0, -1), lastLine];
+    setLines(newLines);
+    emitDrawingEvent('draw_update', {
+      lineId: lastLine.id,
+      newPoints: newPoints
+    });
   };
 
   const handleMouseUp = () => {
+    if (!isDrawing.current) return;
+    
     isDrawing.current = false;
-    setHistory(history.slice(0, historyStep + 1).concat([lines]));
-    setHistoryStep(historyStep + 1);
+    const lastLine = lines[lines.length - 1];
+    const newHistory = history.slice(0, historyStep + 1).concat([lines]);
+    const newHistoryStep = historyStep + 1;
+    
+    setHistory(newHistory);
+    setHistoryStep(newHistoryStep);
+    
+    emitDrawingEvent('draw_end', {
+      lineId: lastLine.id,
+      historyStep: newHistoryStep
+    });
   };
 
   const handleUndo = () => {
     if (historyStep === 0) return;
-    setHistoryStep(historyStep - 1);
-    setLines(history[historyStep - 1]);
+    const newHistoryStep = historyStep - 1;
+    setHistoryStep(newHistoryStep);
+    setLines(history[newHistoryStep]);
+    emitDrawingEvent('undo', {
+      historyStep: newHistoryStep
+    });
   };
 
   const handleRedo = () => {
     if (historyStep === history.length - 1) return;
-    setHistoryStep(historyStep + 1);
-    setLines(history[historyStep + 1]);
+    const newHistoryStep = historyStep + 1;
+    setHistoryStep(newHistoryStep);
+    setLines(history[newHistoryStep]);
+    emitDrawingEvent('redo', {
+      historyStep: newHistoryStep
+    });
   };
 
   const handleClear = () => {
     setLines([]);
     setHistory([[]]);
     setHistoryStep(0);
+    emitDrawingEvent('clear');
   };
 
   const logLines = useEffect(() => {
     console.log(lines);
   }, [lines]);
+
 
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>

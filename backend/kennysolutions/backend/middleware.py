@@ -17,6 +17,9 @@ class TokenAuthMiddleware(BaseMiddleware):
         # Extract the token from the query string
         query_string = scope['query_string'].decode()
         print("Query String:", query_string)
+        if not query_string:
+            scope['user'] = AnonymousUser()
+            return await super().__call__(scope, receive, send)
         query_params = dict(x.split('=') for x in query_string.split('&'))
         print("Query Params:", query_params)
         token_key = query_params.get('token', None)

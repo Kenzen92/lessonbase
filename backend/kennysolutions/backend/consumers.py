@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 from .models import Chat, Message 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -113,3 +114,167 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'sender': message.sender.username,
             'timestamp': message.timestamp.isoformat()
         }
+    
+
+
+
+class WhiteboardState:
+    def __init__(self):
+        self.lines = []
+        self.current_lines = {}  # Store in-progress lines
+        self.history = [[]]
+        self.history_step = 0
+
+class WhiteboardConsumer(AsyncWebsocketConsumer):
+    # Class-level storage for room states
+    room_states = defaultdict(WhiteboardState)
+
+    async def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'whiteboard_{self.room_name}'
+        
+        # Join room group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        
+        await self.accept()
+        
+        # Send current state to new connection
+        state = self.room_states[self.room_name]
+        await self.send(text_data=json.dumps({
+            'type': 'sync_response',
+            'payload': {
+                'lines': state.lines,
+                'history': state.history,
+                'historyStep': state.history_step
+            }
+        }))
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        event_type = data.get('type')
+        payload = data.get('payload', {})
+        
+        state = self.room_states[self.room_name]
+        print(f"Received event: {event_type} with payload: {payload}")
+        
+        if event_type == 'draw_start':
+            # Add new line to current lines
+            line = payload['line']
+            state.current_lines[line['id']] = line
+            state.lines.append(line)
+            
+            # Broadcast to group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_event',
+                    'event_type': 'draw_start',
+                    'payload': payload
+                }
+            )
+            
+        elif event_type == 'draw_update':
+            line_id = payload['lineId']
+            new_points = payload['newPoints']
+            
+            if line_id in state.current_lines:
+                # Update the line with new points
+                current_line = state.current_lines[line_id]
+                current_line['points'].extend(new_points)
+                
+                # Update the line in the main lines array
+                line_index = next(i for i, line in enumerate(state.lines) if line['id'] == line_id)
+                state.lines[line_index] = current_line
+                
+                # Broadcast update
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'broadcast_event',
+                        'event_type': 'draw_update',
+                        'payload': payload
+                    }
+                )
+                
+        elif event_type == 'draw_end':
+            line_id = payload['lineId']
+            if line_id in state.current_lines:
+                # Remove from current lines
+                del state.current_lines[line_id]
+                
+                # Update history
+                state.history = state.history[:state.history_step + 1]
+                state.history.append(list(state.lines))
+                state.history_step = len(state.history) - 1
+                
+                # Broadcast completion
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'broadcast_event',
+                        'event_type': 'draw_end',
+                        'payload': {
+                            'lineId': line_id,
+                            'historyStep': state.history_step
+                        }
+                    }
+                )
+                
+        elif event_type == 'undo':
+            if state.history_step > 0:
+                state.history_step -= 1
+                state.lines = list(state.history[state.history_step])
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'broadcast_event',
+                        'event_type': 'undo',
+                        'payload': {'historyStep': state.history_step}
+                    }
+                )
+                
+        elif event_type == 'redo':
+            if state.history_step < len(state.history) - 1:
+                state.history_step += 1
+                state.lines = list(state.history[state.history_step])
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'broadcast_event',
+                        'event_type': 'redo',
+                        'payload': {'historyStep': state.history_step}
+                    }
+                )
+                
+        elif event_type == 'clear':
+            print("Clearing whiteboard state for room:", self.room_name)
+            print(state.lines)
+            state.lines = []
+            state.current_lines = {}
+            state.history = [[]]
+            state.history_step = 0
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_event',
+                    'event_type': 'clear',
+                    'payload': {}
+                }
+            )
+
+    async def broadcast_event(self, event):
+        # Send event to WebSocket
+        await self.send(text_data=json.dumps({
+            'type': event['event_type'],
+            'payload': event['payload']
+        }))

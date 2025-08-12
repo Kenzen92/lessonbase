@@ -2,9 +2,11 @@ import React from "react";
 import { FaPlay, FaClock, FaFile, FaInfoCircle, FaUsers } from "react-icons/fa";
 import { Box, Typography, Chip, IconButton, Paper } from "@mui/material";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import subjectIconMap from "../../utils/icons";
 
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
+  const navigate = useNavigate();
   const startTime = new Date(eventData.start_time);
 
   const IconComponent = subjectIconMap[eventData.subject.name];
@@ -107,7 +109,7 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
               <FaInfoCircle color="#fff" />
             </IconButton>
             <IconButton
-              onClick={() => window.location.href = `/interactive-classroom/${eventData.id}`}
+              onClick={() => navigate(`/interactive-classroom/${eventData.id}`)}
               aria-label="start class"
               sx={{
                 color: "#fff",
