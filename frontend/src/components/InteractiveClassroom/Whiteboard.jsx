@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Box, IconButton, Paper, Tooltip } from '@mui/material';
+import { Box, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { Stage, Layer, Line } from 'react-konva';
 import { 
   FaPen, 
@@ -12,8 +12,9 @@ import {
   FaTrash
 } from 'react-icons/fa';
 import WhiteboardSocketService from '../../services/whiteboardSocket';
+import { get } from 'react-hook-form';
 
-const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
+const Whiteboard = ({ selectedTool, setSelectedTool, selectedToolSize, setSelectedToolSize, roomId }) => {
   const stageRef = useRef(null);
   const [lines, setLines] = useState([]);
   const [history, setHistory] = useState([]);
@@ -22,6 +23,7 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
   const [socketService, setSocketService] = useState(null);
   const lastEmitTime = useRef(0);
   const EMIT_THROTTLE = 30; // ms between emissions
+  const [toolSizeMenuOpen, setToolSizeMenuOpen] = useState(false);
 
   useEffect(() => {
     const service = new WhiteboardSocketService(roomId);
@@ -43,6 +45,14 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
     { name: 'circle', icon: FaCircle, tooltip: 'Circle' },
     { name: 'arrow', icon: FaArrowRight, tooltip: 'Arrow' },
   ];
+
+  const toolSizes = {
+    'xs': 2,
+    'sm': 5,
+    'md': 10,
+    'lg': 20,
+    'xl': 32
+  };
 
   const handleRemoteDrawingEvent = useCallback((event) => {
     switch (event.type) {
@@ -91,6 +101,33 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
     }
   }, [history, historyStep]);
 
+  // Add this new function just before the return statement
+const getCustomCursor = useCallback(() => {
+  if (selectedTool !== 'eraser') return 'default';
+  
+  const size = toolSizes[selectedToolSize] || toolSizes['md'];
+  const cursorSize = size + 2; // Add 2px for border
+  
+  // Create a temporary canvas to draw the cursor
+  const canvas = document.createElement('canvas');
+  canvas.width = cursorSize;
+  canvas.height = cursorSize;
+  const ctx = canvas.getContext('2d');
+  
+  // Draw black border circle
+  ctx.beginPath();
+  ctx.arc(cursorSize/2, cursorSize/2, size/2, 0, Math.PI * 2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // Convert to data URL
+  const dataUrl = canvas.toDataURL();
+  
+  return `url(${dataUrl}) ${cursorSize/2} ${cursorSize/2}, auto`;
+}, [selectedTool, selectedToolSize, toolSizes]);
+
+
   const emitDrawingEvent = useCallback((type, payload = {}) => {
     const now = Date.now();
     if (now - lastEmitTime.current >= EMIT_THROTTLE) {
@@ -102,7 +139,12 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
   const handleMouseDown = (e) => {
     isDrawing.current = true;
     const pos = e.target.getStage().getPointerPosition();
-    const newLine = { tool: selectedTool, points: [pos.x, pos.y], id: Date.now() };
+    const newLine = { 
+      tool: selectedTool, 
+      points: [pos.x, pos.y], 
+      id: Date.now(),
+      width: toolSizes[selectedToolSize] || toolSizes['md']
+    };
     const newLines = [...lines, newLine];
     setLines(newLines);
     emitDrawingEvent('draw_start', { 
@@ -171,10 +213,6 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
     emitDrawingEvent('clear');
   };
 
-  const logLines = useEffect(() => {
-    console.log(lines);
-  }, [lines]);
-
 
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
@@ -197,7 +235,10 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
         {tools.map((tool) => (
           <Tooltip key={tool.name} title={tool.tooltip} placement="right">
             <IconButton
-              onClick={() => setSelectedTool(tool.name)}
+              onClick={() => {
+                setSelectedTool(tool.name);
+                setToolSizeMenuOpen(true);
+              }}
               sx={{
                 color: selectedTool === tool.name ? '#fff' : 'rgba(255, 255, 255, 0.6)',
                 backgroundColor: selectedTool === tool.name ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
@@ -206,24 +247,57 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
                 },
               }}
             >
-              <tool.icon size={20} />
+              <tool.icon size={20} color={'#a7a7a7ff'} />
             </IconButton>
           </Tooltip>
         ))}
+        {toolSizeMenuOpen && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {Object.entries(toolSizes).map(([size, value]) => (
+              <IconButton
+                key={size}
+                onClick={() => {
+                  setSelectedToolSize(size);
+                  setToolSizeMenuOpen(false);
+                }}
+                sx={{
+                  height: '40px',
+                  width: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: selectedToolSize === size ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: value,
+                    height: value,
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                  }}
+                />
+              </IconButton>
+            ))}
+          </Box>
+        )}
         <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.1)', my: 1 }} />
         <Tooltip title="Undo" placement="right">
           <IconButton onClick={handleUndo} disabled={historyStep === 0}>
-            <FaUndo size={20} />
+            <FaUndo size={20} color={'#a7a7a7ff'}/>
           </IconButton>
         </Tooltip>
         <Tooltip title="Redo" placement="right">
           <IconButton onClick={handleRedo} disabled={historyStep === history.length - 1}>
-            <FaRedo size={20} />
+            <FaRedo size={20} color={'#a7a7a7ff'}/>
           </IconButton>
         </Tooltip>
         <Tooltip title="Clear" placement="right">
           <IconButton onClick={handleClear}>
-            <FaTrash size={20} />
+            <FaTrash size={20} color={'#a7a7a7ff'}/>
           </IconButton>
         </Tooltip>
       </Paper>
@@ -236,7 +310,7 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
         onMousemove={handleMouseMove}
         onMouseup={handleMouseUp}
         ref={stageRef}
-        style={{ backgroundColor: '#fff' }}
+        style={{ backgroundColor: '#fff', cursor: getCustomCursor() }}
       >
         <Layer>
           {lines.map((line, i) => (
@@ -244,7 +318,7 @@ const Whiteboard = ({ selectedTool, setSelectedTool, roomId }) => {
               key={i}
               points={line.points}
               stroke={line.tool === 'eraser' ? '#fff' : '#000'}
-              strokeWidth={line.tool === 'eraser' ? 20 : 2}
+              strokeWidth={line.width}
               tension={0.5}
               lineCap="round"
               globalCompositeOperation={

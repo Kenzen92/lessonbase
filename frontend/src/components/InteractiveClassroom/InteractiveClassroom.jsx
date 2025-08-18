@@ -9,6 +9,7 @@ const InteractiveClassroom = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedTool, setSelectedTool] = useState('pen');
+  const [selectedToolSize, setSelectedToolSize] = useState(2);
 
   useEffect(() => {
   if (!id) {
@@ -32,7 +33,13 @@ const InteractiveClassroom = () => {
               borderRadius: '16px',
             }}
           >
-            <Whiteboard selectedTool={selectedTool} setSelectedTool={setSelectedTool} roomId={id} />
+            <Whiteboard 
+              selectedTool={selectedTool} 
+              setSelectedTool={setSelectedTool} 
+              selectedToolSize={selectedToolSize} 
+              setSelectedToolSize={setSelectedToolSize} 
+              roomId={id} 
+            />
           </Paper>
         </Grid>
 
