@@ -10,6 +10,7 @@ const InteractiveClassroom = () => {
   const navigate = useNavigate();
   const [selectedTool, setSelectedTool] = useState('pen');
   const [selectedToolSize, setSelectedToolSize] = useState(2);
+  
 
   useEffect(() => {
   if (!id) {

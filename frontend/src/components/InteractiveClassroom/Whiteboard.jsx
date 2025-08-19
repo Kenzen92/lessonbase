@@ -1,18 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Box, IconButton, Paper, Tooltip, Typography } from '@mui/material';
-import { Stage, Layer, Line } from 'react-konva';
-import { 
-  FaPen, 
-  FaEraser, 
-  FaSquare, 
-  FaCircle, 
-  FaArrowRight,
-  FaUndo,
-  FaRedo,
-  FaTrash
-} from 'react-icons/fa';
+import { Box } from '@mui/material';
 import WhiteboardSocketService from '../../services/whiteboardSocket';
-import { get } from 'react-hook-form';
+import Toolbar from './Whiteboard/Toolbar';
+import Canvas from './Whiteboard/Canvas';
 
 const Whiteboard = ({ selectedTool, setSelectedTool, selectedToolSize, setSelectedToolSize, roomId }) => {
   const stageRef = useRef(null);
@@ -24,6 +14,83 @@ const Whiteboard = ({ selectedTool, setSelectedTool, selectedToolSize, setSelect
   const lastEmitTime = useRef(0);
   const EMIT_THROTTLE = 30; // ms between emissions
   const [toolSizeMenuOpen, setToolSizeMenuOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('#000000');
+  const currentLine = useRef(null);
+  const rawPoints = useRef([]);
+
+  // Function to create a smooth curve using Catmull-Rom splines
+  const smoothLine = (points) => {
+    if (points.length < 2) return points;
+
+    // Helper function to interpolate between four points
+    const interpolate = (p0, p1, p2, p3, t, alpha = 0.5) => {
+      const t2 = t * t;
+      const t3 = t2 * t;
+      
+      // Catmull-Rom matrix
+      const v0 = (-alpha * t3 + 2 * alpha * t2 - alpha * t) * p0;
+      const v1 = ((2 - alpha) * t3 + (alpha - 3) * t2 + 1) * p1;
+      const v2 = ((alpha - 2) * t3 + (3 - 2 * alpha) * t2 + alpha * t) * p2;
+      const v3 = (alpha * t3 - alpha * t2) * p3;
+      
+      return v0 + v1 + v2 + v3;
+    };
+
+    // First, do basic distance-based simplification
+    const simplified = [];
+    let lastX = points[0];
+    let lastY = points[1];
+    simplified.push(lastX, lastY);
+
+    for (let i = 2; i < points.length; i += 2) {
+      const dx = points[i] - lastX;
+      const dy = points[i + 1] - lastY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      if (distance > 2) { // Smaller threshold to maintain more detail
+        simplified.push(points[i], points[i + 1]);
+        lastX = points[i];
+        lastY = points[i + 1];
+      }
+    }
+
+    // Always include the last point
+    if (simplified[simplified.length - 2] !== points[points.length - 2] ||
+        simplified[simplified.length - 1] !== points[points.length - 1]) {
+      simplified.push(points[points.length - 2], points[points.length - 1]);
+    }
+
+    // If we don't have enough points for interpolation
+    if (simplified.length < 6) return simplified;
+
+    const result = [];
+    result.push(simplified[0], simplified[1]); // Start with the first point
+
+    // Generate smooth curve points
+    for (let i = 0; i < simplified.length - 2; i += 2) {
+      // Get four points for interpolation
+      const p0x = i === 0 ? simplified[0] : simplified[i - 2];
+      const p0y = i === 0 ? simplified[1] : simplified[i - 1];
+      const p1x = simplified[i];
+      const p1y = simplified[i + 1];
+      const p2x = simplified[i + 2];
+      const p2y = simplified[i + 3];
+      const p3x = i >= simplified.length - 4 ? p2x : simplified[i + 4];
+      const p3y = i >= simplified.length - 4 ? p2y : simplified[i + 5];
+
+      // Generate points along the curve
+      const segments = 5; // Adjust this for smoothness
+      for (let t = 1; t <= segments; t++) {
+        const x = interpolate(p0x, p1x, p2x, p3x, t / segments, 0.5);
+        const y = interpolate(p0y, p1y, p2y, p3y, t / segments, 0.5);
+        if (t < segments || i === simplified.length - 4) {
+          result.push(x, y);
+        }
+      }
+    }
+
+    return result;
+  };
 
   useEffect(() => {
     const service = new WhiteboardSocketService(roomId);
@@ -38,13 +105,18 @@ const Whiteboard = ({ selectedTool, setSelectedTool, selectedToolSize, setSelect
     };
   }, [roomId]);
   
-  const tools = [
-    { name: 'pen', icon: FaPen, tooltip: 'Pen' },
-    { name: 'eraser', icon: FaEraser, tooltip: 'Eraser' },
-    { name: 'rectangle', icon: FaSquare, tooltip: 'Rectangle' },
-    { name: 'circle', icon: FaCircle, tooltip: 'Circle' },
-    { name: 'arrow', icon: FaArrowRight, tooltip: 'Arrow' },
-  ];
+  useEffect(() => {
+    const service = new WhiteboardSocketService(roomId);
+    setSocketService(service);
+
+    service.subscribeToDrawingEvents((event) => {
+      handleRemoteDrawingEvent(event);
+    });
+
+    return () => {
+      service.disconnect();
+    };
+  }, [roomId]);
 
   const toolSizes = {
     'xs': 2,
@@ -117,7 +189,6 @@ const getCustomCursor = useCallback(() => {
   // Draw black border circle
   ctx.beginPath();
   ctx.arc(cursorSize/2, cursorSize/2, size/2, 0, Math.PI * 2);
-  ctx.strokeStyle = '#000';
   ctx.lineWidth = 1;
   ctx.stroke();
   
@@ -143,47 +214,140 @@ const getCustomCursor = useCallback(() => {
       tool: selectedTool, 
       points: [pos.x, pos.y], 
       id: Date.now(),
-      width: toolSizes[selectedToolSize] || toolSizes['md']
+      width: toolSizes[selectedToolSize] || toolSizes['md'],
+      color: selectedColor,
+      color: selectedColor
     };
-    const newLines = [...lines, newLine];
-    setLines(newLines);
+    currentLine.current = newLine;
+    rawPoints.current = [pos.x, pos.y];
+    setLines([...lines, newLine]);
     emitDrawingEvent('draw_start', { 
       line: newLine
     });
   };
 
   const handleMouseMove = (e) => {
-    if (!isDrawing.current) return;
+    if (!isDrawing.current || !currentLine.current) return;
 
-    const stage = e.target.getStage();
-    const point = stage.getPointerPosition();
-    const lastLine = lines[lines.length - 1];
-    const newPoints = [point.x, point.y];
-    lastLine.points = lastLine.points.concat(newPoints);
-
-    const newLines = [...lines.slice(0, -1), lastLine];
-    setLines(newLines);
-    emitDrawingEvent('draw_update', {
-      lineId: lastLine.id,
-      newPoints: newPoints
-    });
+    try {
+      const stage = e.target.getStage();
+      const point = stage.getPointerPosition();
+      
+      // Capture current line information to avoid race conditions
+      const currentLineId = currentLine.current.id;
+      const currentPoints = currentLine.current.points;
+      
+      if (!currentLineId) return;
+      
+      // Add the raw point to our collection
+      rawPoints.current.push(point.x, point.y);
+      
+      // Create updated line with new points
+      const updatedLine = {
+        ...currentLine.current,
+        points: [...currentPoints, point.x, point.y]
+      };
+      
+      // Update the current line reference
+      currentLine.current = updatedLine;
+      
+      // Update the lines state with extra safety checks
+      setLines(prevLines => {
+        // Ensure we have a valid array
+        const validLines = Array.isArray(prevLines) ? prevLines : [];
+        
+        // Filter with the captured ID instead of accessing currentLine.current
+        const withoutPreview = validLines.filter(line => 
+          line && line.id && line.id !== currentLineId
+        );
+        
+        return [...withoutPreview, updatedLine];
+      });
+      
+      // Emit the update event with the captured ID
+      emitDrawingEvent('draw_update', {
+        lineId: currentLineId,
+        newPoints: [point.x, point.y]
+      });
+    } catch (error) {
+      console.warn('Error during line update:', error);
+    }
   };
 
   const handleMouseUp = () => {
-    if (!isDrawing.current) return;
+    if (!isDrawing.current || !currentLine.current) return;
     
-    isDrawing.current = false;
-    const lastLine = lines[lines.length - 1];
-    const newHistory = history.slice(0, historyStep + 1).concat([lines]);
-    const newHistoryStep = historyStep + 1;
+    // Capture current line information immediately to avoid race conditions
+    const originalLine = { ...currentLine.current };
+    const originalId = originalLine.id;
+    let newLine = null;
     
-    setHistory(newHistory);
-    setHistoryStep(newHistoryStep);
+    try {
+      // Special handling for dots (single clicks)
+      if (rawPoints.current.length === 2) {
+        const x = rawPoints.current[0];
+        const y = rawPoints.current[1];
+        newLine = {
+          ...originalLine,
+          points: [x, y],
+          isDot: true, // Mark this as a dot for special rendering
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        };
+      } else {
+        // Normal line handling
+        const smoothedPoints = smoothLine(rawPoints.current);
+        if (!smoothedPoints || smoothedPoints.length < 2) return;
+        
+        newLine = {
+          ...originalLine,
+          points: smoothedPoints,
+          id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        };
+      }
+      
+      // Update lines state, being extra careful about null checks
+      setLines(prevLines => {
+        // Ensure we have valid arrays
+        const validLines = Array.isArray(prevLines) ? prevLines : [];
+        
+        // Filter out the preview line using captured ID and add the smooth line
+        return [
+          ...validLines.filter(line => line && line.id && line.id !== originalId),
+          newLine
+        ];
+      });
+
+      // Create new history entry using captured ID
+      const validLines = Array.isArray(lines) ? lines : [];
+      const linesWithoutPreview = validLines.filter(line => line && line.id && line.id !== originalId);
+      
+      const newHistoryEntry = [...linesWithoutPreview, newLine];
+      const newHistory = [...history.slice(0, historyStep + 1), newHistoryEntry];
+      const newHistoryStep = historyStep + 1;
+
+      // Update history state
+      setHistory(newHistory);
+      setHistoryStep(newHistoryStep);
+
+      // Only emit if we successfully created the new line
+      if (newLine) {
+        emitDrawingEvent('draw_end', {
+          lineId: newLine.id,
+          historyStep: newHistoryStep
+        });
+      }
+    } catch (error) {
+      console.warn('Error during line completion:', error);
+    } finally {
+      // Always clean up the drawing state
+      isDrawing.current = false;
+      currentLine.current = null;
+      rawPoints.current = [];
+    }
     
-    emitDrawingEvent('draw_end', {
-      lineId: lastLine.id,
-      historyStep: newHistoryStep
-    });
+    // Reset the drawing state
+    currentLine.current = null;
+    rawPoints.current = [];
   };
 
   const handleUndo = () => {
@@ -216,118 +380,35 @@ const getCustomCursor = useCallback(() => {
 
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
-      {/* Toolbar */}
-      <Paper
-        sx={{
-          position: 'absolute',
-          top: '16px',
-          left: '16px',
-          zIndex: 1,
-          backgroundColor: 'rgba(38, 38, 38, 0.95)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '8px',
-          padding: '8px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
+      <Toolbar
+        selectedTool={selectedTool}
+        onToolSelect={(tool) => {
+          setSelectedTool(tool);
+          setToolSizeMenuOpen(true);
         }}
-      >
-        {tools.map((tool) => (
-          <Tooltip key={tool.name} title={tool.tooltip} placement="right">
-            <IconButton
-              onClick={() => {
-                setSelectedTool(tool.name);
-                setToolSizeMenuOpen(true);
-              }}
-              sx={{
-                color: selectedTool === tool.name ? '#fff' : 'rgba(255, 255, 255, 0.6)',
-                backgroundColor: selectedTool === tool.name ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                },
-              }}
-            >
-              <tool.icon size={20} color={'#a7a7a7ff'} />
-            </IconButton>
-          </Tooltip>
-        ))}
-        {toolSizeMenuOpen && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {Object.entries(toolSizes).map(([size, value]) => (
-              <IconButton
-                key={size}
-                onClick={() => {
-                  setSelectedToolSize(size);
-                  setToolSizeMenuOpen(false);
-                }}
-                sx={{
-                  height: '40px',
-                  width: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: selectedToolSize === size ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  },
-                }}
-              >
-                <Box
-                  sx={{
-                    width: value,
-                    height: value,
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
-                  }}
-                />
-              </IconButton>
-            ))}
-          </Box>
-        )}
-        <Box sx={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.1)', my: 1 }} />
-        <Tooltip title="Undo" placement="right">
-          <IconButton onClick={handleUndo} disabled={historyStep === 0}>
-            <FaUndo size={20} color={'#a7a7a7ff'}/>
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Redo" placement="right">
-          <IconButton onClick={handleRedo} disabled={historyStep === history.length - 1}>
-            <FaRedo size={20} color={'#a7a7a7ff'}/>
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Clear" placement="right">
-          <IconButton onClick={handleClear}>
-            <FaTrash size={20} color={'#a7a7a7ff'}/>
-          </IconButton>
-        </Tooltip>
-      </Paper>
+        selectedSize={selectedToolSize}
+        onSizeSelect={setSelectedToolSize}
+        selectedColor={selectedColor}
+        onColorSelect={setSelectedColor}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onClear={handleClear}
+        canUndo={historyStep > 0}
+        canRedo={historyStep < history.length - 1}
+        showSizeSelector={toolSizeMenuOpen}
+        onSizeSelectorClose={() => setToolSizeMenuOpen(false)}
+      />
 
-      {/* Canvas */}
-      <Stage
+      <Canvas
         width={window.innerWidth * 0.65}
         height={window.innerHeight - 32}
+        lines={lines}
         onMouseDown={handleMouseDown}
-        onMousemove={handleMouseMove}
-        onMouseup={handleMouseUp}
-        ref={stageRef}
-        style={{ backgroundColor: '#fff', cursor: getCustomCursor() }}
-      >
-        <Layer>
-          {lines.map((line, i) => (
-            <Line
-              key={i}
-              points={line.points}
-              stroke={line.tool === 'eraser' ? '#fff' : '#000'}
-              strokeWidth={line.width}
-              tension={0.5}
-              lineCap="round"
-              globalCompositeOperation={
-                line.tool === 'eraser' ? 'destination-out' : 'source-over'
-              }
-            />
-          ))}
-        </Layer>
-      </Stage>
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        stageRef={stageRef}
+        cursor={getCustomCursor()}
+      />
     </Box>
   );
 };

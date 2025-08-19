@@ -6,7 +6,6 @@ import {
   Navigate,
 } from "react-router-dom";
 import { IconContext } from "react-icons";
-import { FaFolder } from "react-icons/fa";
 import Login from "./screens/login";
 import Signup from "./screens/signup";
 import ClassEventDashboard from "./components/Dashboard/class_event_dashboard";
