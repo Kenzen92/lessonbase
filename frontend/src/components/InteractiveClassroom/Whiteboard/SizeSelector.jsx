@@ -22,6 +22,7 @@ const SizeSelector = ({ selectedSize, onSizeSelect }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            p: 0,
             backgroundColor: selectedSize === size ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 0.2)',

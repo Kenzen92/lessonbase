@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Box } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 import WhiteboardSocketService from '../../services/whiteboardSocket';
 import Toolbar from './Whiteboard/Toolbar';
 import Canvas from './Whiteboard/Canvas';

@@ -13,7 +13,7 @@ const ColorPicker = ({ selectedColor, onColorSelect }) => {
   const [anchorPosition, setAnchorPosition] = React.useState(null);
 
   const handleClick = (event) => {
-    setAnchorPosition({ top: 100, left: 100 });
+    setAnchorPosition({ top: 320, left: 100 });
   };
 
   const handleClose = () => {
