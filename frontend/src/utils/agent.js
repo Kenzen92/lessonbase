@@ -1,5 +1,11 @@
 export const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
+// Helper function to ensure URL is properly formatted
+const getFullUrl = (url) => {
+  if (url.startsWith('http')) return url;
+  return `${BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+};
+
 export const apiRequest = async (url, method = "GET", body = null, navigate=null) => {
   const auth = window.sessionStorage.getItem("token");
   const headers = {
@@ -49,48 +55,47 @@ export const handleUnauthorizedRequest = (navigate) => {
   navigate("/login");
 };
 export const fetchStudents = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/student`, "GET", null, navigate);
+  return await apiRequest(getFullUrl('/student'), "GET", null, navigate);
 };
 
 export const fetchSubjects = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/subjects`, "GET", null, navigate);
+  return await apiRequest(getFullUrl('/subjects'), "GET", null, navigate);
 };
 
 export const fetchAllSubjects = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/subjects/all`, "GET", null, navigate);
+  return await apiRequest(getFullUrl('/subjects/all'), "GET", null, navigate);
 };
 
 export const fetchAllAssignments = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/assignment`, "GET", null, navigate);
+  return await apiRequest(getFullUrl('/assignment'), "GET", null, navigate);
 };
 
 export const fetchAssignment = async (assignment_id, navigate) => {
-    return await apiRequest(`${BASE_URL}/assignment/${assignment_id}`, "GET", null, navigate);
+    return await apiRequest(getFullUrl(`/assignment/${assignment_id}`), "GET", null, navigate);
 }
 
 export const handleCreateAssignment = async (formData, navigate) => {
-  return await apiRequest(`${BASE_URL}/assignment/`, "POST", formData, navigate);
+  return await apiRequest(getFullUrl('/assignment/'), "POST", formData, navigate);
 };
 
 export const fetchClassEvents = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/class-event`, "GET", null, navigate);
+  return await apiRequest(getFullUrl('/class-event'), "GET", null, navigate);
 }
 
-export const fetchClassEventsForStudent = async ( studentID, navigate) => {
-  return await apiRequest(`${BASE_URL}/class-event/student/${studentID}`,  "GET", null, navigate);
+export const fetchClassEventsForStudent = async (studentID, navigate) => {
+  return await apiRequest(getFullUrl(`/class-event/student/${studentID}`), "GET", null, navigate);
 };
 
-
 export const handleCreateClassGroup = async (classGroupData, navigate) => {
-  return await apiRequest(`${BASE_URL}/class-group/`, "POST", classGroupData, navigate);
+  return await apiRequest(getFullUrl('/class-group/'), "POST", classGroupData, navigate);
 };
 
 export const handleUpdateClassGroup = async (classGroupData, currentClassId, navigate) => {
-  return await apiRequest(`${BASE_URL}/class-group/${currentClassId}/`, "PATCH", classGroupData, navigate);
+  return await apiRequest(getFullUrl(`/class-group/${currentClassId}/`), "PATCH", classGroupData, navigate);
 };
 
 export const fetchTeacherStatistics = async (page, navigate) => {
-  return await apiRequest(`${BASE_URL}/teacher-statistics?page=${page}`, "GET", null, navigate);
+  return await apiRequest(getFullUrl(`/teacher-statistics?page=${page}`), "GET", null, navigate);
 };  
 
 export const fetchStudentStatistics = async (page, navigate) => {
