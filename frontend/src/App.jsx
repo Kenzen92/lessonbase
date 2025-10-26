@@ -23,35 +23,27 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Assignments from "./screens/assignments";
 import { useAuth } from "./contexts/auth_context";
 import InteractiveClassroom from "./components/InteractiveClassroom/InteractiveClassroom";
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { darkTheme } from './styles/theme';
 
 function App() {
   const { auth } = useAuth();
 
   return (
-    <IconContext.Provider
-      value={{ color: "blue", className: "global-class-name" }}
-    >
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <>
+    <ThemeProvider theme={darkTheme}>
+      <CssBaseline />
+      <IconContext.Provider value={{ color: "blue", className: "global-class-name" }}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Router>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route
                 path="/"
-                element={
-                  auth.token ? (
-                    <Navigate to="/dashboard" />
-                  ) : (
-                    <Navigate to="/login" />
-                  )
-                }
+                element={auth.token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
               />
               <Route element={<PrivateRoutes />}>
-                <Route
-                  path="/dashboard/:id?"
-                  element={<ClassEventDashboard />}
-                />
+                <Route path="/dashboard/:id?" element={<ClassEventDashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/students/:id?" element={<Students />} />
                 <Route path="/class-groups/:id?" element={<Classes />} />
@@ -61,9 +53,9 @@ function App() {
             </Routes>
           </Router>
           <ToastNotification />
-        </>
-      </LocalizationProvider>
-    </IconContext.Provider>
+        </LocalizationProvider>
+      </IconContext.Provider>
+    </ThemeProvider>
   );
 }
 
