@@ -1,18 +1,11 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {
-  Button,
-  Typography,
-  Box,
-  TextField,
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-} from "@mui/material";
+import { Typography, Box, FormControl, FormHelperText, Chip } from "@mui/material";
+import { FormInput } from "../../styles/components/FormInput";
+import { ModalButton, CancelButton, NextButton, SubmitButton } from "../../styles/components/ModalButtons";
+import { TextField, Select, MenuItem, InputLabel } from "@mui/material";
+import { FormSection, modalStyles } from "../../styles/components/ModalStyles";
 import * as yup from "yup";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
 import inputStyle from "../../styles/input";
@@ -168,27 +161,21 @@ const AddAssignmentWizard = ({
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       {step === 1 && (
-        <Box>
+        <FormSection>
           <form onSubmit={handleSubmit(handleNext)}>
             <Controller
               name="title"
               control={control}
               render={({ field }) => (
-                <FormControl fullWidth>
-                  <TextField
+                <FormControl fullWidth error={!!errors.title} sx={{ mb: 3 }}>
+                  <FormInput
                     {...field}
-                    fullWidth
                     label="Title"
-                    variant="outlined"
-                    type="text"
                     error={!!errors.title}
-                    sx={{ ...inputStyle }}
                   />
-                  <FormHelperText fullwidth sx={{ color: "error.main", mb: 2 }}>
-                    {errors.title ? errors.title.message : " "}
-                  </FormHelperText>
+                  <FormHelperText>{errors.title?.message}</FormHelperText>
                 </FormControl>
               )}
             />
@@ -329,7 +316,7 @@ const AddAssignmentWizard = ({
                 mt: 2,
               }}
             >
-              <Button
+              <ModalButton
                 variant="outlined"
                 color="primary"
                 onClick={() => {
@@ -338,18 +325,18 @@ const AddAssignmentWizard = ({
                 sx={{ width: "100%" }}
               >
                 Cancel
-              </Button>
-              <Button
+              </ModalButton>
+              <ModalButton
                 type="submit" // Important: Keep the type="submit"
                 variant="contained"
                 color="primary"
                 sx={{ width: "100%" }}
               >
                 Next
-              </Button>
+              </ModalButton>
             </Box>
           </form>
-        </Box>
+        </FormSection>
       )}
       {step === 2 && (
         <Box>
@@ -368,22 +355,22 @@ const AddAssignmentWizard = ({
               gap: 2,
             }}
           >
-            <Button
+            <ModalButton
               variant="outlined"
               color="primary"
               onClick={handleBack}
               sx={{ width: "100%" }}
             >
               Back
-            </Button>
-            <Button
+            </ModalButton>
+            <ModalButton
               variant="contained"
               color="primary"
               onClick={handleNext}
               sx={{ width: "100%" }}
             >
               Next
-            </Button>
+            </ModalButton>
           </Box>
         </Box>
       )}
@@ -425,22 +412,22 @@ const AddAssignmentWizard = ({
                   mt: 2,
                 }}
               >
-                <Button
+                <ModalButton
                   variant="outlined"
                   color="primary"
                   onClick={handleBack}
                   sx={{ width: "100%" }}
                 >
                   Back
-                </Button>
-                <Button
-                  type="submit" // This button triggers the final form submission
+                </ModalButton>
+                <ModalButton
+                  type="submit" // This ModalButton triggers the final form submission
                   variant="contained"
                   color="primary"
                   sx={{ width: "100%" }}
                 >
                   Submit Assignment
-                </Button>
+                </ModalButton>
               </Box>
             </Box>
           </form>
