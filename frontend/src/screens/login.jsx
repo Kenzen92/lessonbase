@@ -17,40 +17,60 @@ function Login() {
   const { setAuth } = useAuth();
   const { getUser } = useUser();
 
-  const healthCheck = async () => {
+  const checkBackendStatus = async () => {
     const url = `${BASE_URL}/health/`;
     try {
       const response = await fetch(url);
-      if (response.ok) {
-        toast.success("Backend server is now available!");
-        return true;
-      } else {
-        toast.error(
-          "Backend server is not reachable. It is probably loading. Typically around 15 seconds for a cold boot."
-        );
-        return false;
-      }
+      return response.ok;
     } catch (error) {
-      console.log(error);
-      toast.error(
-        "Backend server is not reachable. It is probably loading. Typically around 15 seconds for a cold boot."
-      );
       return false;
     }
   };
 
   useEffect(() => {
-    const checkServer = async () => {
-      let isAvailable = false;
-      while (!isAvailable) {
-        isAvailable = await healthCheck();
-        if (!isAvailable) {
-          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retrying
-        }
+    const initializeBackend = async () => {
+      // First check without showing any toast
+      if (await checkBackendStatus()) {
+        toast.success("Connected to backend server", { autoClose: 2000 });
+        return;
       }
+
+      // If first check failed, start the retry process with loading toast
+      const toastId = toast.loading("Connecting to backend server...", {
+        autoClose: false,
+      });
+
+      const startTime = Date.now();
+      const timeout = 15000; // 15 seconds
+
+      while (Date.now() - startTime < timeout) {
+        // Update progress
+        const progress = (Date.now() - startTime) / timeout;
+        toast.update(toastId, { progress });
+
+        // Check backend status
+        if (await checkBackendStatus()) {
+          toast.dismiss(toastId);
+          toast.success("Backend server is now available!", {
+            autoClose: 2000,
+          });
+          return;
+        }
+
+        // Wait 1 second before next attempt
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // If we get here, we've timed out
+      toast.update(toastId, {
+        render: "Backend server is not reachable. Please try again later.",
+        type: "error",
+        isLoading: false,
+        autoClose: 5000,
+      });
     };
 
-    checkServer();
+    initializeBackend();
   }, []);
 
   const handleLogin = async (e) => {

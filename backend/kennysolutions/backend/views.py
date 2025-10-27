@@ -61,9 +61,9 @@ class MessageListCreateView(generics.ListCreateAPIView):
 
 class HealthCheckView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
-
-    @api_view(['GET'])
-    def health_check(request):
+    authentication_classes = []
+    
+    def get(self, request, *args, **kwargs):
         try:
             return Response({"status": "ok"}, status=status.HTTP_200_OK)
         except Exception as e:

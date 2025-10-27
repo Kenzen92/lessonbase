@@ -35,7 +35,7 @@ urlpatterns = [
     path('teacher-statistics', teacher_statistics, name='teacher_statistics'),
     path('student-statistics', student_statistics, name='student_statistics'),
 
-    path('health/', views.health_check, name='health_check'),
+    path('health/', views.HealthCheckView.as_view(), name='health_check'),
 
 
 
