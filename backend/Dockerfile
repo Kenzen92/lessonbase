@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1 \
     ENVIRONMENT=production
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y curl build-essential libpq-dev gcc && \
+RUN apt-get update && apt-get install -y curl build-essential libpq-dev gcc dos2unix && \
     apt-get clean
 
 # Install Poetry
@@ -30,7 +30,9 @@ COPY . /app/
 # Copy entrypoint and make it executable
 # (Ensure entrypoint.sh is in the same directory as your Dockerfile locally)
 COPY entrypoint.sh /app/entrypoint.sh
-# Ensure script uses Unix line endings inside the image (fixes CRLF shebang issues)
+# Convert DOS-style CRLF to LF and remove common BOMs, then make executable.
+# dos2unix handles removal of BOMs and line-ending conversion robustly.
+RUN dos2unix /app/entrypoint.sh || true
 RUN sed -i 's/\r$//' /app/entrypoint.sh || true
 RUN chmod +x /app/entrypoint.sh
 
