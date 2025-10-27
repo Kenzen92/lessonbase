@@ -63,7 +63,6 @@ class HealthCheckView(generics.GenericAPIView):
     permission_classes = [permissions.AllowAny]
 
     @api_view(['GET'])
-    @permission_classes([permissions.AllowAny])
     def health_check(request):
         try:
             return Response({"status": "ok"}, status=status.HTTP_200_OK)

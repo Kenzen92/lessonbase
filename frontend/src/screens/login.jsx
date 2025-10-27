@@ -21,21 +21,36 @@ function Login() {
     const url = `${BASE_URL}/health/`;
     try {
       const response = await fetch(url);
-      if (!response.ok) {
+      if (response.ok) {
+        toast.success("Backend server is now available!");
+        return true;
+      } else {
         toast.error(
           "Backend server is not reachable. It is probably loading. Typically around 15 seconds for a cold boot."
         );
+        return false;
       }
     } catch (error) {
       console.log(error);
       toast.error(
         "Backend server is not reachable. It is probably loading. Typically around 15 seconds for a cold boot."
       );
+      return false;
     }
   };
 
   useEffect(() => {
-    healthCheck();
+    const checkServer = async () => {
+      let isAvailable = false;
+      while (!isAvailable) {
+        isAvailable = await healthCheck();
+        if (!isAvailable) {
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+        }
+      }
+    };
+
+    checkServer();
   }, []);
 
   const handleLogin = async (e) => {
