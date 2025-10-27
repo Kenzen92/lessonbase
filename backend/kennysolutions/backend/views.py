@@ -59,3 +59,13 @@ class MessageListCreateView(generics.ListCreateAPIView):
         serializer.save(sender=self.request.user, chat_id=chat_id)
 
 
+class HealthCheckView(generics.GenericAPIView):
+    permission_classes = [permissions.AllowAny]
+
+    @api_view(['GET'])
+    @permission_classes([permissions.AllowAny])
+    def health_check(request):
+        try:
+            return Response({"status": "ok"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth_context";
 import { useUser } from "../contexts/user_context";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -16,6 +16,27 @@ function Login() {
   const navigate = useNavigate();
   const { setAuth } = useAuth();
   const { getUser } = useUser();
+
+  const healthCheck = async () => {
+    const url = `${BASE_URL}/health/`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        toast.error(
+          "Backend server is not reachable. It is probably loading. Typically around 15 seconds for a cold boot."
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        "Backend server is not reachable. It is probably loading. Typically around 15 seconds for a cold boot."
+      );
+    }
+  };
+
+  useEffect(() => {
+    healthCheck();
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
