@@ -32,9 +32,10 @@ COPY . /app/
 COPY entrypoint.sh /app/entrypoint.sh
 # Convert DOS-style CRLF to LF and remove common BOMs, then make executable.
 # dos2unix handles removal of BOMs and line-ending conversion robustly.
-RUN dos2unix /app/entrypoint.sh || true
-RUN sed -i 's/\r$//' /app/entrypoint.sh || true
-RUN chmod +x /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh && \
+    sed -i "s/\r$//g" /app/entrypoint.sh
+
 
 # Change WORKDIR to the Django project directory for manage.py commands
 WORKDIR /app/kennysolutions

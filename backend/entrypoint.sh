@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+﻿#!/bin/bash
 # Exit immediately on errors, undefined vars are errors, and pipelines fail if any part fails
 set -euo pipefail
 
