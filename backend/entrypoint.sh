@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 set -e
 
-echo "🛠 Environment: $ENVIRONMENT"
+echo "ðŸ›  Environment: $ENVIRONMENT"
 
 cd /app/kennysolutions
 
@@ -11,9 +11,10 @@ poetry run python manage.py migrate
 # Collect static files in production
 if [ "$ENVIRONMENT" = "production" ]; then
   poetry run python manage.py collectstatic --noinput
-  echo "🚀 Starting Gunicorn..."
+  echo "ðŸš€ Starting Gunicorn..."
   exec poetry run gunicorn kennysolutions.wsgi:application --bind 0.0.0.0:8000
 else
-  echo "🚀 Starting Django development server..."
+  echo "ðŸš€ Starting Django development server..."
   exec poetry run python manage.py runserver 0.0.0.0:8000
 fi
+

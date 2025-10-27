@@ -30,6 +30,8 @@ COPY . /app/
 # Copy entrypoint and make it executable
 # (Ensure entrypoint.sh is in the same directory as your Dockerfile locally)
 COPY entrypoint.sh /app/entrypoint.sh
+# Ensure script uses Unix line endings inside the image (fixes CRLF shebang issues)
+RUN sed -i 's/\r$//' /app/entrypoint.sh || true
 RUN chmod +x /app/entrypoint.sh
 
 # Change WORKDIR to the Django project directory for manage.py commands
