@@ -14,7 +14,7 @@ log "Environment: ${ENVIRONMENT:-unset}"
 cd /app/kennysolutions || exit 1
 
 log "Running database migrations..."
-# Call the venv python directly to avoid uv creating a project venv at /app/.venv
+uv run manage.py makemigrations
 uv run manage.py migrate
 
 if [ "${ENVIRONMENT:-development}" = "production" ]; then

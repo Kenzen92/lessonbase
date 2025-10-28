@@ -30,19 +30,14 @@ RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir uv && \
     /opt/venv/bin/uv sync --frozen --no-cache
 
-# install uv
-COPY --from=ghcr.io/astral-sh/uv:0.8.14 /uv /uvx /bin/
-RUN chmod +x /bin/uv /bin/uvx
+
+# Ensure the correct format for the entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Copy the rest of your code
 COPY . /app/
 
-# Prepare entrypoint
-COPY entrypoint.sh /app/entrypoint.sh
-RUN dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh
-
-# Ensure project directory permissions
-RUN mkdir -p /app/kennysolutions && chown -R root:root /app
 
 # Move into the Django project directory
 WORKDIR /app/kennysolutions

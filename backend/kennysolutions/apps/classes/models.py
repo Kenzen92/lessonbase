@@ -3,7 +3,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from apps.subjects.models import Subject
-from apps.user_accounts.models import CustomUser
+from apps.user_accounts.models import ClassGroup, CustomUser
 from apps.storage.storage_backends import GridFSStorage  # Ensure this is your GridFS storage backend
 
 class Event(models.Model):
@@ -21,6 +21,7 @@ class ClassEvent(Event):
         help_text="Duration of the class in minutes."
     )
     students = models.ManyToManyField(CustomUser, related_name='class_events_as_student', blank=True)
+    class_group = models.ForeignKey(ClassGroup, on_delete=models.CASCADE, null=True, blank=True)
     teachers = models.ManyToManyField(CustomUser, related_name='class_events_as_teacher', blank=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_created=True, auto_now=True)

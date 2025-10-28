@@ -107,11 +107,13 @@ function Login() {
   };
 
   return (
-    <Grid container sx={{ minHeight: "100vh" }}>
+    <Grid
+      container
+      sx={{ minHeight: "100vh", width: "100%", flexDirection: "row" }}
+    >
       <Grid
-        item
-        xs={12}
         sx={{
+          width: "50%",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -134,9 +136,8 @@ function Login() {
         </motion.div>
       </Grid>
       <Grid
-        item
-        xs={12}
         sx={{
+          width: "50%",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",

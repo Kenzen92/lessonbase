@@ -11,7 +11,7 @@ def create_required_objects(sender, **kwargs):
     from apps.user_accounts.models import CustomAccount
     from apps.classes.models import ClassEvent
     from apps.assignments.models import Assignment, AssignmentAttempt, Feedback
-
+    from apps.user_accounts.models import ClassGroup
 
     # Loop now unpacks name, code, and color
     for name, code, color in Subject.reserved_names:
@@ -44,6 +44,31 @@ def create_required_objects(sender, **kwargs):
     student_2.save()
     student_3.save()
 
+    # Create some class groups of students and teachers
+    class_group, group_1_created = ClassGroup.objects.get_or_create(name="Class 1", class_code="C1")
+    if group_1_created:
+        class_group.students.add(student_1, student_2, student_3)
+        class_group.teachers.add(teacher)
+        subject = Subject.objects.order_by('?').first()
+        class_group.subjects.add(subject)
+        class_group.save()
+    class_group, group_2_created = ClassGroup.objects.get_or_create(name="Class 2", class_code="C2")
+    if group_2_created:
+        class_group.students.add(student_1, student_2, student_3)
+        class_group.teachers.add(teacher)
+        subject = Subject.objects.order_by('?').first()
+        class_group.subjects.add(subject)
+        class_group.save()
+
+    class_group, group_3_created = ClassGroup.objects.get_or_create(name="Class 3", class_code="C3")
+    if group_3_created:
+        class_group.students.add(student_1, student_2, student_3)
+        class_group.teachers.add(teacher)
+        subject = Subject.objects.order_by('?').first()
+        class_group.subjects.add(subject)
+        class_group.save()
+
+
     # Ensure there are at least 5 upcoming classes
     now = timezone.now()
     future_classes = ClassEvent.objects.filter(start_time__gt=now).count()
@@ -75,35 +100,12 @@ def create_required_objects(sender, **kwargs):
                 start_time=start_time,
                 duration=duration,
                 subject=subject,
+                class_group=ClassGroup.objects.order_by('?').first(),
             )
             class_event.students.add(*selected_students)
             class_event.teachers.add(teacher)
             class_event.save()
 
-    # Create some class groups of students and teachers
-    from apps.user_accounts.models import ClassGroup
-    class_group, group_1_created = ClassGroup.objects.get_or_create(name="Class 1", class_code="C1")
-    if group_1_created:
-        class_group.students.add(student_1, student_2, student_3)
-        class_group.teachers.add(teacher)
-        subject = Subject.objects.order_by('?').first()
-        class_group.subjects.add(subject)
-        class_group.save()
-    class_group, group_2_created = ClassGroup.objects.get_or_create(name="Class 2", class_code="C2")
-    if group_2_created:
-        class_group.students.add(student_1, student_2, student_3)
-        class_group.teachers.add(teacher)
-        subject = Subject.objects.order_by('?').first()
-        class_group.subjects.add(subject)
-        class_group.save()
-
-    class_group, group_3_created = ClassGroup.objects.get_or_create(name="Class 3", class_code="C3")
-    if group_3_created:
-        class_group.students.add(student_1, student_2, student_3)
-        class_group.teachers.add(teacher)
-        subject = Subject.objects.order_by('?').first()
-        class_group.subjects.add(subject)
-        class_group.save()
 
     # Create some assignments
     for i in range(5):

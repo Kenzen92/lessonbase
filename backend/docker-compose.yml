@@ -12,11 +12,6 @@ services:
 
   web:
     build: .
-    # Use the image's default CMD (entrypoint.sh) so the runtime uses the
-    # venv created at build time. Overriding the command with plain
-    # `python manage.py` can invoke a Python without installed deps.
-    # If you need to run the dev server directly here, ensure PATH points
-    # to the venv or run `/opt/venv/bin/python`.
     volumes:
       - .:/app
     ports:

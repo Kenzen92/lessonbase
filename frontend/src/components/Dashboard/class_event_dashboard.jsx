@@ -7,6 +7,7 @@ import {
   fetchStudents,
   fetchClassGroups,
   cancelClassEvent,
+  fetchProfileData,
 } from "../../utils/agent.js";
 import ClassEventWizard from "../ClassEvents/class_event_wizard.jsx";
 import ClassEventDetailsDrawer from "../ClassEvents/class_event_details_drawer.jsx";
@@ -16,6 +17,7 @@ import Navigation from "../main_navigation.jsx";
 import { useAuth } from "../../contexts/auth_context.jsx";
 import { useParams } from "react-router-dom"; // <-- import useParams
 import { useNavigate } from "react-router-dom";
+import DashboardHeader from "./dashboard_header.jsx";
 
 const ClassEventDashboard = () => {
   const [classEvents, setClassEvents] = useState([]);
@@ -28,10 +30,11 @@ const ClassEventDashboard = () => {
   const [students, setStudents] = useState(null);
   const [step, setStep] = useState(1);
   const [classGroups, setClassGroups] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const { auth } = useAuth();
   const { id } = useParams(); // <-- get the id from the URL
   const navigate = useNavigate();
-  const todaysLocalDate = new Date().toLocaleDateString('en-GB');
+  const todaysLocalDate = new Date().toLocaleDateString("en-GB");
 
   const fetchData = async () => {
     try {
@@ -42,7 +45,7 @@ const ClassEventDashboard = () => {
       classEventsData.forEach((event) => {
         // Extract the date from the start_time of the event
         const eventDate = new Date(event.start_time);
-        const formattedDate = eventDate.toLocaleDateString('en-GB'); // Format: DD/MM/YYYY with consistent formatting
+        const formattedDate = eventDate.toLocaleDateString("en-GB"); // Format: DD/MM/YYYY with consistent formatting
 
         // Check if the date exists as a key in the dateClassMap
         if (dateClassMap[formattedDate]) {
@@ -79,6 +82,8 @@ const ClassEventDashboard = () => {
       setSubjects(fetchedSubjects);
       const fetchedClassGroups = await fetchClassGroups();
       setClassGroups(fetchedClassGroups);
+      const fetchedProfileData = await fetchProfileData();
+      setProfileData(fetchedProfileData);
     } catch (error) {
       setError(error.message);
     }
@@ -129,6 +134,7 @@ const ClassEventDashboard = () => {
     <>
       <Navigation />
       <Container>
+        <DashboardHeader profileData={profileData} />
         <ActionStatisticsBar
           page={"dashboard"}
           actionFunction={setModalOpen}
@@ -159,42 +165,45 @@ const ClassEventDashboard = () => {
         >
           {Object.keys(filteredClassEvents)
             .sort((a, b) => {
-              const [aDay, aMonth, aYear] = a.split('/').map(Number);
-              const [bDay, bMonth, bYear] = b.split('/').map(Number);
-              return new Date(aYear, aMonth - 1, aDay) - new Date(bYear, bMonth - 1, bDay);
+              const [aDay, aMonth, aYear] = a.split("/").map(Number);
+              const [bDay, bMonth, bYear] = b.split("/").map(Number);
+              return (
+                new Date(aYear, aMonth - 1, aDay) -
+                new Date(bYear, bMonth - 1, bDay)
+              );
             })
             .map((date) => (
-            <Box
-              key={date}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                width: { sm: "95%", md: "90%", lg: "80%", xl: "70%" },
-              }}
-            >
               <Box
+                key={date}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  width: "100%",
-                  padding: "2rem",
-                  marginBottom: "1rem",
+                  width: { sm: "95%", md: "90%", lg: "80%", xl: "70%" },
                 }}
               >
-                <Typography sx={{ marginLeft: "1rem" }} variant="h6">
-                  {date === todaysLocalDate ? "Today" : date}
-                </Typography>
-                {filteredClassEvents[date].map((classEvent, index) => (
-                  <ClassEventCard
-                    key={index}
-                    eventData={classEvent}
-                    handleReloadData={handleReloadData}
-                    handleOpenDetails={handleOpenDetails}
-                  />
-                ))}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "100%",
+                    padding: "2rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <Typography sx={{ marginLeft: "1rem" }} variant="h6">
+                    {date === todaysLocalDate ? "Today" : date}
+                  </Typography>
+                  {filteredClassEvents[date].map((classEvent, index) => (
+                    <ClassEventCard
+                      key={index}
+                      eventData={classEvent}
+                      handleReloadData={handleReloadData}
+                      handleOpenDetails={handleOpenDetails}
+                    />
+                  ))}
+                </Box>
               </Box>
-            </Box>
-          ))}
+            ))}
         </Box>
         <Modal
           open={modalOpen}
@@ -207,25 +216,25 @@ const ClassEventDashboard = () => {
             justifyContent: "center",
           }}
         >
-         <Box
+          <Box
             sx={{
-              position: 'absolute', // Crucial for positioning
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)', // Centers the box
+              position: "absolute", // Crucial for positioning
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)", // Centers the box
 
               // Define the width of your modal content here
               // Option 1: Max width, responsive up to a point (common)
-              maxWidth: '500px',
-              width: { xs: '60%', sm: '50%', md: '30%' },
+              maxWidth: "500px",
+              width: { xs: "60%", sm: "50%", md: "30%" },
               backgroundColor: "#333",
               padding: 4,
               borderRadius: 2,
               boxShadow: 24,
               color: "white",
-              outline: 'none', // Remove focus outline
-              maxHeight: '90vh', // Prevent modal from getting too tall
-              overflowY: 'auto', // Add scroll if content exceeds maxHeight
+              outline: "none", // Remove focus outline
+              maxHeight: "90vh", // Prevent modal from getting too tall
+              overflowY: "auto", // Add scroll if content exceeds maxHeight
             }}
           >
             <ClassEventWizard

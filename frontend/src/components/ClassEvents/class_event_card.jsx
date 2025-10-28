@@ -1,6 +1,14 @@
 import React from "react";
 import { FaPlay, FaClock, FaFile, FaInfoCircle, FaUsers } from "react-icons/fa";
-import { Box, Typography, Chip, IconButton, Paper } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Chip,
+  IconButton,
+  Paper,
+  Divider,
+  Tooltip,
+} from "@mui/material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import subjectIconMap from "../../utils/icons";
@@ -9,134 +17,142 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const navigate = useNavigate();
   const startTime = new Date(eventData.start_time);
   const now = new Date();
-  
-  // Compare only the dates by setting both times to midnight
-  const startDate = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate());
+
+  const startDate = new Date(
+    startTime.getFullYear(),
+    startTime.getMonth(),
+    startTime.getDate()
+  );
   const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const isFutureClass = startDate > todayDate;
 
   const IconComponent = subjectIconMap[eventData.subject.name];
-  const formattedTime = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "numeric",
+  const formattedTime = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: false,
   }).format(startTime);
 
-  const todaysLocalDate = new Date().toLocaleDateString('en-GB');
-
   return (
-    <motion.div initial={{ opacity: 0, y: 100 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <Paper
-        elevation={3}
+        elevation={6}
         sx={{
           display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: "rgba(38, 38, 38, 0.95)",
+          flexDirection: "column",
+          p: 2.5,
+          mb: 3,
+          borderRadius: "20px",
+          background: "rgba(40,40,40,0.75)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.1)",
           transition: "all 0.3s ease",
           "&:hover": {
-            backgroundColor: "rgba(48, 48, 48, 0.95)",
-            transform: "translateY(-2px)",
+            transform: "translateY(-4px)",
+            background: "rgba(55,55,55,0.85)",
           },
-          borderRadius: "16px",
-          mb: 2,
-          p: 2.5,
-          height: "3rem",
-          width: "100%",
-          backdropFilter: "blur(8px)",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 1,
+          }}
+        >
           <Chip
-            icon={<IconComponent color="#fff" size={20} />}
+            icon={<IconComponent color="#fff" size={18} />}
             label={eventData.subject.code}
-            size="medium"
             sx={{
-              color: "#fff",
-              fontSize: 16,
-              height: "2.4rem",
-              minWidth: "8rem",
               backgroundColor: eventData.subject.color,
-              "& .MuiChip-label": {
-                padding: "0 8px",
-              },
+              color: "#fff",
+              fontWeight: 600,
+              px: 1.5,
+              py: 0.5,
+              borderRadius: "12px",
             }}
           />
-          <Typography
-            variant="subtitle1"
-            sx={{
-              color: "#fff",
-              opacity: 0.9,
-              fontWeight: 500,
-              minWidth: "10rem",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {eventData.class_name}
+          <Typography sx={{ color: "#bbb", fontSize: "0.9rem" }}>
+            {formattedTime} ({eventData.duration}m)
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 4 }}>
+        {/* Class name */}
+        <Typography
+          variant="h6"
+          sx={{
+            color: "#fff",
+            fontWeight: 600,
+            mb: 1,
+            textOverflow: "ellipsis",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {eventData.class_group || "Untitled Class"}
+        </Typography>
+
+        <Divider sx={{ borderColor: "rgba(255,255,255,0.1)", mb: 1.5 }} />
+
+        {/* Info bar */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 2 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FaClock color="#fff" size={20} />
-            <Typography sx={{ color: "#fff", opacity: 0.9 }}>
-              {formattedTime} ({eventData.duration}m)
+            <FaUsers color="#aaa" />
+            <Typography sx={{ color: "#ccc" }}>
+              {eventData.students.length || 0}
             </Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FaUsers color="#fff" size={20} />
-            <Typography sx={{ color: "#fff", opacity: 0.9 }}>
-              {eventData.students.length|| 0}
-            </Typography>
-          </Box>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FaFile color="#fff" size={20} />
-            <Typography sx={{ color: "#fff", opacity: 0.9 }}>
+            <FaFile color="#aaa" />
+            <Typography sx={{ color: "#ccc" }}>
               {eventData.resources.length}
             </Typography>
           </Box>
+        </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        {/* Footer actions */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Tooltip title="View class details">
             <IconButton
               onClick={() => handleOpenDetails(eventData)}
-              aria-label="details"
               sx={{
                 color: "#fff",
-                opacity: 0.9,
-                "&:hover": {
-                  backgroundColor: "rgba(255, 255, 255, 0.1)",
-                },
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
               }}
             >
-              <FaInfoCircle color="#fff" />
+              <FaInfoCircle color="white" />
             </IconButton>
+          </Tooltip>
+
+          <Tooltip
+            title={isFutureClass ? "Class not started yet" : "Start class"}
+          >
             <IconButton
               onClick={() => navigate(`/interactive-classroom/${eventData.id}`)}
-              aria-label="start class"
               disabled={isFutureClass}
               sx={{
                 color: "#fff",
-                backgroundColor: "rgba(0, 255, 0, 0.2)",
-                opacity: isFutureClass ? 0.5 : 0.9,
+                backgroundColor: "rgba(0,255,0,0.25)",
+                opacity: isFutureClass ? 0.4 : 1,
                 "&:hover": {
-                  backgroundColor: isFutureClass 
-                    ? "rgba(0, 255, 0, 0.2)" 
-                    : "rgba(0, 255, 0, 0.3)",
+                  backgroundColor: isFutureClass
+                    ? "rgba(0,255,0,0.25)"
+                    : "rgba(0,255,0,0.4)",
                 },
-                "&.Mui-disabled": {
-                  backgroundColor: "rgba(0, 255, 0, 0.1)",
-                }
               }}
             >
-              <FaPlay color="#fff" size={16} />
+              <FaPlay size={18} color="white" />
             </IconButton>
-          </Box>
+          </Tooltip>
         </Box>
       </Paper>
     </motion.div>

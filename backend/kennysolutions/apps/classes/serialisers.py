@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from apps.user_accounts.models import ClassGroup
 from backend.serializers import TeacherClassEventSerializer
 from apps.user_accounts.serializers import StudentSerializer
 from rest_framework import serializers
@@ -19,10 +20,11 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())  # Allow passing subject as an ID
     resources = TeachingResourceSerializer(many=True, read_only=True)
+    class_group = serializers.PrimaryKeyRelatedField(queryset=ClassGroup.objects.all(), allow_null=True, required=False)
 
     class Meta:
         model = ClassEvent
-        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'class_group']
         read_only_fields = ['id']
 
 class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
@@ -34,6 +36,7 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = SubjectSerializer(many=False, read_only=True)
     resources = TeachingResourceSerializer(many=True, read_only=True)
+    class_group = serializers.SlugRelatedField(slug_field='name', queryset=ClassGroup.objects.all(), allow_null=True)
     previous = serializers.SerializerMethodField()
 
     def get_previous(self, obj):
@@ -46,7 +49,7 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
             return False
     class Meta:
         model = ClassEvent
-        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'previous']
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'previous', 'class_group']
         read_only_fields = ['id']
 
 
