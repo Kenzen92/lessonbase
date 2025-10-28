@@ -1,9 +1,11 @@
 import React from "react";
 import { Box, Typography, Paper } from "@mui/material";
 import { motion } from "framer-motion";
+import { useUser } from "../../contexts/user_context";
 
-const DashboardHeader = ({ profileData }) => {
-  console.log(profileData);
+const DashboardHeader = () => {
+  const { user, isLoading, isError, refetch } = useUser();
+
   const greeting = (() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -26,7 +28,7 @@ const DashboardHeader = ({ profileData }) => {
           color: "#fff",
         }}
       >
-        {profileData ? (
+        {!isLoading ? (
           <Typography
             variant="h4"
             sx={{
@@ -34,8 +36,7 @@ const DashboardHeader = ({ profileData }) => {
               mb: 0.5,
             }}
           >
-            👋 {greeting},{" "}
-            {profileData.first_name || profileData.username || "Teacher"}
+            👋 {greeting}, {user.first_name || user.username || "Teacher"}
           </Typography>
         ) : (
           <Typography

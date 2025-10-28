@@ -25,7 +25,7 @@ import { fetchProfileData, fetchAllSubjects } from "../utils/agent";
 // Assume inputStyle is defined elsewhere, but we'll integrate styles directly
 import inputStyle from "../styles/input";
 import { useUser } from "../contexts/user_context";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 // Styled components for modern look (optional, can use sx prop too)
 const ProfileContainer = styled(Box)(({ theme }) => ({
@@ -89,7 +89,7 @@ function Profile() {
   const fileInputRef = useRef(null); // Ref for the hidden file input
   const navigate = useNavigate();
   const theme = useTheme(); // Access the current theme (for dark/light mode colors)
-  const { user, getUser, profilePicture } = useUser();
+  const { user, isLoading, isError, refetch } = useUser();
 
   // Use Formik hook
   const formik = useFormik({
@@ -160,7 +160,6 @@ function Profile() {
         setProfileData(updatedUser);
         setName(updatedUser.first_name); // Update displayed name
         setProfilePicturePreviewUrl(null); // Clear preview as the new official URL is set
-        getUser();
 
         toast.success("Profile data updated successfully");
       } catch (error) {

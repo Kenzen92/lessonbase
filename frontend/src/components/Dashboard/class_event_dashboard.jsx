@@ -1,105 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Typography, Box, Container, Modal } from "@mui/material";
+
+import Navigation from "../main_navigation.jsx";
+import DashboardHeader from "./dashboard_header.jsx";
+import ActionStatisticsBar from "./action_statistics_bar.jsx";
+
 import ClassEventCard from "../ClassEvents/class_event_card.jsx";
-import { Typography, Box, Container, Modal, Alert } from "@mui/material";
-import {
-  fetchClassEvents,
-  fetchSubjects,
-  fetchStudents,
-  fetchClassGroups,
-  cancelClassEvent,
-  fetchProfileData,
-} from "../../utils/agent.js";
 import ClassEventWizard from "../ClassEvents/class_event_wizard.jsx";
 import ClassEventDetailsDrawer from "../ClassEvents/class_event_details_drawer.jsx";
 import ClassEventSearchAndFilter from "../ClassEvents/class_event_search_filter.jsx";
-import ActionStatisticsBar from "./action_statistics_bar.jsx";
-import Navigation from "../main_navigation.jsx";
-import { useAuth } from "../../contexts/auth_context.jsx";
-import { useParams } from "react-router-dom"; // <-- import useParams
-import { useNavigate } from "react-router-dom";
-import DashboardHeader from "./dashboard_header.jsx";
+
+import { useClassEvents } from "../../contexts/class_event_context.jsx";
+import { useSubjects } from "../../contexts/subjects_context.jsx";
+import { useStudents } from "../../contexts/students_context.jsx";
+import { useClassGroups } from "../../contexts/class_groups_context.jsx";
+
+import { cancelClassEvent } from "../../utils/agent.js";
 
 const ClassEventDashboard = () => {
-  const [classEvents, setClassEvents] = useState([]);
-  const [filteredClassEvents, setFilteredClassEvents] = useState([]);
-  const [error, setError] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [currentClassEvent, setCurrentClassEvent] = useState(null);
-  const [subjects, setSubjects] = useState(null);
-  const [students, setStudents] = useState(null);
-  const [step, setStep] = useState(1);
-  const [classGroups, setClassGroups] = useState(null);
-  const [profileData, setProfileData] = useState(null);
-  const { auth } = useAuth();
-  const { id } = useParams(); // <-- get the id from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const todaysLocalDate = new Date().toLocaleDateString("en-GB");
 
-  const fetchData = async () => {
-    try {
-      const classEventsData = await fetchClassEvents();
-      let dateClassMap = {};
+  const [modalOpen, setModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [currentClassEvent, setCurrentClassEvent] = useState(null);
+  const [step, setStep] = useState(1);
+  const [filteredClassEvents, setFilteredClassEvents] = useState([]);
 
-      // Loop through each event in the data array
-      classEventsData.forEach((event) => {
-        // Extract the date from the start_time of the event
-        const eventDate = new Date(event.start_time);
-        const formattedDate = eventDate.toLocaleDateString("en-GB"); // Format: DD/MM/YYYY with consistent formatting
+  // Consume contexts
+  const {
+    data: classEventsData,
+    refetch: refetchEvents,
+    isLoading: eventsLoading,
+  } = useClassEvents();
+  const { data: subjects } = useSubjects();
+  const { data: students } = useStudents();
+  const { data: classGroups } = useClassGroups();
 
-        // Check if the date exists as a key in the dateClassMap
-        if (dateClassMap[formattedDate]) {
-          // If the date exists, add this class event to the value array
-          dateClassMap[formattedDate].push(event);
-        } else {
-          // If the date doesn't exist, create the value array and add this class event
-          dateClassMap[formattedDate] = [event];
-        }
-      });
-      setClassEvents(dateClassMap);
+  // Transform events by date
+  const classEvents = useMemo(() => {
+    if (!classEventsData) return {};
+    const map = {};
+    classEventsData.forEach((event) => {
+      const date = new Date(event.start_time).toLocaleDateString("en-GB");
+      if (!map[date]) map[date] = [];
+      map[date].push(event);
+    });
+    return map;
+  }, [classEventsData]);
 
-      // check if the current class event was updated and reset it
-      if (currentClassEvent) {
-        const currentEventIndex = classEventsData.findIndex(
-          (event) => event.id === currentClassEvent.id
-        );
-        const updatedCurrentEvent = classEventsData[currentEventIndex];
-        setCurrentClassEvent(updatedCurrentEvent);
-      }
-      if (id != undefined) {
-        const classId = parseInt(id, 10);
-        const classIdIndex = classEventsData.findIndex(
-          (event) => event.id === classId
-        );
-        setCurrentClassEvent(classEventsData[classIdIndex]);
-        navigate(`/dashboard/${classId}`); // Push to new URL
-        setDrawerOpen(true);
-      }
+  const handleReloadData = () => refetchEvents();
 
-      const fetchedStudents = await fetchStudents();
-      setStudents(fetchedStudents);
-      const fetchedSubjects = await fetchSubjects();
-      setSubjects(fetchedSubjects);
-      const fetchedClassGroups = await fetchClassGroups();
-      setClassGroups(fetchedClassGroups);
-      const fetchedProfileData = await fetchProfileData();
-      setProfileData(fetchedProfileData);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  // Callback function to force re-render of ClassEventDashboard after item deletion
-  const handleReloadData = () => {
-    fetchData();
-  };
-
-  const handleCancelClassEvent = () => {
-    cancelClassEvent(currentClassEvent.id);
+  const handleCancelClassEvent = async () => {
+    if (!currentClassEvent) return;
+    await cancelClassEvent(currentClassEvent.id);
     handleCloseDetails();
     handleReloadData();
   };
@@ -107,7 +63,7 @@ const ClassEventDashboard = () => {
   const handleOpenDetails = (eventData) => {
     setCurrentClassEvent(eventData);
     setDrawerOpen(true);
-    navigate(`/dashboard/${eventData.id}`); // Push to new URL
+    navigate(`/dashboard/${eventData.id}`);
   };
 
   const handleCloseDetails = () => {
@@ -116,29 +72,31 @@ const ClassEventDashboard = () => {
     setDrawerOpen(false);
   };
 
-  const handleOpenStudentSearch = () => {
-    setModalOpen(true);
-  };
+  const handleClose = () => setModalOpen(false);
+  const handleOpenStudentSearch = () => setModalOpen(true);
 
-  // Utility function to handle the 'previous' state
+  // Auto-open class if URL has id
+  React.useEffect(() => {
+    if (!classEventsData || !id) return;
+    const classId = parseInt(id, 10);
+    const found = classEventsData.find((e) => e.id === classId);
+    if (found) {
+      setCurrentClassEvent(found);
+      setDrawerOpen(true);
+    }
+  }, [id, classEventsData]);
 
-  const handleClose = () => {
-    setModalOpen(false);
-  };
-
-  if (error) {
-    return <Typography color="error">Error: {error}</Typography>;
-  }
+  if (eventsLoading) return <Typography>Loading class events...</Typography>;
 
   return (
     <>
       <Navigation />
       <Container>
-        <DashboardHeader profileData={profileData} />
+        <DashboardHeader />
         <ActionStatisticsBar
-          page={"dashboard"}
+          page="dashboard"
           actionFunction={setModalOpen}
-          actionText={"Add New Class"}
+          actionText="Add New Class"
         />
         <ClassEventDetailsDrawer
           open={drawerOpen}
@@ -148,7 +106,6 @@ const ClassEventDashboard = () => {
           handleOpenStudentSearch={handleOpenStudentSearch}
           handleCancelClassEvent={handleCancelClassEvent}
         />
-
         <ClassEventSearchAndFilter
           allClassEvents={classEvents}
           setFilteredClassEvents={setFilteredClassEvents}
@@ -205,11 +162,10 @@ const ClassEventDashboard = () => {
               </Box>
             ))}
         </Box>
+
         <Modal
           open={modalOpen}
           onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
           sx={{
             display: "flex",
             alignItems: "center",
@@ -218,13 +174,10 @@ const ClassEventDashboard = () => {
         >
           <Box
             sx={{
-              position: "absolute", // Crucial for positioning
+              position: "absolute",
               top: "50%",
               left: "50%",
-              transform: "translate(-50%, -50%)", // Centers the box
-
-              // Define the width of your modal content here
-              // Option 1: Max width, responsive up to a point (common)
+              transform: "translate(-50%, -50%)",
               maxWidth: "500px",
               width: { xs: "60%", sm: "50%", md: "30%" },
               backgroundColor: "#333",
@@ -232,9 +185,9 @@ const ClassEventDashboard = () => {
               borderRadius: 2,
               boxShadow: 24,
               color: "white",
-              outline: "none", // Remove focus outline
-              maxHeight: "90vh", // Prevent modal from getting too tall
-              overflowY: "auto", // Add scroll if content exceeds maxHeight
+              outline: "none",
+              maxHeight: "90vh",
+              overflowY: "auto",
             }}
           >
             <ClassEventWizard

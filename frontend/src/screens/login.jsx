@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { Button, Grid, TextField, Typography, Box } from "@mui/material";
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth_context";
-import { useUser } from "../contexts/user_context";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 function Login() {
@@ -15,7 +14,6 @@ function Login() {
   const [passwordError, setPasswordError] = useState(false);
   const navigate = useNavigate();
   const { setAuth } = useAuth();
-  const { getUser } = useUser();
 
   const checkBackendStatus = async () => {
     const url = `${BASE_URL}/health/`;
@@ -98,7 +96,6 @@ function Login() {
       const data = await response.json();
       window.sessionStorage.setItem("token", data["token"]);
       setAuth({ token: data.token, userType: data.user_type });
-      getUser();
       navigate("/dashboard");
     } catch (error) {
       console.log(error);

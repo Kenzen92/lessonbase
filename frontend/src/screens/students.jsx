@@ -17,13 +17,16 @@ import StudentDetailsDrawer from "../components/Students/student_details_drawer"
 import { useNavigate, useParams } from "react-router-dom";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 import StudentListSearch from "../components/Students/student_list_search";
+import { useStudents } from "../contexts/students_context";
 import { useUser } from "../contexts/user_context";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 function Students() {
-  const { userId } = useUser();
+  const { user, isLoading, isError, refetch } = useUser();
+  const { data: studentsData, refetch: refetchStudents } = useStudents();
+
   const { id } = useParams();
-  const [showStudentForm, setshowStudentForm] = useState(false);
+  const [showStudentForm, setShowStudentForm] = useState(false);
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [chats, setChats] = useState([]);
@@ -33,46 +36,41 @@ function Students() {
   const [email, setEmail] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
-
+  // Sync filtered students when context updates
   useEffect(() => {
-    // Add a check to make sure userId is available before fetching data that depends on it
-    if (userId === null) {
-      return; // Don't fetch if userId is not yet available
-    }
+    if (!studentsData) return;
+    setFilteredStudents(studentsData);
 
-    const fetchData = async () => {
-      const studentData = await fetchStudents();
-      setStudents(studentData);
-      setFilteredStudents(studentData);
-
-      const chatData = await fetchChats();
-      const processedChats = chatData.map((chat) => {
-        return {
-          ...chat,
-          // Now userId should be the value from the context when this runs
-          participants: chat.participants.filter((id) => id !== userId),
-        };
-      });
-      setChats(processedChats);
-
-      // The rest of your logic for handling the ID from params
-      if (id != undefined) {
-        const intId = parseInt(id, 10);
-        const currentStudent = studentData.find(
-          (student) => student.id === intId
-        );
-        setCurrentStudent(currentStudent);
+    // Auto-open student if URL has ID
+    if (id) {
+      const intId = parseInt(id, 10);
+      const student = studentsData.find((s) => s.id === intId);
+      if (student) {
+        setCurrentStudent(student);
         setDrawerOpen(true);
       }
+    }
+  }, [studentsData, id]);
+
+  // Fetch chats separately (still dependent on user)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchChatsData = async () => {
+      const chatData = await fetchChats();
+      const processedChats = chatData.map((chat) => ({
+        ...chat,
+        participants: chat.participants.filter((p) => p !== user.id),
+      }));
+      setChats(processedChats);
     };
 
-    fetchData();
-  }, [userId, id]); // <-- Added userId and id to the dependency array
+    fetchChatsData();
+  }, [user]);
 
-  // Function to handle form submission
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setshowStudentForm(false);
+    setShowStudentForm(false);
 
     const url = `${BASE_URL}/new-student/`;
     const payload = { email };
@@ -106,7 +104,7 @@ function Students() {
       <Container>
         <ActionStatisticsBar
           page="students"
-          actionFunction={setshowStudentForm}
+          actionFunction={setShowStudentForm}
           actionText="Add New Student"
         />
 
@@ -125,7 +123,7 @@ function Students() {
         />
 
         <StudentListSearch
-          allStudents={students}
+          allStudents={studentsData || []}
           setFilteredStudents={setFilteredStudents}
         />
 
@@ -146,7 +144,7 @@ function Students() {
 
         <Modal
           open={showStudentForm}
-          onClose={() => setshowStudentForm(false)}
+          onClose={() => setShowStudentForm(false)}
           sx={{
             display: "flex",
             alignItems: "center",

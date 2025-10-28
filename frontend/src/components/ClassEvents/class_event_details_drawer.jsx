@@ -3,11 +3,7 @@ import { Box, List, Typography, Drawer, Chip } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import ClassResources from "../Resources/class_resources";
 import { getSubjectIcon } from "../../utils/icons";
-import {
-  PrimaryButton,
-  SecondaryButton,
-  WarningButton,
-} from "../../styles/buttons";
+import { PrimaryButton, WarningButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context";
 
 export default function ClassEventDetailsDrawer({

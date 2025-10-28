@@ -1,111 +1,68 @@
-// This file stores data related to the current user
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchProfileData } from "../utils/agent";
-import { FaCommentsDollar } from "react-icons/fa";
 
+// Create the context
 export const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
-  const [userId, setUserId] = useState(null);
-  const [username, setUsername] = useState(null);
-  const [firstName, setFirstName] = useState(null);
-  const [lastName, setLastName] = useState(null);
-  const [enrollmentDate, setEnrollmentDate] = useState(null);
-  const [profilePicture, setProfilePicture] = useState(null);
-  const [classGroups, setClassGroups] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const queryClient = useQueryClient();
 
-  // Rewritten setUser function
-  const setUser = (userData) => {
-    if (!userData) {
-      // Handle case where userData might be null or undefined
-      console.warn("setUser called with no data");
-      // Optionally reset all state here if setting to null means logging out
-      // or clear specific fields if appropriate.
-      return;
-    }
+  // Fetch user profile via React Query
+  const {
+    data: user,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["user"],
+    queryFn: async () => {
+      const token = window.sessionStorage.getItem("token");
+      if (!token) throw new Error("No auth token found");
+      return await fetchProfileData();
+    },
+    enabled: !!window.sessionStorage.getItem("token"), // Only run if logged in
+    staleTime: 1000 * 60 * 5, // Cache valid for 5 minutes
+    retry: 1, // Retry once on failure
+  });
 
-    // Check if each property exists before setting the state
-    if (userData.id !== undefined) {
-      setUserId(userData.id);
-    }
-    if (userData.username !== undefined) {
-      setUsername(userData.username);
-    }
-    if (userData.first_name !== undefined) {
-      setFirstName(userData.first_name);
-    }
-    if (userData.last_name !== undefined) {
-      setLastName(userData.last_name);
-    }
-    if (userData.enrollment_date !== undefined) {
-      setEnrollmentDate(userData.enrollment_date);
-    }
-    if (userData.profile_picture !== undefined) {
-      setProfilePicture(userData.profile_picture);
-    }
-    // For arrays, it's still a good practice to use || [] if the key exists but value might be null
-    // However, the check `!== undefined` ensures we only try to set it if the key is present.
-    if (userData.class_groups !== undefined) {
-      // Use the value if present, otherwise default to [] if the value was null/undefined
-      setClassGroups(userData.class_groups || []);
-    }
-    if (userData.subjects !== undefined) {
-      // Use the value if present, otherwise default to [] if the value was null/undefined
-      setSubjects(userData.subjects || []);
-    }
-
-    // Note: The 'students' and 'user_type' fields from your API response
-    // are not currently represented in your UserProvider state.
-    // If you need them, you would need to add state variables and setters for them
-    // and add checks for them here as well.
+  // Manual setter — allows updating the cached user data locally
+  const setUser = (updatedUser) => {
+    if (!updatedUser) return;
+    queryClient.setQueryData(["user"], (oldData) => ({
+      ...oldData,
+      ...updatedUser,
+    }));
   };
 
-  const getUser = async () => {
-    // Make a request to the profile endpoint and set the user data that comes back
-    fetchProfileData()
-      .then((data) => {
-        setUser(data);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch user data", err);
-        // Consider what should happen on failure - maybe clear token or set error state
-      });
-  };
+  // Helper to safely access specific fields
+  const value = useMemo(() => {
+    return {
+      user,
+      isLoading,
+      isError,
+      error,
+      refetch,
+      setUser,
+      // for convenience: expose individual fields with null defaults
+      userId: user?.id ?? null,
+      username: user?.username ?? null,
+      firstName: user?.first_name ?? null,
+      lastName: user?.last_name ?? null,
+      enrollmentDate: user?.enrollment_date ?? null,
+      profilePicture: user?.profile_picture ?? null,
+      classGroups: user?.class_groups ?? [],
+      subjects: user?.subjects ?? [],
+    };
+  }, [user, isLoading, isError, error, refetch]);
 
-  useEffect(() => {
-    const token = window.sessionStorage.getItem("token");
-
-    if (token && userId === null) {
-      // Check if token exists and user ID hasn't been set yet
-      fetchProfileData()
-        .then((data) => {
-          setUser(data);
-        })
-        .catch((err) => {
-          console.error("Failed to fetch user data", err);
-        });
-    }
-  }, [userId]);
-
-  return (
-    <UserContext.Provider
-      value={{
-        userId,
-        username,
-        firstName,
-        lastName,
-        enrollmentDate,
-        profilePicture,
-        classGroups,
-        subjects,
-        setUser,
-        getUser,
-      }}
-    >
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
-export const useUser = () => useContext(UserContext);
+// Custom hook
+export const useUser = () => {
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUser must be used within a UserProvider");
+  return ctx;
+};
