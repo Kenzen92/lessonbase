@@ -111,7 +111,6 @@ function Login() {
       <Grid
         item
         xs={12}
-        md={6}
         sx={{
           display: "flex",
           justifyContent: "center",
@@ -137,7 +136,6 @@ function Login() {
       <Grid
         item
         xs={12}
-        md={6}
         sx={{
           display: "flex",
           justifyContent: "center",

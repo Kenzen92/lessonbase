@@ -1,13 +1,12 @@
 # Use Python Alpine image for a smaller footprint
-FROM python:3.12-alpine
+FROM python:3.13-alpine
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
-    POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_HOME=/opt/poetry \
-    ENVIRONMENT=production
+    ENVIRONMENT=production \
+    UV_SYSTEM_PYTHON=1
 
-# Install system dependencies and Poetry
+# Install system dependencies (required for psycopg2 and Pillow)
 RUN apk add --no-cache \
     postgresql-dev \
     gcc \
@@ -15,39 +14,44 @@ RUN apk add --no-cache \
     python3-dev \
     libffi-dev \
     curl \
-    dos2unix \
-    && curl -sSL https://install.python-poetry.org | python3 - \
-    && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+    dos2unix
 
-# Set work directory to the *root of your application code*
-# This is where pyproject.toml and the 'kennysolutions' Django project are located
+# Set work directory to your project root
 WORKDIR /app
 
-# Copy dependency files first
-COPY pyproject.toml poetry.lock /app/
+# Copy dependency files first for caching
+COPY pyproject.toml uv.lock /app/
 
-# Install dependencies
-RUN poetry install --no-root --no-interaction
+# Create a venv and install tooling into the venv, then sync dependencies
+# Install uv into the venv and run the sync from the venv so packages land
+# inside /opt/venv (not the system python environment).
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir uv && \
+    /opt/venv/bin/uv sync --frozen --no-cache
 
-# Copy the rest of the app, including the kennysolutions directory and manage.py
+# install uv
+COPY --from=ghcr.io/astral-sh/uv:0.8.14 /uv /uvx /bin/
+RUN chmod +x /bin/uv /bin/uvx
+
+# Copy the rest of your code
 COPY . /app/
 
-# Copy entrypoint script
+# Prepare entrypoint
 COPY entrypoint.sh /app/entrypoint.sh
+RUN dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
-# Ensure proper line endings and make executable
-RUN dos2unix /app/entrypoint.sh && \
-    chmod +x /app/entrypoint.sh
-
-
-# Ensure the project directory exists and has correct permissions
+# Ensure project directory permissions
 RUN mkdir -p /app/kennysolutions && chown -R root:root /app
 
-# Change WORKDIR to the Django project directory for manage.py commands
+# Move into the Django project directory
 WORKDIR /app/kennysolutions
 
 # Expose Django/Gunicorn port
 EXPOSE 8000
 
-# Set the default command using shell to ensure proper environment
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Default command (runs entrypoint)
 CMD ["/bin/sh", "/app/entrypoint.sh"]

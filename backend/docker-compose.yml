@@ -12,7 +12,11 @@ services:
 
   web:
     build: .
-    command: python -u manage.py runserver 0.0.0.0:8000
+    # Use the image's default CMD (entrypoint.sh) so the runtime uses the
+    # venv created at build time. Overriding the command with plain
+    # `python manage.py` can invoke a Python without installed deps.
+    # If you need to run the dev server directly here, ensure PATH points
+    # to the venv or run `/opt/venv/bin/python`.
     volumes:
       - .:/app
     ports:
@@ -21,6 +25,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: kenny
+      UV_SYSTEM_PYTHON: "1"
     depends_on:
       - db
     env_file:

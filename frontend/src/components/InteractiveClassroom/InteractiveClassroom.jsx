@@ -25,7 +25,7 @@ const InteractiveClassroom = () => {
     <Box sx={{ height: '100vh', backgroundColor: '#1a1a1a', p: 2 }}>
       <Grid container spacing={2} sx={{ height: '100%' }}>
         {/* Main Content Area - Whiteboard */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12}>
           <Paper 
             sx={{ 
               height: '100%', 
@@ -45,7 +45,7 @@ const InteractiveClassroom = () => {
         </Grid>
 
         {/* Sidebar - Video and Text Chat */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Paper 

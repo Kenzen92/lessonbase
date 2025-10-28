@@ -82,7 +82,6 @@ const Navigation = () => {
               }
               return (
                 <Grid
-                  item
                   key={item.label}
                   sx={{ marginLeft: item.label === "Logout" ? "auto" : null }}
                 >
