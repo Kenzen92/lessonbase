@@ -1,28 +1,8 @@
-﻿#!/bin/sh
+#!/usr/bin/env bash
 set -e
 
-# Ensure we use the venv created at build time. The venv lives at /opt/venv
-export PATH="/opt/venv/bin:$PATH"
+echo "🚀 Running database migrations..."
+uv run python manage.py migrate --noinput
 
-log() {
-  echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"
-}
-
-log "Environment: ${ENVIRONMENT:-unset}"
-
-# Move into the Django project directory
-cd /app/kennysolutions || exit 1
-
-log "Running database migrations..."
-uv run manage.py makemigrations
-uv run manage.py migrate
-
-if [ "${ENVIRONMENT:-development}" = "production" ]; then
-  log "Collecting static files..."
-  uv run manage.py collectstatic --noinput
-  log "Starting Gunicorn..."
-  exec gunicorn kennysolutions.wsgi:application --bind 0.0.0.0:8000
-else
-  log "Starting Django development server..."
-  exec uv run manage.py runserver 0.0.0.0:8000
-fi
+echo "🌐 Starting Django server..."
+uv run python manage.py runserver 0.0.0.0:8000

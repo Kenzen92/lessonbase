@@ -237,4 +237,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'jamespeterkenny@gmail.com'  # Enter your Gmail email address
 EMAIL_HOST_PASSWORD = 'vxxd sduk srbp tdxv'  # Enter your Gmail password
 
-

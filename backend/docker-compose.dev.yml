@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: kenny
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: >
+      sh -c "uv run python manage.py migrate &&
+             uv run python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "1"
+      UV_SYSTEM_PYTHON: "1"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      # Mount *only* source code to improve I/O performance
+      - ./kennysolutions:/app/kennysolutions
+      - ./manage.py:/app/manage.py
+      # Keep .venv inside container to avoid rebuild lag
+      - /opt/venv
+
+volumes:
+  postgres_data:

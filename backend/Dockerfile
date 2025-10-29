@@ -1,52 +1,55 @@
-# Use Python Alpine image for a smaller footprint
-FROM python:3.13-alpine
+# ========== BUILDER STAGE ==========
+FROM python:3.13-slim AS builder
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1 \
-    ENVIRONMENT=production \
-    UV_SYSTEM_PYTHON=1
+# Install uv binary from its official docker repository
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Install system dependencies (required for psycopg2 and Pillow)
-RUN apk add --no-cache \
-    postgresql-dev \
-    gcc \
-    musl-dev \
-    python3-dev \
-    libffi-dev \
-    curl \
-    dos2unix
+# Install all required system and build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential libpq-dev gcc python3-dev libffi-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set work directory to your project root
+# Set work directory
 WORKDIR /app
 
 # Copy dependency files first for caching
 COPY pyproject.toml uv.lock /app/
 
-# Create a venv and install tooling into the venv, then sync dependencies
-# Install uv into the venv and run the sync from the venv so packages land
-# inside /opt/venv (not the system python environment).
-RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install --no-cache-dir uv && \
-    /opt/venv/bin/uv sync --frozen --no-cache
+# Install dependencies using uv into a virtual environment
+RUN uv sync --frozen --compile-bytecode
 
 
-# Ensure the correct format for the entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN dos2unix /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# ========== RUNTIME STAGE ==========
+FROM python:3.13-slim AS runtime
 
-# Copy the rest of your code
-COPY . /app/
+# Copy uv binary into runtime image (was missing)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    ENVIRONMENT=production \
+    UV_SYSTEM_PYTHON=1
 
-# Move into the Django project directory
+# Set work directory
 WORKDIR /app/kennysolutions
 
-# Expose Django/Gunicorn port
+# Copy the application including virtual environment
+COPY --from=builder /app /app
+
+# Add the venv to PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copy remaining source files
+COPY . /app/
+
+# Copy entrypoint script and make it executable
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Expose Django port
 EXPOSE 8000
 
-
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Default command (runs entrypoint)
-CMD ["/bin/sh", "/app/entrypoint.sh"]
+# Set entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]
