@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Typography, Box, Container, Modal } from "@mui/material";
+import { Typography, Box, Container, Modal, Paper } from "@mui/material";
 
 import Navigation from "../main_navigation.jsx";
 import DashboardHeader from "./dashboard_header.jsx";
@@ -111,13 +111,11 @@ const ClassEventDashboard = () => {
           setFilteredClassEvents={setFilteredClassEvents}
           allClassGroups={classGroups}
         />
-
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            width: "100%",
           }}
         >
           {Object.keys(filteredClassEvents)
@@ -129,40 +127,115 @@ const ClassEventDashboard = () => {
                 new Date(bYear, bMonth - 1, bDay)
               );
             })
-            .map((date) => (
-              <Box
-                key={date}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  width: { sm: "95%", md: "90%", lg: "80%", xl: "70%" },
-                }}
-              >
+            .map((date) => {
+              const isToday = date === todaysLocalDate;
+              return (
                 <Box
+                  key={date}
                   sx={{
                     display: "flex",
                     flexDirection: "column",
                     width: "100%",
-                    padding: "2rem",
-                    marginBottom: "1rem",
+                    mb: "1.5rem",
                   }}
                 >
-                  <Typography sx={{ marginLeft: "1rem" }} variant="h6">
-                    {date === todaysLocalDate ? "Today" : date}
-                  </Typography>
-                  {filteredClassEvents[date].map((classEvent, index) => (
-                    <ClassEventCard
-                      key={index}
-                      eventData={classEvent}
-                      handleReloadData={handleReloadData}
-                      handleOpenDetails={handleOpenDetails}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            ))}
-        </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      width: "100%",
+                    }}
+                  >
+                    {/* TODAY SECTION */}
+                    {isToday ? (
+                      <Paper
+                        elevation={6}
+                        sx={{
+                          position: "relative",
+                          p: "1.5rem",
+                          mb: "1.5rem",
+                          borderRadius: "1rem",
+                          background:
+                            "linear-gradient(145deg, rgba(20,20,20,0.85), rgba(35,35,35,0.95))",
+                          border: "1px solid rgba(0,150,255,0.4)",
+                          backdropFilter: "blur(10px)",
+                          boxShadow:
+                            "0 0 20px rgba(0,150,255,0.15), 0 0 10px rgba(0,150,255,0.05)",
+                          transition: "transform 0.2s ease-in-out",
+                          "&:hover": {
+                            transform: "translateY(-3px)",
+                            boxShadow:
+                              "0 0 25px rgba(0,150,255,0.25), 0 0 15px rgba(0,150,255,0.1)",
+                          },
+                        }}
+                      >
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            color: "#00b0ff",
+                            fontWeight: 600,
+                            mb: "1rem",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              backgroundColor: "#00b0ff",
+                              animation: "pulse 2s infinite ease-in-out",
+                              "@keyframes pulse": {
+                                "0%, 100%": {
+                                  opacity: 0.6,
+                                  transform: "scale(0.9)",
+                                },
+                                "50%": { opacity: 1, transform: "scale(1.3)" },
+                              },
+                            }}
+                          />
+                          Today
+                        </Typography>
 
+                        {filteredClassEvents[date].map((classEvent, index) => (
+                          <ClassEventCard
+                            key={index}
+                            eventData={classEvent}
+                            handleReloadData={handleReloadData}
+                            handleOpenDetails={handleOpenDetails}
+                          />
+                        ))}
+                      </Paper>
+                    ) : (
+                      // OTHER DATES
+                      <Box sx={{ mb: "1rem" }}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            color: "rgba(255,255,255,0.8)",
+                            ml: "1rem",
+                            mb: "0.5rem",
+                          }}
+                        >
+                          {date}
+                        </Typography>
+                        {filteredClassEvents[date].map((classEvent, index) => (
+                          <ClassEventCard
+                            key={index}
+                            eventData={classEvent}
+                            handleReloadData={handleReloadData}
+                            handleOpenDetails={handleOpenDetails}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              );
+            })}
+        </Box>
         <Modal
           open={modalOpen}
           onClose={handleClose}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import useAuthQuery from "../hooks/useAuthQuery.jsx";
 import { fetchProfileData } from "../utils/agent";
 
 // Create the context
@@ -8,21 +9,14 @@ export const UserContext = createContext(null);
 export function UserProvider({ children }) {
   const queryClient = useQueryClient();
 
-  // Fetch user profile via React Query
+  // Fetch user profile via React Query (gated by auth token)
   const {
     data: user,
     isLoading,
     isError,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const token = window.sessionStorage.getItem("token");
-      if (!token) throw new Error("No auth token found");
-      return await fetchProfileData();
-    },
-    enabled: !!window.sessionStorage.getItem("token"), // Only run if logged in
+  } = useAuthQuery(["user"], fetchProfileData, {
     staleTime: 1000 * 60 * 5, // Cache valid for 5 minutes
     retry: 1, // Retry once on failure
   });

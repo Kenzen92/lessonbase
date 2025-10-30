@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import useAuthQuery from "../hooks/useAuthQuery.jsx";
 import { fetchClassGroups } from "../utils/agent.js";
 
 export const ClassGroupsContext = createContext(null);
@@ -7,9 +8,7 @@ export const ClassGroupsContext = createContext(null);
 export const ClassGroupsProvider = ({ children }) => {
   const queryClient = useQueryClient();
 
-  const query = useQuery({
-    queryKey: ["classGroups"],
-    queryFn: fetchClassGroups,
+  const query = useAuthQuery(["classGroups"], fetchClassGroups, {
     staleTime: 1000 * 60 * 10,
     retry: 1,
   });

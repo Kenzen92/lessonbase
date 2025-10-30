@@ -74,7 +74,7 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
               borderRadius: "12px",
             }}
           />
-          <Typography sx={{ color: "#bbb", fontSize: "0.9rem" }}>
+          <Typography sx={{ color: "#bbb", fontSize: "1.1rem" }}>
             {formattedTime} ({eventData.duration}m)
           </Typography>
         </Box>

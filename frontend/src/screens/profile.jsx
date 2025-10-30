@@ -21,10 +21,9 @@ import { styled, useTheme } from "@mui/material/styles"; // Import useTheme for 
 import * as yup from "yup"; // Import yup for validation
 import { useFormik } from "formik"; // Import useFormik hook
 import CloudUploadIcon from "@mui/icons-material/CloudUpload"; // Optional: Icon for upload hint
-import { fetchProfileData, fetchAllSubjects } from "../utils/agent";
-// Assume inputStyle is defined elsewhere, but we'll integrate styles directly
 import inputStyle from "../styles/input";
 import { useUser } from "../contexts/user_context";
+import { useSubjects } from "../contexts/subjects_context";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 // Styled components for modern look (optional, can use sx prop too)
@@ -78,8 +77,6 @@ const validationSchema = yup.object({
 });
 
 function Profile() {
-  const [profileData, setProfileData] = useState(null); // Still keep for initial fetch
-  const [subjects, setSubjects] = useState([]);
   // Removed selectedSubjects state, will use Formik's state
   const [profilePictureFile, setProfilePictureFile] = useState(null); // Store the file object
   const [profilePicturePreviewUrl, setProfilePicturePreviewUrl] =
@@ -89,7 +86,37 @@ function Profile() {
   const fileInputRef = useRef(null); // Ref for the hidden file input
   const navigate = useNavigate();
   const theme = useTheme(); // Access the current theme (for dark/light mode colors)
-  const { user, isLoading, isError, refetch } = useUser();
+  // Rename to avoid collisions between different `isLoading` values
+  const { user, isLoading: userLoading, isError, refetch, setUser } = useUser();
+  const {
+    data: userSubjects, // user's subjects (same as before)
+    isLoading: userSubjectsLoading,
+    error: userSubjectsError,
+    setSubjects,
+    allSubjects, // new - the all-subjects query object
+    setAllSubjects, // new - setter for all-subjects cache
+  } = useSubjects();
+
+  // pull data/loading for the full subjects list from the `allSubjects` query object
+  const {
+    data: subjectsData,
+    isLoading: subjectsLoading,
+    error: subjectsError,
+  } = allSubjects || {};
+
+  // map all subjects into select options (safe when subjectsData is undefined)
+  const subjectOptions = (subjectsData ?? []).map((subject) => ({
+    value: subject.id,
+    label: subject.name,
+  }));
+
+  // compute selected options from the user's subjects (prefer the subjects query if available)
+  const selectedFromUser = (userSubjects ?? user?.subjects ?? []).map(
+    (subject) => ({
+      value: subject.id,
+      label: subject.name,
+    })
+  );
 
   // Use Formik hook
   const formik = useFormik({
@@ -157,7 +184,8 @@ function Profile() {
         // Update user data in session storage
         window.sessionStorage.setItem("user", JSON.stringify(updatedUser));
         console.log("User data updated in session storage.");
-        setProfileData(updatedUser);
+        // Update the user cache in context
+        if (setUser) setUser(updatedUser);
         setName(updatedUser.first_name); // Update displayed name
         setProfilePicturePreviewUrl(null); // Clear preview as the new official URL is set
 
@@ -169,60 +197,30 @@ function Profile() {
     },
   });
 
-  // Effect to fetch initial data and populate state/formik
+  // Populate the form and select options from contexts instead of direct fetches
   useEffect(() => {
-    const fetchData = async () => {
+    const populateFromContexts = () => {
       setLoading(true);
-      try {
-        const profileData = await fetchProfileData();
-        console.log("Fetched Profile Data:", profileData);
 
-        setProfileData(profileData); // Store fetched data
-        setName(profileData.first_name); // Set user name for display
+      if (!userLoading && user) {
+        setName(user.first_name);
 
-        // Map fetched subjects to React-Select format for initial formik value
-        let profile_subjects_for_list = profileData.subjects.map((subject) => ({
-          value: subject.id,
-          label: subject.name,
-        }));
-
-        // Set initial values for Formik
         formik.setValues({
-          username: profileData.username || "",
-          first_name: profileData.first_name || "",
-          last_name: profileData.last_name || "",
-          email: profileData.email || "",
-          subjects: profile_subjects_for_list,
+          username: user.username || "",
+          first_name: user.first_name || "",
+          last_name: user.last_name || "",
+          email: user.email || "",
+          subjects: selectedFromUser,
         });
 
-        // Set the initial profile picture URL for display
-        setProfilePicturePreviewUrl(profileData.profile_picture || null);
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-        // setError(error.message); // You might want a state for general errors
-        toast.error("Failed to load profile data.");
-        // Consider redirecting or showing a different UI on error
+        setProfilePicturePreviewUrl(user.profile_picture || null);
       }
 
-      try {
-        const subjectData = await fetchAllSubjects();
-        console.log("Fetched Subjects:", subjectData);
-        let subject_options = subjectData.map((subject) => ({
-          value: subject.id,
-          label: subject.name,
-        }));
-        console.log("subject options: ", subject_options);
-        setSubjects(subject_options);
-      } catch (error) {
-        console.error("Error fetching subjects:", error);
-        // setError(error.message);
-        toast.error("Failed to load subjects.");
-      } finally {
-        setLoading(false);
-      }
+      // when both user and subjects are ready we can hide the loading spinner
+      if (!userLoading && !subjectsLoading) setLoading(false);
     };
 
-    fetchData();
+    populateFromContexts();
 
     // Cleanup for the profile picture preview URL
     return () => {
@@ -230,7 +228,7 @@ function Profile() {
         URL.revokeObjectURL(profilePicturePreviewUrl);
       }
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, [user, userLoading, subjectsData, subjectsLoading, selectedFromUser]);
 
   // Effect to handle storage changes (optional, might not be necessary if data is fetched on mount)
   // and to revoke old preview URLs when a new file is selected.
@@ -269,7 +267,7 @@ function Profile() {
       setProfilePictureFile(file); // Store the file object for submission
     } else {
       // If file selection is cancelled
-      setProfilePicturePreviewUrl(profileData?.profile_picture || null); // Revert to original if available
+      setProfilePicturePreviewUrl(user?.profile_picture || null); // Revert to original if available
       setProfilePictureFile(null);
     }
   };
@@ -369,7 +367,7 @@ function Profile() {
         >
           <ProfileAvatar
             alt={userName || "Profile Picture"}
-            src={profilePicturePreviewUrl || profilePicture} // Use preview URL if available, otherwise undefined
+            src={profilePicturePreviewUrl || user?.profile_picture} // Use preview URL if available, otherwise user's profile picture
           >
             {/* Fallback: first letter of username */}
             {userName ? userName[0] : <CloudUploadIcon />}{" "}
@@ -477,7 +475,7 @@ function Profile() {
                     formik.setFieldTouched("subjects", true, false); // Set touched without validating immediately
                   }}
                   onBlur={() => formik.setFieldTouched("subjects", true)} // Set touched on blur
-                  options={subjects}
+                  options={subjectOptions}
                   isMulti={true}
                   styles={customSelectStyles} // Apply custom dark mode styles
                   placeholder="Select Subjects"

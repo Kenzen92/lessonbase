@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = os.environ.get('ENVIRONMENT') == 'development'
 
-BASE_URL = os.environ.get('API_URL')
+BASE_URL = os.environ.get('BASE_URL')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/

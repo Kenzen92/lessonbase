@@ -12,7 +12,7 @@ import {
   Modal,
 } from "@mui/material";
 import Chat from "../components/Chat/chat";
-import { fetchStudents, fetchChats } from "../utils/agent";
+import { fetchChats } from "../utils/agent";
 import StudentDetailsDrawer from "../components/Students/student_details_drawer";
 import { useNavigate, useParams } from "react-router-dom";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
@@ -27,7 +27,6 @@ function Students() {
 
   const { id } = useParams();
   const [showStudentForm, setShowStudentForm] = useState(false);
-  const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [chats, setChats] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
