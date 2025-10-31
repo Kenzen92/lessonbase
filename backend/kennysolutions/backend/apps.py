@@ -32,10 +32,12 @@ def create_required_objects(sender, **kwargs):
     all_students = []
     for i in range(20):
         student, student_created = Student.objects.get_or_create(
-            username=f"student_{i+1}", 
-            first_name=first_names[i], 
-            last_name=last_names[i], 
-            email=f"{first_names[i].lower()}.{last_names[i].lower()}@test.com"
+            username=f"student_{i+1}",
+            defaults={
+                'first_name': first_names[i], 
+                'last_name': last_names[i], 
+                'email': f"{first_names[i].lower()}.{last_names[i].lower()}@test.com"
+            }
         )
         if student_created:
             student.set_password("student")
