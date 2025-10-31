@@ -94,12 +94,12 @@ export const handleUpdateClassGroup = async (classGroupData, currentClassId, nav
   return await apiRequest(getFullUrl(`/class-group/${currentClassId}/`), "PATCH", classGroupData, navigate);
 };
 
-export const fetchTeacherStatistics = async (page, navigate) => {
-  return await apiRequest(getFullUrl(`/teacher-statistics?page=${page}`), "GET", null, navigate);
+export const fetchTeacherStatistics = async (navigate) => {
+  return await apiRequest(getFullUrl(`/teacher-statistics`), "GET", null, navigate);
 };  
 
-export const fetchStudentStatistics = async (page, navigate) => {
-  return await apiRequest(`${BASE_URL}/student-statistics?page=${page}`, "GET", null, navigate);
+export const fetchStudentStatistics = async (navigate) => {
+  return await apiRequest(`${BASE_URL}/student-statistics`, "GET", null, navigate);
 };  
 
 export const cancelClassEvent = async (eventID, navigate) => {

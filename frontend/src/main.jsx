@@ -8,6 +8,8 @@ import { ClassEventsProvider } from "./contexts/class_event_context.jsx";
 import { SubjectsProvider } from "./contexts/subjects_context.jsx";
 import { StudentsProvider } from "./contexts/students_context.jsx";
 import { ClassGroupsProvider } from "./contexts/class_groups_context.jsx";
+import { StatisticsProvider } from "./contexts/statistics_context.jsx";
+import { AssignmentsProvider } from "./contexts/assignments_context.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -20,7 +22,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <SubjectsProvider>
               <StudentsProvider>
                 <ClassGroupsProvider>
-                  <App />
+                  <StatisticsProvider>
+                    <AssignmentsProvider>
+                      <App />
+                    </AssignmentsProvider>
+                  </StatisticsProvider>
                 </ClassGroupsProvider>
               </StudentsProvider>
             </SubjectsProvider>

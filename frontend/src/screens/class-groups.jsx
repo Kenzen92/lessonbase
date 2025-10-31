@@ -3,35 +3,42 @@ import Navigation from "../components/main_navigation.jsx";
 import ClassGroupCard from "../components/ClassGroups/class_group_card.jsx";
 import { useNavigate } from "react-router-dom";
 import { Container, Box, Button, Grid, Modal } from "@mui/material";
-import {
-  fetchStudents,
-  fetchSubjects,
-  fetchClassGroups,
-} from "../utils/agent.js";
 import ClassWizard from "../components/ClassGroups/class_group_wizard.jsx";
 import ClassDetailsDrawer from "../components/ClassGroups/class_group_details_drawer.jsx";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import { useParams } from "react-router-dom";
+import { useStudents } from "../contexts/students_context.jsx";
+import { useSubjects } from "../contexts/subjects_context.jsx";
+import { useClassGroups } from "../contexts/class_groups_context.jsx";
 
 function Classes() {
   const [showClassForm, setshowClassForm] = useState(false);
-  const [classes, setClasses] = useState([]);
-  const [allStudents, setAllStudents] = useState([]);
-  const [allSubjects, setAllSubjects] = useState([]);
   const [currentClassId, setCurrentClassId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [step, setStep] = useState(1);
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const fetchData = async () => {
-    const students = await fetchStudents(navigate);
-    if (students) setAllStudents(students);
-    const subjects = await fetchSubjects(navigate);
-    if (subjects) setAllSubjects(subjects);
-    const classes = await fetchClassGroups(navigate);
-    console.log(classes);
-    if (id !== undefined) {
+  // Use contexts instead of local state
+  const { data: allStudents, refetch: refetchStudents } = useStudents();
+  const { data: allSubjects, refetch: refetchSubjects } = useSubjects();
+  const { data: classes, refetch: refetchClassGroups } = useClassGroups();
+
+  const handleOpenStudentSearch = () => {
+    setStep(1);
+    setshowClassForm(true);
+  };
+
+  const handleReloadData = async () => {
+    await Promise.all([
+      refetchStudents(),
+      refetchSubjects(),
+      refetchClassGroups(),
+    ]);
+  };
+
+  useEffect(() => {
+    if (id !== undefined && classes) {
       const classGroup = classes.find(
         (classGroup) => classGroup.id === parseInt(id, 10)
       );
@@ -40,17 +47,7 @@ function Classes() {
         setIsDrawerOpen(true);
       }
     }
-    setClasses(classes);
-  };
-
-  const handleOpenStudentSearch = () => {
-    setStep(1);
-    setshowClassForm(true);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [id]);
+  }, [id, classes]);
 
   const handleOpenDrawer = async (classGroupId) => {
     setCurrentClassId(classGroupId);
@@ -75,23 +72,31 @@ function Classes() {
             setIsDrawerOpen(false);
             navigate("/class-groups"); // Remove the ID from the URL
           }}
-          handleReloadData={fetchData}
+          handleReloadData={handleReloadData}
           allStudents={allStudents}
           allSubjects={allSubjects}
           allClasses={classes}
           handleOpenStudentSearch={handleOpenStudentSearch}
         />
-
-        <Grid container spacing={2} className="cards-section">
-          {classes.map((data) => (
-            <Grid item xs={12} sm={8} key={data.id}>
-              <ClassGroupCard
-                data={data}
-                onClick={() => handleOpenDrawer(data.id)}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <Box
+          sx={{
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            marginTop: 2,
+          }}
+        >
+          <Grid container spacing={2} className="cards-section">
+            {classes?.map((data) => (
+              <Grid item xs={12} sm={8} key={data.id}>
+                <ClassGroupCard
+                  data={data}
+                  onClick={() => handleOpenDrawer(data.id)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </Container>
 
       <Modal
@@ -122,7 +127,7 @@ function Classes() {
             allSubjects={allSubjects}
             classes={classes}
             handleClose={() => setshowClassForm(false)}
-            fetchData={fetchData}
+            fetchData={handleReloadData}
             step={step}
             setStep={setStep}
           />

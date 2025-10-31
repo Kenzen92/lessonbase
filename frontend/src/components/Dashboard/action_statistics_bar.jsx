@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   FaChalkboardTeacher,
   FaClock,
@@ -8,41 +8,17 @@ import {
   FaExclamationTriangle,
   FaFile,
 } from "react-icons/fa";
-import {
-  fetchTeacherStatistics,
-  fetchStudentStatistics,
-} from "../../utils/agent.js";
 import { PrimaryButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context.jsx";
+import { useStatistics } from "../../contexts/statistics_context.jsx";
 
 export default function ActionStatisticsBar({
   page,
   actionFunction,
   actionText,
 }) {
-  const [statistics, setStatistics] = useState(null);
   const { auth } = useAuth();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      let response = null;
-
-      // --- Modification Starts Here ---
-      // Check if auth object, token, and specifically userType are available
-      if (auth && auth.token && auth.userType !== null) {
-        if (auth.userType === "teacher") {
-          response = await fetchTeacherStatistics(page);
-          setStatistics(response.data); // Assuming response.data contains the stats
-        } else {
-          // Assuming any other userType means student for this context
-          response = await fetchStudentStatistics(page);
-          setStatistics(response.data); // Assuming response.data contains the stats
-        }
-      }
-    };
-
-    fetchData();
-  }, [page, auth?.token, auth?.userType]);
+  const { statistics } = useStatistics();
 
   // Define stats per page
   const pageStats = {

@@ -1,118 +1,171 @@
 import React, { useState, useEffect } from "react";
-import Avatar from "@mui/material/Avatar";
 import {
   Box,
   Typography,
-  IconButton,
-  Button, // Added Button component
+  Avatar,
+  Button,
+  Tooltip,
+  Chip,
+  Divider,
 } from "@mui/material";
-import { FaInfoCircle } from "react-icons/fa";
-import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'; // Icon for chat button
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { FaChevronRight } from "react-icons/fa";
 import ClassGroupChip from "../ClassGroups/class_group_chip";
 
-const StudentInfoCard = ({ student, setDrawerOpen, setCurrentStudent, setChatOpen, chats }) => {
+const StudentInfoCard = ({
+  student,
+  setDrawerOpen,
+  setCurrentStudent,
+  setChatOpen,
+  chats,
+}) => {
+  const [chatId, setChatIdState] = useState(null);
 
-    const [chatId, setChatIdState] = useState(null);
+  useEffect(() => {
+    if (student) {
+      const chat = chats.find((chat) => chat.participants.includes(student.id));
+      setChatIdState(chat ? chat.id : null);
+    }
+  }, [student, chats]);
 
-    useEffect(() => {
-      if (student) {
-        const chat = chats.find((chat) => chat.participants.includes(student.id));
-        const resolvedChatId = chat ? chat.id : null;
-        setChatIdState(resolvedChatId);
-      } else {
-        setChatIdState(null);
-      }
-    }, [student, chats]);
+  const isActive = student.status === "active";
 
   return (
     <Box
       sx={{
-        p: 1.5, // Further reduced padding for a thinner look
-        boxShadow: 3,
-        borderRadius: 2,
-        width: "100%", // Takes up full available width
-        minHeight: "4.5rem", // Slightly reduced minHeight for a bar style
-        boxShadow: 5,
-        border: 2,
-        borderColor: "#333",
-        zIndex: 1,
         display: "flex",
-        alignItems: "center", // Align items vertically in the bar
-        justifyContent: "space-between", // Distribute space between left and right sections
-        backgroundColor: "#292929",
-        transition: "background-color 0.3s ease",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: 2,
+        py: 1.5,
+        borderRadius: 2,
+        backgroundColor: "#222",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+        border: "1px solid #333",
+        transition: "all 0.2s ease",
         "&:hover": {
-          backgroundColor: "#333",
+          backgroundColor: "#2e2e2e",
+          borderColor: "primary.main",
         },
-        mb: 2, // Add some margin-bottom for spacing between cards
-      }}
-      onClick={() => {
-        setCurrentStudent(student);
-        setDrawerOpen(true);
       }}
     >
-      {/* Student Name and Avatar */}
-      <Box sx={{ display: "flex", alignItems: "center", minWidth: "150px" }}>
+      {/* Left section: avatar + name + email */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, flex: 2 }}>
         <Avatar
           alt={student.first_name}
           src={student.profile_picture}
-          sx={{ width: 36, height: 36, mr: 1.5 }} // Adjusted avatar size and margin
+          sx={{ width: 44, height: 44, bgcolor: "#555" }}
         >
-          {student.first_name ? student.first_name[0] : null}
+          {student.first_name ? student.first_name[0] : "?"}
         </Avatar>
-        <Typography variant="subtitle1" sx={{ color: "white", flexShrink: 0 }}>{`${student.first_name} ${student.last_name}`}</Typography>
+        <Box>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 600, color: "white" }}
+          >
+            {student.first_name} {student.last_name}
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.85rem" }}
+          >
+            {student.email || "No email available"}
+          </Typography>
+        </Box>
       </Box>
 
-      {/* Class Group Chips */}
-      <Box sx={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 1, mx: 2, justifyContent: 'center' }}>
+      {/* Middle section: classes */}
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          flexWrap: "wrap",
+          justifyContent: "center",
+          flex: 2,
+        }}
+      >
         {student.class_groups.map((group) => (
           <ClassGroupChip key={group.id} classGroup={group} />
         ))}
       </Box>
 
-      {/* Action Buttons */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      {/* Right section: details */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 1.5,
+          flex: 1.5,
+        }}
+      >
+        {/* Status chip */}
+        <Chip
+          label={isActive ? "Active" : "Inactive"}
+          size="small"
+          sx={{
+            bgcolor: isActive ? "success.main" : "grey.700",
+            color: "white",
+            fontWeight: 500,
+          }}
+        />
+
+        {/* Avg assignments */}
+        {student.avg_assignments !== undefined && (
+          <Tooltip title="Average Assignments">
+            <Chip
+              label={`${student.avg_assignments.toFixed(1)} Avg`}
+              size="small"
+              sx={{
+                bgcolor: "primary.dark",
+                color: "white",
+                fontWeight: 500,
+              }}
+            />
+          </Tooltip>
+        )}
+
+        <Divider orientation="vertical" flexItem sx={{ bgcolor: "#444" }} />
+
         {/* Chat Button */}
         <Button
           variant="contained"
-          size="small" // Make the button smaller
-          startIcon={<ChatBubbleOutlineIcon sx={{ color: 'white' }} />}
-          onClick={(event) => {
-            setCurrentStudent(student);
-            event.stopPropagation();
-            setChatOpen(true);
-          }}
+          size="small"
+          startIcon={<ChatBubbleOutlineIcon />}
           sx={{
-            py: 0.8,
-            px: 1.5,
+            backgroundColor: "primary.main",
+            textTransform: "none",
             fontSize: "0.75rem",
-            zIndex: 2,
-            backgroundColor: 'primary.main', // You can explicitly set button background if needed
-            color: 'white', // Set button text and icon color to white
-            '& .MuiButton-startIcon': {
-              marginRight: 0.5,
-              color: 'white', // **Explicitly set icon color to white**
-            },
-            '&:hover': {
-              backgroundColor: 'primary.dark', // Adjust hover background if needed
-            },
+            "&:hover": { backgroundColor: "primary.dark" },
+          }}
+          onClick={(event) => {
+            event.stopPropagation();
+            setCurrentStudent(student);
+            setChatOpen(true);
           }}
         >
           Chat
         </Button>
 
-        {/* Info Drawer Button */}
-        <IconButton
-          aria-label="more info"
+        {/* Details Button */}
+        <Button
           onClick={() => {
             setCurrentStudent(student);
             setDrawerOpen(true);
           }}
-          sx={{ color: "white", p: 0.8 }} // Adjusted padding for the icon button
+          startIcon={<FaChevronRight color="white" />}
+          sx={{
+            color: "#fff",
+            textTransform: "none",
+            fontSize: "0.95rem",
+            "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+          }}
         >
-          <FaInfoCircle size={20} style={{ color: 'white' }} />
-
-        </IconButton>
+          {" "}
+          Details{" "}
+        </Button>
       </Box>
     </Box>
   );

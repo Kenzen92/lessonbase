@@ -9,7 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { getSubjectIcon } from "../../utils/icons";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaChevronRight } from "react-icons/fa";
 
 const ClassGroupCard = ({ data, onClick }) => {
   return (
@@ -70,9 +70,20 @@ const ClassGroupCard = ({ data, onClick }) => {
           ))}
         </AvatarGroup>
 
-        <IconButton onClick={onClick} aria-label="details">
-          <FaInfoCircle color="#fff" />
-        </IconButton>
+        <Button
+          onClick={onClick}
+          startIcon={<FaChevronRight color="white" />}
+          sx={{
+            color: "#fff",
+            textTransform: "none",
+            fontSize: "0.95rem",
+            "&:hover": {
+              backgroundColor: "rgba(255,255,255,0.1)",
+            },
+          }}
+        >
+          Details
+        </Button>
       </Box>
     </Box>
   );

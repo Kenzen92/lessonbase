@@ -1,5 +1,12 @@
 import React from "react";
-import { FaPlay, FaClock, FaFile, FaInfoCircle, FaUsers } from "react-icons/fa";
+import {
+  FaPlay,
+  FaClock,
+  FaFile,
+  FaUsers,
+  FaCog,
+  FaChevronRight,
+} from "react-icons/fa";
 import {
   Box,
   Typography,
@@ -8,6 +15,7 @@ import {
   Paper,
   Divider,
   Tooltip,
+  Button,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -121,17 +129,20 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
             alignItems: "center",
           }}
         >
-          <Tooltip title="View class details">
-            <IconButton
-              onClick={() => handleOpenDetails(eventData)}
-              sx={{
-                color: "#fff",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
-              }}
-            >
-              <FaInfoCircle color="white" />
-            </IconButton>
-          </Tooltip>
+          <Button
+            onClick={() => handleOpenDetails(eventData)}
+            startIcon={<FaChevronRight color="white" />}
+            sx={{
+              color: "#fff",
+              textTransform: "none",
+              fontSize: "0.95rem",
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.1)",
+              },
+            }}
+          >
+            Details
+          </Button>
 
           <Tooltip
             title={isFutureClass ? "Class not started yet" : "Start class"}

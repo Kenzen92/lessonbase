@@ -19,11 +19,16 @@ import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar";
 import StudentListSearch from "../components/Students/student_list_search";
 import { useStudents } from "../contexts/students_context";
 import { useUser } from "../contexts/user_context";
+import { FaSpinner } from "react-icons/fa";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 function Students() {
   const { user, isLoading, isError, refetch } = useUser();
-  const { data: studentsData, refetch: refetchStudents } = useStudents();
+  const {
+    data: studentsData,
+    isLoading: studentsLoading,
+    refetch: refetchStudents,
+  } = useStudents();
 
   const { id } = useParams();
   const [showStudentForm, setShowStudentForm] = useState(false);
@@ -125,21 +130,28 @@ function Students() {
           allStudents={studentsData || []}
           setFilteredStudents={setFilteredStudents}
         />
-
-        <Grid container spacing={2} sx={{ mt: 2 }}>
-          {filteredStudents.map((student) => (
-            <Grid item xs={12} key={student.id}>
-              <StudentInfoCard
-                student={student}
-                setCurrentStudent={setCurrentStudent}
-                setDrawerOpen={setDrawerOpen}
-                chats={chats}
-                setChatOpen={setChatOpen}
-                setChatId={setChatId}
-              />
+        {studentsLoading ? (
+          <Box sx={{ textAlign: "center", mt: 4 }}>
+            <FaSpinner color="#00b0ff" />
+          </Box>
+        ) : (
+          <Box sx={{ mt: 2 }}>
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              {filteredStudents.map((student) => (
+                <Grid size={12} key={student.id}>
+                  <StudentInfoCard
+                    student={student}
+                    setCurrentStudent={setCurrentStudent}
+                    setDrawerOpen={setDrawerOpen}
+                    chats={chats}
+                    setChatOpen={setChatOpen}
+                    setChatId={setChatId}
+                  />
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          </Box>
+        )}
 
         <Modal
           open={showStudentForm}

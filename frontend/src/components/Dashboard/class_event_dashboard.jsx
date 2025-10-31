@@ -17,6 +17,7 @@ import { useStudents } from "../../contexts/students_context.jsx";
 import { useClassGroups } from "../../contexts/class_groups_context.jsx";
 
 import { cancelClassEvent } from "../../utils/agent.js";
+import { FaSpinner } from "react-icons/fa";
 
 const ClassEventDashboard = () => {
   const { id } = useParams();
@@ -86,8 +87,6 @@ const ClassEventDashboard = () => {
     }
   }, [id, classEventsData]);
 
-  if (eventsLoading) return <Typography>Loading class events...</Typography>;
-
   return (
     <>
       <Navigation />
@@ -111,131 +110,145 @@ const ClassEventDashboard = () => {
           setFilteredClassEvents={setFilteredClassEvents}
           allClassGroups={classGroups}
         />
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          {Object.keys(filteredClassEvents)
-            .sort((a, b) => {
-              const [aDay, aMonth, aYear] = a.split("/").map(Number);
-              const [bDay, bMonth, bYear] = b.split("/").map(Number);
-              return (
-                new Date(aYear, aMonth - 1, aDay) -
-                new Date(bYear, bMonth - 1, bDay)
-              );
-            })
-            .map((date) => {
-              const isToday = date === todaysLocalDate;
-              return (
-                <Box
-                  key={date}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                    mb: "1.5rem",
-                  }}
-                >
+        {eventsLoading ? (
+          <Box sx={{ textAlign: "center", mt: 4 }}>
+            <FaSpinner color="#00b0ff" />
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {Object.keys(filteredClassEvents)
+              .sort((a, b) => {
+                const [aDay, aMonth, aYear] = a.split("/").map(Number);
+                const [bDay, bMonth, bYear] = b.split("/").map(Number);
+                return (
+                  new Date(aYear, aMonth - 1, aDay) -
+                  new Date(bYear, bMonth - 1, bDay)
+                );
+              })
+              .map((date) => {
+                const isToday = date === todaysLocalDate;
+                return (
                   <Box
+                    key={date}
                     sx={{
                       display: "flex",
                       flexDirection: "column",
                       width: "100%",
+                      mb: "1.5rem",
                     }}
                   >
-                    {/* TODAY SECTION */}
-                    {isToday ? (
-                      <Paper
-                        elevation={6}
-                        sx={{
-                          position: "relative",
-                          p: "1.5rem",
-                          mb: "1.5rem",
-                          borderRadius: "1rem",
-                          background:
-                            "linear-gradient(145deg, rgba(20,20,20,0.85), rgba(35,35,35,0.95))",
-                          border: "1px solid rgba(0,150,255,0.4)",
-                          backdropFilter: "blur(10px)",
-                          boxShadow:
-                            "0 0 20px rgba(0,150,255,0.15), 0 0 10px rgba(0,150,255,0.05)",
-                          transition: "transform 0.2s ease-in-out",
-                          "&:hover": {
-                            transform: "translateY(-3px)",
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        width: "100%",
+                      }}
+                    >
+                      {/* TODAY SECTION */}
+                      {isToday ? (
+                        <Paper
+                          elevation={6}
+                          sx={{
+                            position: "relative",
+                            p: "1.5rem",
+                            mb: "1.5rem",
+                            borderRadius: "1rem",
+                            background:
+                              "linear-gradient(145deg, rgba(20,20,20,0.85), rgba(35,35,35,0.95))",
+                            border: "1px solid rgba(0,150,255,0.4)",
+                            backdropFilter: "blur(10px)",
                             boxShadow:
-                              "0 0 25px rgba(0,150,255,0.25), 0 0 15px rgba(0,150,255,0.1)",
-                          },
-                        }}
-                      >
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            color: "#00b0ff",
-                            fontWeight: 600,
-                            mb: "1rem",
+                              "0 0 20px rgba(0,150,255,0.15), 0 0 10px rgba(0,150,255,0.05)",
+                            transition: "transform 0.2s ease-in-out",
+                            "&:hover": {
+                              transform: "translateY(-3px)",
+                              boxShadow:
+                                "0 0 25px rgba(0,150,255,0.25), 0 0 15px rgba(0,150,255,0.1)",
+                            },
                           }}
                         >
-                          <Box
+                          <Typography
+                            variant="h6"
                             sx={{
-                              width: 10,
-                              height: 10,
-                              borderRadius: "50%",
-                              backgroundColor: "#00b0ff",
-                              animation: "pulse 2s infinite ease-in-out",
-                              "@keyframes pulse": {
-                                "0%, 100%": {
-                                  opacity: 0.6,
-                                  transform: "scale(0.9)",
-                                },
-                                "50%": { opacity: 1, transform: "scale(1.3)" },
-                              },
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              color: "#00b0ff",
+                              fontWeight: 600,
+                              mb: "1rem",
                             }}
-                          />
-                          Today
-                        </Typography>
+                          >
+                            <Box
+                              sx={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: "50%",
+                                backgroundColor: "#00b0ff",
+                                animation: "pulse 2s infinite ease-in-out",
+                                "@keyframes pulse": {
+                                  "0%, 100%": {
+                                    opacity: 0.6,
+                                    transform: "scale(0.9)",
+                                  },
+                                  "50%": {
+                                    opacity: 1,
+                                    transform: "scale(1.3)",
+                                  },
+                                },
+                              }}
+                            />
+                            Today
+                          </Typography>
 
-                        {filteredClassEvents[date].map((classEvent, index) => (
-                          <ClassEventCard
-                            key={index}
-                            eventData={classEvent}
-                            handleReloadData={handleReloadData}
-                            handleOpenDetails={handleOpenDetails}
-                          />
-                        ))}
-                      </Paper>
-                    ) : (
-                      // OTHER DATES
-                      <Box sx={{ mb: "1rem" }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            color: "rgba(255,255,255,0.8)",
-                            ml: "1rem",
-                            mb: "0.5rem",
-                          }}
-                        >
-                          {date}
-                        </Typography>
-                        {filteredClassEvents[date].map((classEvent, index) => (
-                          <ClassEventCard
-                            key={index}
-                            eventData={classEvent}
-                            handleReloadData={handleReloadData}
-                            handleOpenDetails={handleOpenDetails}
-                          />
-                        ))}
-                      </Box>
-                    )}
+                          {filteredClassEvents[date].map(
+                            (classEvent, index) => (
+                              <ClassEventCard
+                                key={index}
+                                eventData={classEvent}
+                                handleReloadData={handleReloadData}
+                                handleOpenDetails={handleOpenDetails}
+                              />
+                            )
+                          )}
+                        </Paper>
+                      ) : (
+                        // OTHER DATES
+                        <Box sx={{ mb: "1rem" }}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              color: "rgba(255,255,255,0.8)",
+                              ml: "1rem",
+                              mb: "0.5rem",
+                            }}
+                          >
+                            {date}
+                          </Typography>
+                          {filteredClassEvents[date].map(
+                            (classEvent, index) => (
+                              <ClassEventCard
+                                key={index}
+                                eventData={classEvent}
+                                handleReloadData={handleReloadData}
+                                handleOpenDetails={handleOpenDetails}
+                              />
+                            )
+                          )}
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              );
-            })}
-        </Box>
+                );
+              })}
+          </Box>
+        )}
+
         <Modal
           open={modalOpen}
           onClose={handleClose}

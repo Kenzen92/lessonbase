@@ -4,33 +4,33 @@ import Navigation from "../components/main_navigation";
 import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
 import AddAssignmentModal from "../components/Assignments/add_assignment_modal.jsx";
-import {
-  fetchAllAssignments,
-  fetchClassGroups,
-  fetchStudents,
-  fetchSubjects,
-} from "../utils/agent.js";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
 import AssignmentFeedbackModal from "../components/Assignments/assignment_feedback_modal.jsx";
 import { useAuth } from "../contexts/auth_context.jsx";
+import { useAssignments } from "../contexts/assignments_context.jsx";
+import { useClassGroups } from "../contexts/class_groups_context.jsx";
+import { useStudents } from "../contexts/students_context.jsx";
+import { useSubjects } from "../contexts/subjects_context.jsx";
 
 function Assignments() {
   const { auth } = useAuth();
-  const [assignments, setAssignments] = useState([]);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentAssignment, setCurrentAssignment] = useState(false);
   const [currentAssignmentAttempt, setCurrentAssignmentAttempt] =
     useState(null);
-  const [classGroups, setClassGroups] = useState([]);
-  const [allStudents, setAllStudents] = useState([]);
-  const [allSubjects, setAllSubjects] = useState([]);
   const [feedbackModelOpen, setFeedbackModalOpen] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const is_teacher = auth.userType == "teacher";
+
+  // Use contexts instead of local state
+  const { data: assignments } = useAssignments();
+  const { data: classGroups } = useClassGroups();
+  const { data: allStudents } = useStudents();
+  const { data: allSubjects } = useSubjects();
 
   const columns = [
     {
@@ -61,34 +61,22 @@ function Assignments() {
   ];
 
   useEffect(() => {
-    const fetchData = async () => {
-      const assignments = await fetchAllAssignments(navigate);
-      if (assignments) setAssignments(assignments);
-      const classGroups = await fetchClassGroups();
-      if (classGroups) setClassGroups(classGroups);
-      const subjects = await fetchSubjects();
-      if (subjects) setAllSubjects(subjects);
-      const students = await fetchStudents();
-      if (students) setAllStudents(students);
-
-      // The rest of your logic for handling the ID from params
-      if (id != undefined) {
-        let currentAssignment = null;
-        const intId = parseInt(id, 10);
-        for (let key in assignments) {
-          currentAssignment = assignments[key].find(
-            (assignment) => assignment.id === intId
-          );
-          if (currentAssignment) {
-            setCurrentAssignment(currentAssignment);
-            setDrawerOpen(true);
-            break;
-          }
+    // Handle the ID from params
+    if (id !== undefined && assignments) {
+      let currentAssignment = null;
+      const intId = parseInt(id, 10);
+      for (let key in assignments) {
+        currentAssignment = assignments[key].find(
+          (assignment) => assignment.id === intId
+        );
+        if (currentAssignment) {
+          setCurrentAssignment(currentAssignment);
+          setDrawerOpen(true);
+          break;
         }
       }
-    };
-    fetchData();
-  }, [id]);
+    }
+  }, [id, assignments]);
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -135,8 +123,7 @@ function Assignments() {
             maxHeight: "90vh",
             display: "flex",
             flexDirection: "column",
-            marginTop: "1vh",
-            p: 1,
+            marginTop: 2,
           }}
         >
           <Grid container spacing={2} sx={{ height: "100%" }}>

@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import inputStyle from "../../styles/input";
 import { useNavigate } from "react-router-dom";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaChevronRight } from "react-icons/fa";
 
 const StudentListCard = ({ student, removeStudent, action }) => {
   const navigate = useNavigate();
@@ -38,15 +38,22 @@ const StudentListCard = ({ student, removeStudent, action }) => {
       </Box>
       <Box>
         {action == "navigate" ? (
-          <IconButton
-            variant="contained"
-            color="primary"
+          <Button
             onClick={() => {
               handleNavigateStudentDetails(student.id);
             }}
+            startIcon={<FaChevronRight color="white" />}
+            sx={{
+              color: "#fff",
+              textTransform: "none",
+              fontSize: "0.95rem",
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.1)",
+              },
+            }}
           >
-            <FaInfoCircle color="#fff" size={20} />
-          </IconButton>
+            Details
+          </Button>
         ) : (
           <Button
             variant="contained"

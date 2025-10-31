@@ -154,8 +154,6 @@ def student_statistics(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def teacher_statistics(request):
-    page = request.GET.get("page")
-    
     try:
         teacher = Teacher.objects.get(pk=request.user.id)
         current_datetime = datetime.now()
@@ -170,36 +168,20 @@ def teacher_statistics(request):
             .aggregate(avg_students=Avg('num_students'))
         )
 
-        if page == "dashboard":
-            stats = {
-                "total_students": total_students,
-                "upcoming_classes": upcoming_classes,
-                "pending_assignments": Assignment.objects.filter(teachers=teacher, marked=False).count(),
-                "total_teaching_hours": ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime).aggregate(Sum("duration"))["duration__sum"] or 0
-            }
-
-        elif page == "students":
-            stats = {
-                "total_students": total_students,
-                "active_students": teacher.students.filter(is_confirmed=True).count(),
-                "inactive_students": teacher.students.filter(is_confirmed=False).count(),
-                "avg_assignments_per_student": round(total_assignments / total_students, 2) if total_students else 0,
-            }
-
-        elif page == "classes":
-            stats = {
-                "total_class_groups": total_class_groups,
-                "average_students_per_group": average_students_per_group['avg_students']
-            }
-
-        elif page == "assignments":
-            stats = {
-                "total_assignments": total_assignments,
-                "total_documents" : TeachingResource.objects.filter(homework_resource__teachers=teacher).distinct().count(),
-            }
-
-        else:
-            return Response({"error": "Invalid page parameter"}, status=status.HTTP_400_BAD_REQUEST)
+        stats = {
+            "total_students": total_students,
+            "upcoming_classes": upcoming_classes,
+            "pending_assignments": Assignment.objects.filter(teachers=teacher, marked=False).count(),
+            "total_teaching_hours": ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime)
+            .aggregate(Sum("duration"))["duration__sum"] or 0,
+            "active_students": teacher.students.filter(is_confirmed=True).count(),
+            "inactive_students": teacher.students.filter(is_confirmed=False).count(),
+            "avg_assignments_per_student": round(total_assignments / total_students, 2) if total_students else 0,
+            "average_students_per_group": average_students_per_group['avg_students'],
+            "total_assignments": total_assignments,
+            "total_documents" : TeachingResource.objects.filter(homework_resource__teachers=teacher).distinct().count(),
+            "total_class_groups": total_class_groups,
+        }
 
         return Response({"data": stats}, status=status.HTTP_200_OK)
     
