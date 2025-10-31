@@ -24,7 +24,7 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClassEvent
-        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'class_group']
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'class_group', 'name']
         read_only_fields = ['id']
 
 class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
@@ -49,7 +49,7 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
             return False
     class Meta:
         model = ClassEvent
-        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'previous', 'class_group']
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'previous', 'class_group', 'name']
         read_only_fields = ['id']
 
 
@@ -61,5 +61,5 @@ class ClassEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClassEvent
-        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources']
+        fields = ['id', 'start_time', 'duration', 'subject', 'students', 'teachers', 'resources', 'name']
         read_only_fields = ['id']

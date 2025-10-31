@@ -14,18 +14,24 @@ function ClassEventSearchAndFilter({
   const [classGroupFilter, setClassGroupFilter] = useState({});
   const { auth } = useAuth();
   useEffect(() => {
-    // Utility function to check if a date is in the past
-    const isPast = (date) => {
-      const eventDate = new Date(date);
-      const now = new Date();
-      return eventDate < now;
-    };
     // Filter class events based on the 'previous' state
     const timeFilteredClassEvents = Object.keys(allClassEvents).reduce(
       (result, date) => {
         const filteredEvents = allClassEvents[date].filter((event) => {
-          const isEventPast = isPast(event.start_time);
+          const now = new Date();
+          const startTime = new Date(event.start_time);
+          const endTime = new Date(
+            startTime.getTime() + event.duration * 60000
+          );
+
+          // Event is only considered past if it has completely finished (after start + duration)
+          const isEventPast = now >= endTime;
+          const isOngoing = now >= startTime && now < endTime;
+
           const lowerCaseSearch = searchTerm.toLowerCase();
+
+          // If showing previous events, hide upcoming/ongoing events
+          // If showing upcoming events, hide past events
           if ((previous && !isEventPast) || (!previous && isEventPast)) {
             return false;
           }

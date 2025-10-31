@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Modal,
-} from "@mui/material";
+import { Box, Modal } from "@mui/material";
 import dayjs from "dayjs";
 import ClassEventWizard from "./class_event_wizard.jsx";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const ScheduleClassModal = ({
   handleReloadData,
@@ -23,6 +20,7 @@ const ScheduleClassModal = ({
   const [duration, setDuration] = useState("");
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [className, setClassName] = useState("");
 
   useEffect(() => {
     // Initialize form with classData if provided and if subjects is populated
@@ -32,6 +30,7 @@ const ScheduleClassModal = ({
       setStartTime(parsedStartDate);
       setDuration(classData.duration);
       setSelectedStudents(classData.students.map((student) => student.id));
+      setClassName(classData.name || "");
 
       // Find subject ID by matching subject name
       const subject = subjects.find(
@@ -42,68 +41,6 @@ const ScheduleClassModal = ({
       }
     }
   }, [classData]); // Fetch data on component mount and reinitialize form when classData changes
-
-  const handleCreateClassEvent = async (event) => {
-    event.preventDefault();
-
-    // Ensure startDate and startTime are valid before submission
-    if (!startDate || !startTime) {
-      toast.error("Please select a valid date and time.");
-      return;
-    }
-
-    const parsedDate = new Date(startDate);
-    const parsedTime = new Date(startTime);
-
-    if (isNaN(parsedDate.getTime()) || isNaN(parsedTime.getTime())) {
-      toast.error("Invalid date or time.");
-      return;
-    }
-
-    // Combine date and time into a single DateTime object
-    const combinedDateTime = new Date(
-      parsedDate.getFullYear(),
-      parsedDate.getMonth(),
-      parsedDate.getDate(),
-      parsedTime.getHours(),
-      parsedTime.getMinutes()
-    );
-
-    const selectedSubjectObj = subjects.find(
-      (subject) => subject.id === parseInt(selectedSubject)
-    );
-
-    const newClass = {
-      start_time: combinedDateTime.toISOString(),
-      duration: duration,
-      students: selectedStudents,
-      subject: selectedSubjectObj ? selectedSubjectObj.id : null,
-    };
-
-    try {
-      const auth = window.sessionStorage.getItem("token");
-      const response = await fetch(`${BASE_URL}/class-event/`, {
-        method: classData ? "PUT" : "POST", // Update if classData exists, else create
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newClass),
-      });
-
-      const data = await response.json();
-      toast.success("The class event was scheduled");
-      setStartDate(null);
-      setStartTime(null);
-      setDuration(null);
-      setSelectedStudents([]);
-      setSelectedSubject(null);
-      handleReloadData();
-    } catch (error) {
-      console.log("Error: " + error.message);
-      toast.error("Failed to schedule class.");
-    }
-  };
 
   return (
     <Modal>

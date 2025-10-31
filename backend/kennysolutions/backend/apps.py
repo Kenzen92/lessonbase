@@ -21,52 +21,52 @@ def create_required_objects(sender, **kwargs):
         subject.color = color
         subject.save()
 
-    # Create some students and a teacher
-    student_1, student_1_created = Student.objects.get_or_create(username="student_1", first_name="Jim", last_name="Bob", email="jimbob@test.com")
-    if student_1_created:
-        student_1.set_password("student")
-
-    student_2, student_2_created = Student.objects.get_or_create(username="student_2", first_name="John", last_name="Babbage", email="jimbob@test.com")
-    if student_2_created:
-        student_2.set_password("student")
+    # Create 20 random students
+    first_names = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", 
+                   "William", "Barbara", "David", "Elizabeth", "Richard", "Susan", "Joseph", 
+                   "Jessica", "Thomas", "Sarah", "Charles", "Karen"]
+    last_names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", 
+                  "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", 
+                  "Thomas", "Taylor", "Moore", "Jackson", "Martin"]
     
-    student_3, student_3_created = Student.objects.get_or_create(username="student_3", first_name="Jackie", last_name="Jackson", email="jimbob@test.com")
-    if student_3_created:
-        student_3.set_password("student")
+    all_students = []
+    for i in range(20):
+        student, student_created = Student.objects.get_or_create(
+            username=f"student_{i+1}", 
+            first_name=first_names[i], 
+            last_name=last_names[i], 
+            email=f"{first_names[i].lower()}.{last_names[i].lower()}@test.com"
+        )
+        if student_created:
+            student.set_password("student")
+            student.save()
+        all_students.append(student)
 
+    # Create a teacher
     teacher, teacher_created = Teacher.objects.get_or_create(username="teacher")
     if teacher_created:
         teacher.set_password("teacher")
-    teacher.students.add(student_1, student_2, student_3)
+    teacher.students.add(*all_students)
     teacher.subjects.add(Subject.objects.order_by('?').first())
     teacher.save()
-    student_1.save()
-    student_2.save()
-    student_3.save()
 
-    # Create some class groups of students and teachers
-    class_group, group_1_created = ClassGroup.objects.get_or_create(name="Class 1", class_code="C1")
-    if group_1_created:
-        class_group.students.add(student_1, student_2, student_3)
-        class_group.teachers.add(teacher)
-        subject = Subject.objects.order_by('?').first()
-        class_group.subjects.add(subject)
-        class_group.save()
-    class_group, group_2_created = ClassGroup.objects.get_or_create(name="Class 2", class_code="C2")
-    if group_2_created:
-        class_group.students.add(student_1, student_2, student_3)
-        class_group.teachers.add(teacher)
-        subject = Subject.objects.order_by('?').first()
-        class_group.subjects.add(subject)
-        class_group.save()
-
-    class_group, group_3_created = ClassGroup.objects.get_or_create(name="Class 3", class_code="C3")
-    if group_3_created:
-        class_group.students.add(student_1, student_2, student_3)
-        class_group.teachers.add(teacher)
-        subject = Subject.objects.order_by('?').first()
-        class_group.subjects.add(subject)
-        class_group.save()
+    # Create 5 class groups with overlapping students
+    class_groups = []
+    for i in range(5):
+        class_group, group_created = ClassGroup.objects.get_or_create(
+            name=f"Class {i + 1}", 
+            class_code=f"C{i + 1}"
+        )
+        if group_created:
+            # Randomly assign 4-8 students to each group to create overlap
+            num_students = random.randint(4, 8)
+            selected_students = random.sample(all_students, num_students)
+            class_group.students.add(*selected_students)
+            class_group.teachers.add(teacher)
+            subject = Subject.objects.order_by('?').first()
+            class_group.subjects.add(subject)
+            class_group.save()
+        class_groups.append(class_group)
 
 
     # Ensure there are at least 5 upcoming classes
@@ -75,13 +75,11 @@ def create_required_objects(sender, **kwargs):
     classes_to_create = max(0, 5 - future_classes)
     
     if classes_to_create > 0:
-        # Get all available students
-        all_students = [student_1, student_2, student_3]
         durations = [45, 60, 90]  # Variety of class durations
         
         for i in range(classes_to_create):
-            # Randomly select 1-3 students
-            num_students = random.randint(1, 3)
+            # Randomly select 1-5 students from all students
+            num_students = random.randint(1, 7)
             selected_students = random.sample(all_students, num_students)
             
             # Random subject
@@ -100,7 +98,8 @@ def create_required_objects(sender, **kwargs):
                 start_time=start_time,
                 duration=duration,
                 subject=subject,
-                class_group=ClassGroup.objects.order_by('?').first(),
+                class_group=random.choice(class_groups),
+                name=f"Class Event {subject.name} {i + 1}"
             )
             class_event.students.add(*selected_students)
             class_event.teachers.add(teacher)
@@ -121,11 +120,14 @@ def create_required_objects(sender, **kwargs):
                 }
         )
         assignment.teachers.add(teacher)
-        assignment.students.add(student_1, student_2, student_3)
+        # Randomly assign some students to each assignment
+        num_students = random.randint(5, 15)
+        selected_students = random.sample(all_students, num_students)
+        assignment.students.add(*selected_students)
         assignment.save()
 
-        # Create assignment attempts for each student
-        for student in [student_1, student_2, student_3]:
+        # Create assignment attempts for selected students
+        for student in selected_students:
             attempt, created = AssignmentAttempt.objects.get_or_create(
                 assignment=assignment,
                 student=student,
@@ -139,7 +141,7 @@ def create_required_objects(sender, **kwargs):
                 assignmentAttempt=attempt,
                 teacher=teacher,
                 text=f"Well done, {student.first_name}!",
-                score=99
+                score=random.randint(70, 100)
             )
 
     # Create a superuser

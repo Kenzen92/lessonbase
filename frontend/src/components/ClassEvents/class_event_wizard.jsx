@@ -20,7 +20,7 @@ import StudentSearch from "../Students/student_search";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
 import { toast } from "react-toastify";
 import inputStyle from "../../styles/input";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 // Define your validation schema *outside* the component for better performance
 const validationSchema = yup.object().shape({
@@ -35,6 +35,7 @@ const validationSchema = yup.object().shape({
     .min(10, "Must be more than 10")
     .max(180, "Must be less than 180"),
   subject: yup.string().required("Subject is required"),
+  name: yup.string().optional(),
 });
 
 const ClassEventWizard = ({
@@ -60,6 +61,7 @@ const ClassEventWizard = ({
       start_time: classData?.start_time || dayjs().format("HH:mm"), // Format as HH:mm for TimePicker
       subject: classData?.subject.id || null,
       duration: classData?.duration || "60",
+      name: classData?.name || "",
     },
   });
 
@@ -70,6 +72,8 @@ const ClassEventWizard = ({
       setValue("class_code", classData.class_code);
       setValue("start_date", dayjs(classData.start_date)); // Use Dayjs
       setValue("start_time", classData.start_time);
+      setValue("duration", classData.duration);
+      setValue("name", classData.name);
       setSelectedStudents(classData.students || []);
     }
   }, [classData, setValue]);
@@ -112,6 +116,7 @@ const ClassEventWizard = ({
       duration: data.duration,
       students: selectedStudents,
       subject: selectedSubjectObj ? selectedSubjectObj.id : null, // Ensure valid subject ID
+      name: data.name,
     };
 
     try {
@@ -140,9 +145,21 @@ const ClassEventWizard = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3}}>
+      <Box sx={{ p: 3 }}>
         {step === 1 && (
           <form onSubmit={handleSubmit(handleNext)}>
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label="Class Name"
+                  sx={{ ...inputStyle, width: "100%", mb: 2 }}
+                />
+              )}
+            />
             <Controller
               name="start_date"
               control={control}
