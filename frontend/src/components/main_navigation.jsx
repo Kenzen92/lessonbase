@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useAuth } from "../contexts/auth_context";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const Navigation = () => {
   const navigate = useNavigate();
@@ -98,14 +98,28 @@ const Navigation = () => {
                       onClick={item.action || null}
                       color="inherit"
                       sx={{
-                        color: "#fff",
+                        color:
+                          item.label !== "Logout" &&
+                          location.pathname.startsWith(item.path)
+                            ? "#fff"
+                            : "rgba(255, 255, 255, 0.7)",
                         textTransform: "none",
-                        borderBottom:
-                          location.pathname === item.path
-                            ? "2px solid #fff"
-                            : "none",
+                        backgroundColor:
+                          item.label !== "Logout" &&
+                          location.pathname.startsWith(item.path)
+                            ? "rgba(255, 255, 255, 0.15)"
+                            : "transparent",
+                        borderRadius: "4px",
+                        px: 2,
+                        py: 1,
+                        fontWeight:
+                          item.label !== "Logout" &&
+                          location.pathname.startsWith(item.path)
+                            ? 600
+                            : 400,
                         ":hover": {
-                          color: "#ffcc00",
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                          color: "#fff",
                         },
                       }}
                     >

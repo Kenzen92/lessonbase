@@ -10,7 +10,7 @@ console_command = '/app/kennysolutions/manage.py shell'
 [build]
 
 [deploy]
-  release_command = 'python manage.py migrate --noinput'
+  release_command = '/app/migrate.sh'
 
 
 [env]

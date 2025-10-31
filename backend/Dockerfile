@@ -46,7 +46,8 @@ COPY . /app/
 
 # Copy entrypoint script and make it executable
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+COPY migrate.sh /app/migrate.sh
+RUN chmod +x /app/entrypoint.sh /app/migrate.sh
 
 # Expose Django port
 EXPOSE 8000
