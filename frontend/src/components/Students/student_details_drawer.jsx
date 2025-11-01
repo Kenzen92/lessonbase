@@ -309,7 +309,7 @@ export default function StudentDetailsDrawer({
             <Box sx={{ p: 3 }}>
               {/* Quick Stats Cards */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <Card
                     sx={{
                       backgroundColor: "rgba(33, 150, 243, 0.1)",
@@ -335,7 +335,7 @@ export default function StudentDetailsDrawer({
                   </Card>
                 </Grid>
 
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <Card
                     sx={{
                       backgroundColor: "rgba(76, 175, 80, 0.1)",
@@ -361,7 +361,7 @@ export default function StudentDetailsDrawer({
                   </Card>
                 </Grid>
 
-                <Grid item xs={4}>
+                <Grid size={4}>
                   <Card
                     sx={{
                       backgroundColor: "rgba(255, 152, 0, 0.1)",
@@ -464,7 +464,7 @@ export default function StudentDetailsDrawer({
                     General Information
                   </Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography
                         variant="caption"
                         sx={{
@@ -481,7 +481,7 @@ export default function StudentDetailsDrawer({
                         #{student.id}
                       </Typography>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography
                         variant="caption"
                         sx={{
@@ -498,7 +498,7 @@ export default function StudentDetailsDrawer({
                         {formatEnrollmentDate(student.enrollment_date)}
                       </Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Typography
                         variant="caption"
                         sx={{

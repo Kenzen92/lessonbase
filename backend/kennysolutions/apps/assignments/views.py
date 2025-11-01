@@ -126,11 +126,6 @@ class FeedbackViewSet(ModelViewSet):
     serializer_class = FeedbackSerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    queryset = Feedback.objects.all()
-class FeedbackViewSet(ModelViewSet):
-    serializer_class = FeedbackSerializer
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
 
     """
     Feedback is almost always queried in relation to a specific assignment which must be passed as a query param
@@ -140,6 +135,51 @@ class FeedbackViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user.get_real_instance()
         return Feedback.objects.filter(Q(teacher=user) | Q(student=user))
+
+    def create(self, request, *args, **kwargs):
+        """
+        Create feedback and update the associated assignment attempt
+        """
+        teacher = request.user.get_real_instance()
+        
+        # Get the assignment attempt ID
+        attempt_id = request.data.get('assignmentAttempt')
+        if not attempt_id:
+            return Response(
+                {'error': 'Assignment attempt ID is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            assignment_attempt = AssignmentAttempt.objects.get(id=attempt_id)
+        except AssignmentAttempt.DoesNotExist:
+            return Response(
+                {'error': 'Assignment attempt does not exist'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Update the assignment attempt with graded and accepted status
+        graded = request.data.get('graded', True)  # Default to True when providing feedback
+        accepted = request.data.get('accepted', False)
+        
+        assignment_attempt.graded = graded
+        assignment_attempt.accepted = accepted
+        assignment_attempt.save()
+        
+        # Create the feedback with validated data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # Set the teacher during save, not during validation
+        serializer.save(teacher=teacher)
+        
+        return Response(
+            {
+                'success': True,
+                'message': 'Feedback submitted successfully',
+                'data': serializer.data
+            }, 
+            status=status.HTTP_201_CREATED
+        )
 
     def list(self, request):
         # Attempt to get assignment attempt ID from the query params

@@ -103,6 +103,12 @@ function Assignments() {
           feedbackModelOpen={feedbackModelOpen}
           setFeedbackModalOpen={setFeedbackModalOpen}
           currentAssignmentAttempt={currentAssignmentAttempt}
+          handleReloadData={() => {
+            // Trigger refresh by updating the assignment (this will cause the drawer to re-fetch)
+            if (currentAssignment) {
+              setCurrentAssignment({ ...currentAssignment });
+            }
+          }}
         />
 
         <AssignmentDetailsDrawer
@@ -115,6 +121,12 @@ function Assignments() {
           assignment={currentAssignment}
           setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
           setFeedbackModalOpen={setFeedbackModalOpen}
+          onFeedbackSubmitted={() => {
+            // Refresh assignment data when feedback is submitted
+            if (currentAssignment) {
+              setCurrentAssignment({ ...currentAssignment });
+            }
+          }}
         />
 
         <Box

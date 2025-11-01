@@ -91,6 +91,19 @@ class ClassGroup(models.Model):
         ('archived', 'Archived'),
     ]
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    COLOR_CHOICES = [
+        ('#1976D2', 'Blue'),
+        ('#388E3C', 'Green'),
+        ('#7B1FA2', 'Purple'),
+        ('#D32F2F', 'Red'),
+        ('#F57C00', 'Orange'),
+        ('#0097A7', 'Cyan'),
+        ('#C2185B', 'Pink'),
+        ('#5D4037', 'Brown'),
+        ('#455A64', 'Blue Grey'),
+        ('#FBC02D', 'Yellow'),
+    ]
+    color = models.CharField(max_length=7, choices=COLOR_CHOICES, default='#1976D2')
     year = models.IntegerField(null=True, blank=True)
     term = models.CharField(max_length=20, null=True, blank=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name="created_class_groups")

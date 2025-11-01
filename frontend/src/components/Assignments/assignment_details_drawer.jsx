@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
-import { fetchAssignment } from "../../utils/agent";
+import { fetchAssignment, fetchAssignmentAttempt } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
 import { useAuth } from "../../contexts/auth_context";
 import StudentAssignmentAttemptForm from "./student_assignment_attempt_form";
@@ -49,6 +49,7 @@ export default function AssignmentDetailsDrawer({
   onClose,
   onEdit,
   setFeedbackModalOpen,
+  onFeedbackSubmitted, // Callback to refresh data after feedback is submitted
 }) {
   const [assignmentDetails, setAssignmentDetails] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -85,17 +86,20 @@ export default function AssignmentDetailsDrawer({
 
   useEffect(() => {
     if (assignment?.id) {
-      const handleFetchAssignment = async () => {
-        try {
-          const assignmentDetails = await fetchAssignment(assignment.id);
-          setAssignmentDetails(assignmentDetails);
-        } catch (error) {
-          console.error("Error fetching assignment details:", error);
-        }
-      };
-      handleFetchAssignment();
+      fetchAssignmentData();
     }
   }, [assignment]);
+
+  const fetchAssignmentData = async () => {
+    if (!assignment?.id) return;
+
+    try {
+      const assignmentDetails = await fetchAssignment(assignment.id);
+      setAssignmentDetails(assignmentDetails);
+    } catch (error) {
+      console.error("Error fetching assignment details:", error);
+    }
+  };
 
   // Ensure assignmentDetails is available before trying to get the icon
   const IconComponent =
@@ -310,6 +314,7 @@ export default function AssignmentDetailsDrawer({
                     setFeedbackModalOpen={setFeedbackModalOpen}
                     expandedSections={expandedSections}
                     handleToggleSection={handleToggleSection}
+                    refreshAssignmentData={fetchAssignmentData}
                   />
                 )}
 
@@ -390,6 +395,48 @@ function TeacherStudentView({
   handleToggleSection,
 }) {
   const [studentAttempts, setStudentAttempts] = useState({});
+  const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
+
+  // Fetch all student attempts when assignment details are loaded
+  useEffect(() => {
+    const fetchAllAttempts = async () => {
+      if (
+        !assignmentDetails?.students ||
+        assignmentDetails.students.length === 0
+      )
+        return;
+
+      setIsLoadingAttempts(true);
+      const attempts = {};
+
+      try {
+        await Promise.all(
+          assignmentDetails.students.map(async (student) => {
+            try {
+              const attempt = await fetchAssignmentAttempt(
+                assignment.id,
+                student.id
+              );
+              if (attempt) {
+                attempts[student.id] = attempt;
+              }
+            } catch (error) {
+              // Student has no attempt, which is fine
+              console.debug(`No attempt for student ${student.id}`);
+            }
+          })
+        );
+
+        setStudentAttempts(attempts);
+      } catch (error) {
+        console.error("Error fetching student attempts:", error);
+      } finally {
+        setIsLoadingAttempts(false);
+      }
+    };
+
+    fetchAllAttempts();
+  }, [assignmentDetails?.students, assignment.id]);
 
   // Group students by their submission status
   const groupedStudents = React.useMemo(() => {
@@ -513,8 +560,8 @@ function TeacherStudentView({
         expanded={expandedSections.needsGrading}
         onToggle={() => handleToggleSection("needsGrading")}
         studentAttempts={studentAttempts}
-        setStudentAttempts={setStudentAttempts}
         showEmpty={groupedStudents.needsGrading.length === 0}
+        isLoadingAttempts={isLoadingAttempts}
       />
 
       {/* Graded Section */}
@@ -529,8 +576,8 @@ function TeacherStudentView({
         expanded={expandedSections.graded}
         onToggle={() => handleToggleSection("graded")}
         studentAttempts={studentAttempts}
-        setStudentAttempts={setStudentAttempts}
         showEmpty={groupedStudents.graded.length === 0}
+        isLoadingAttempts={isLoadingAttempts}
       />
 
       {/* Not Submitted Section */}
@@ -545,8 +592,8 @@ function TeacherStudentView({
         expanded={expandedSections.notSubmitted}
         onToggle={() => handleToggleSection("notSubmitted")}
         studentAttempts={studentAttempts}
-        setStudentAttempts={setStudentAttempts}
         showEmpty={groupedStudents.notSubmitted.length === 0}
+        isLoadingAttempts={isLoadingAttempts}
       />
     </>
   );
@@ -564,8 +611,8 @@ function StudentGroupSection({
   expanded,
   onToggle,
   studentAttempts,
-  setStudentAttempts,
   showEmpty,
+  isLoadingAttempts,
 }) {
   return (
     <Card
@@ -620,7 +667,19 @@ function StudentGroupSection({
 
         {expanded && (
           <Box sx={{ px: 2, pb: 2 }}>
-            {students.length > 0 ? (
+            {isLoadingAttempts ? (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "rgba(255, 255, 255, 0.5)",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                  py: 2,
+                }}
+              >
+                Loading student submissions...
+              </Typography>
+            ) : students.length > 0 ? (
               students.map((student, index) => (
                 <Box
                   key={student.id}
@@ -644,12 +703,7 @@ function StudentGroupSection({
                       student={student}
                       setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
                       setFeedbackModalOpen={setFeedbackModalOpen}
-                      onAttemptFetched={(attempt) => {
-                        setStudentAttempts((prev) => ({
-                          ...prev,
-                          [student.id]: attempt,
-                        }));
-                      }}
+                      attemptData={studentAttempts[student.id]}
                     />
                   </Box>
                 </Box>

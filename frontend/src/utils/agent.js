@@ -29,7 +29,7 @@ export const apiRequest = async (url, method = "GET", body = null, navigate=null
     }
 
     if (response.status === 201) {
-      return response;
+      return await response.json();
     }
 
     if (response.status == 404) {
@@ -169,7 +169,16 @@ export const fetchCurrentUser = async() => {
 }
 
 export const handleSubmitAssignmentFeedback = async(feedbackData, navigate) => {
-  const response = await apiRequest(`${BASE_URL}/feedback`, "POST", feedbackData, navigate)
+  try {
+    const response = await apiRequest(`${BASE_URL}/feedback/`, "POST", feedbackData, navigate);
+    return response;
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    return {
+      success: false,
+      message: error.message || "Failed to submit feedback"
+    };
+  }
 }
 export const fetchFeedback = async (assignment_attempt_id) => {
   return await apiRequest(`${BASE_URL}/feedback?assignment_attempt_id=${assignment_attempt_id}`)

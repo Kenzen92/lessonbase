@@ -9,7 +9,7 @@ userModel = CustomAccount()
 class ClassGroupUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassGroup
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'color']
 
 
 class StudentSerializer(serializers.ModelSerializer):
@@ -98,7 +98,7 @@ class ClassGroupCreateSerializer(serializers.ModelSerializer):
     students = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all(), many=True, required=False, allow_empty=True)
     class Meta:
         model = ClassGroup
-        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects']
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects', 'color']
         read_only_fields = ['id']
 
 class ClassGroupDetailsSerializer(serializers.ModelSerializer):
@@ -106,7 +106,7 @@ class ClassGroupDetailsSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     class Meta:
         model = ClassGroup
-        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects']
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'teachers', 'subjects', 'color']
         read_only_fields = ['id']
 
 class ClassGroupListSerializer(serializers.ModelSerializer):
@@ -114,5 +114,5 @@ class ClassGroupListSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     class Meta:
         model = ClassGroup
-        fields = ['id', 'name', 'description', 'class_code', 'students', 'subjects']
+        fields = ['id', 'name', 'description', 'class_code', 'students', 'subjects', 'color']
         read_only_fields = ['id']

@@ -17,10 +17,24 @@ const StudentAssignmentAttemptCard = ({
   setCurrentAssignmentAttempt,
   setFeedbackModalOpen,
   onAttemptFetched,
+  attemptData, // Pre-fetched attempt data
 }) => {
-  const [assignmentAttempt, setAssignmentAttempt] = useState(null);
+  const [assignmentAttempt, setAssignmentAttempt] = useState(
+    attemptData || null
+  );
   const navigate = useNavigate();
+
+  // Update local state when attemptData prop changes
   useEffect(() => {
+    if (attemptData !== undefined) {
+      setAssignmentAttempt(attemptData);
+    }
+  }, [attemptData]);
+
+  useEffect(() => {
+    // Only fetch if attemptData is not provided
+    if (attemptData !== undefined) return;
+
     if (assignment?.id && student?.id) {
       const handleFetchAssignmentAttempt = async () => {
         try {
@@ -44,7 +58,7 @@ const StudentAssignmentAttemptCard = ({
       };
       handleFetchAssignmentAttempt();
     }
-  }, [assignment, student]); // Re-run when assignment or student changes
+  }, [assignment, student, attemptData, onAttemptFetched, navigate]); // Re-run when assignment or student changes
 
   return assignmentAttempt ? (
     <Box>

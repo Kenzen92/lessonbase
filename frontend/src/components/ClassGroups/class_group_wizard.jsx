@@ -25,6 +25,7 @@ const validationSchema = yup.object().shape({
   subjects: yup.array().min(1, "At least one subject is required"),
   class_code: yup.string().required("Class code is required"),
   description: yup.string().optional(),
+  color: yup.string().optional(),
 });
 
 const ClassWizard = ({
@@ -55,6 +56,7 @@ const ClassWizard = ({
       description: currentClass?.description || "",
       subjects: currentClass?.subjects.map((subject) => subject.id) || [],
       class_code: currentClass?.class_code || "",
+      color: currentClass?.color || "#1976D2",
     },
   });
 
@@ -69,6 +71,7 @@ const ClassWizard = ({
         currentClass.subjects.map((subject) => subject.id)
       );
       setValue("class_code", currentClass.class_code);
+      setValue("color", currentClass.color || "#1976D2");
       setSelectedStudents(currentClass.students || []);
     }
   }, [currentClass, setValue]);
@@ -137,7 +140,6 @@ const ClassWizard = ({
           <Controller
             name="subjects"
             control={control}
-            
             render={({ field }) => (
               <FormControl fullWidth>
                 <InputLabel id="subjects-select-label" sx={{ color: "#fff" }}>
@@ -198,6 +200,184 @@ const ClassWizard = ({
                 helperText={errors.class_code?.message}
                 sx={{ mb: 2, ...inputStyle }}
               />
+            )}
+          />
+
+          <Controller
+            name="color"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth>
+                <InputLabel id="color-select-label" sx={{ color: "#fff" }}>
+                  Group Color
+                </InputLabel>
+                <Select
+                  {...field}
+                  id="color"
+                  labelId="color-select-label"
+                  label="Group Color"
+                  sx={{
+                    mb: 2,
+                    color: "white",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#fff",
+                    },
+                    "& .MuiSelect-icon": { color: "#fff" },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        bgcolor: "#333",
+                        color: "#fff",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="#1976D2">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#1976D2",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Blue
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#388E3C">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#388E3C",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Green
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#7B1FA2">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#7B1FA2",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Purple
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#D32F2F">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#D32F2F",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Red
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#F57C00">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#F57C00",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Orange
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#0097A7">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#0097A7",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Cyan
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#C2185B">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#C2185B",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Pink
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#5D4037">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#5D4037",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Brown
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#455A64">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#455A64",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Blue Grey
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value="#FBC02D">
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: "#FBC02D",
+                          borderRadius: 1,
+                          border: "1px solid #fff",
+                        }}
+                      />
+                      Yellow
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
             )}
           />
 

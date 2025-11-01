@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from apps.user_accounts.models import ClassGroup
 from backend.serializers import TeacherClassEventSerializer
-from apps.user_accounts.serializers import StudentSerializer
+from apps.user_accounts.serializers import StudentSerializer, ClassGroupUserSerializer
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.classes.models import ClassEvent, TeachingResource
@@ -36,7 +36,7 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = SubjectSerializer(many=False, read_only=True)
     resources = TeachingResourceSerializer(many=True, read_only=True)
-    class_group = serializers.SlugRelatedField(slug_field='name', queryset=ClassGroup.objects.all(), allow_null=True)
+    class_group = ClassGroupUserSerializer(read_only=True)
     previous = serializers.SerializerMethodField()
 
     def get_previous(self, obj):

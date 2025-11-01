@@ -130,7 +130,7 @@ export default function ClassDetailsDrawer({
             <Box sx={{ p: 3 }}>
               {/* Quick Stats */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Card
                     sx={{
                       backgroundColor: "rgba(33, 150, 243, 0.1)",
@@ -156,7 +156,7 @@ export default function ClassDetailsDrawer({
                   </Card>
                 </Grid>
 
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Card
                     sx={{
                       backgroundColor: "rgba(76, 175, 80, 0.1)",

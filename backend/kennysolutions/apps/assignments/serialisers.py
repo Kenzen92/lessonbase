@@ -146,7 +146,10 @@ class AssignmentAttemptListSerializer(serializers.ModelSerializer):
         fields = ['id', 'assignment', 'student', 'submitted_at', 'accepted', 'graded']
 
 class FeedbackSerializer(serializers.ModelSerializer):
+    teacher = serializers.PrimaryKeyRelatedField(read_only=True)
+    
     class Meta:
         model = Feedback
         fields = ['id', 'assignmentAttempt', 'teacher', 'text', 'created_at', 'score', 'submitted_files']
+        read_only_fields = ['created_at']
 
