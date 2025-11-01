@@ -16,6 +16,7 @@ const StudentAssignmentAttemptCard = ({
   student,
   setCurrentAssignmentAttempt,
   setFeedbackModalOpen,
+  onAttemptFetched,
 }) => {
   const [assignmentAttempt, setAssignmentAttempt] = useState(null);
   const navigate = useNavigate();
@@ -29,8 +30,16 @@ const StudentAssignmentAttemptCard = ({
             navigate
           );
           setAssignmentAttempt(assignmentAttemptDetails);
+          // Pass the attempt back to parent for grouping
+          if (onAttemptFetched) {
+            onAttemptFetched(assignmentAttemptDetails);
+          }
         } catch (error) {
           console.error("Error fetching assignment details:", error);
+          // Pass null if no attempt exists
+          if (onAttemptFetched) {
+            onAttemptFetched(null);
+          }
         }
       };
       handleFetchAssignmentAttempt();
@@ -39,35 +48,56 @@ const StudentAssignmentAttemptCard = ({
 
   return assignmentAttempt ? (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        {assignmentAttempt.title}
-      </Typography>
-
-      <Box>
-        <Typography sx={{ color: assignmentAttempt.graded ? 'darkGreen' : 'red'}}>{assignmentAttempt.graded ? "Marked" : "Not marked"}</Typography>
-        <Typography sx={{ color: 'lightGray'}} variant="body2" gutterBottom>
-          Submitted{" "}
-          {new Date(assignmentAttempt.submitted_at).toLocaleString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Typography
+            sx={{
+              color: assignmentAttempt.graded ? "#4CAF50" : "#FF9800",
+              fontWeight: 600,
+              fontSize: "0.9rem",
+            }}
+          >
+            {assignmentAttempt.graded ? "✓ Marked" : "⚠ Not marked"}
+          </Typography>
+          <Typography
+            sx={{ color: "rgba(255, 255, 255, 0.6)" }}
+            variant="body2"
+          >
+            Submitted{" "}
+            {new Date(assignmentAttempt.submitted_at).toLocaleString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Typography>
+        </Box>
         <PrimaryButton
+          size="small"
           onClick={() => {
             setCurrentAssignmentAttempt(assignmentAttempt);
             setFeedbackModalOpen(true);
           }}
+          sx={{ minWidth: 80 }}
         >
           Open
         </PrimaryButton>
       </Box>
     </Box>
   ) : (
-    <Box sx={{ height: "2rem" }}>
-      <Typography sx={{ color: "darkOrange" }}>Not Submitted</Typography>
+    <Box sx={{ py: 1 }}>
+      <Typography
+        sx={{ color: "#F44336", fontWeight: 600, fontSize: "0.9rem" }}
+      >
+        ✗ Not Submitted
+      </Typography>
     </Box>
   );
 };
