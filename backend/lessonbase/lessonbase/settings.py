@@ -221,7 +221,7 @@ AUTH_USER_MODEL = 'user_accounts.CustomAccount'
 default_cors = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
-    "https://lessonbase.vercel.app/"
+    "https://lessonbase.vercel.app"
 ]
 cors_env = os.environ.get('CORS_ALLOWED_ORIGINS')
 if cors_env:
