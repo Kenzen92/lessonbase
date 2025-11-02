@@ -33,7 +33,7 @@ ENV PYTHONUNBUFFERED=1 \
     UV_SYSTEM_PYTHON=1
 
 # Set work directory
-WORKDIR /app/kennysolutions
+WORKDIR /app/lessonbase
 
 # Copy the application including virtual environment
 COPY --from=builder /app /app

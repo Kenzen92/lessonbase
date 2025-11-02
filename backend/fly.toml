@@ -5,7 +5,7 @@
 
 app = 'backend-late-haze-5388'
 primary_region = 'fra'
-console_command = '/app/kennysolutions/manage.py shell'
+console_command = '/app/lessonbase/manage.py shell'
 
 [build]
 
@@ -31,7 +31,7 @@ console_command = '/app/kennysolutions/manage.py shell'
   cpus = 1
 
 [[statics]]
-  guest_path = '/app/kennysolutions/static'
+  guest_path = '/app/lessonbase/static'
   url_prefix = '/static/'
 
 [[services.tcp_checks]]

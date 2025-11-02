@@ -33,7 +33,7 @@ services:
       - .env
     volumes:
       # Mount *only* source code to improve I/O performance
-      - ./kennysolutions:/app/kennysolutions
+      - ./lessonbase:/app/lessonbase
       - ./manage.py:/app/manage.py
       # Keep .venv inside container to avoid rebuild lag
       - /opt/venv

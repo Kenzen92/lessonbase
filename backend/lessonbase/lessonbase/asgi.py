@@ -1,5 +1,5 @@
 """
-ASGI config for kennysolutions project.
+ASGI config for lessonbase project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -14,7 +14,7 @@ from backend import routing
 from django.core.asgi import get_asgi_application
 from backend.middleware import TokenAuthMiddleware
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kennysolutions.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lessonbase.settings')
 
 print("Configuring ASGI application... ")
 

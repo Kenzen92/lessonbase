@@ -16,20 +16,23 @@ A comprehensive **open-source teaching management platform** that empowers educa
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Docker 
+
+- Docker
 - Node.js (for frontend development)
 - MongoDB
-- API keys for the AI tools (OpenAI)  
-> **Note**: The platform does not include API keys. Users must provide their own.
+- API keys for the AI tools (OpenAI)
+  > **Note**: The platform does not include API keys. Users must provide their own.
 
 ### Installation
 
 1. **Clone the Repository**:
    ```bash
-   git clone git@github.com:Kenzen92/kennysolutions.git
-   cd kennysolutions
-   
+   git clone git@github.com:Kenzen92/lessonbase.git
+   cd lessonbase
+
+   ```
 2. **Set Up the Backend**:
+
    - Navigate to the `backend` directory:
      ```bash
      cd backend
@@ -45,6 +48,7 @@ A comprehensive **open-source teaching management platform** that empowers educa
      ```
 
 3. **Set Up the Frontend**:
+
    - Navigate to the `frontend` directory:
      ```bash
      cd ../frontend
@@ -55,6 +59,7 @@ A comprehensive **open-source teaching management platform** that empowers educa
      ```
 
 4. **Run the Application**:
+
    - Start the frontend development server:
      ```bash
      npm run dev
@@ -75,17 +80,21 @@ A comprehensive **open-source teaching management platform** that empowers educa
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! To contribute:  
-1. Fork the repository.  
+We welcome contributions from the community! To contribute:
+
+1. Fork the repository.
 2. Create a new branch for your feature:
    ```bash
    git checkout -b feature-name
+   ```
 3. Commit your changes:
    ```bash
    git commit -m "Add feature-name"
+   ```
 4. Push to the branch:
    ```bash
    git push origin feature-name
+   ```
 5. Open a pull request on github
 
 ---

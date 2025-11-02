@@ -126,7 +126,7 @@ function Login() {
         >
           <Box textAlign="center">
             <Typography variant="h3" component="h1">
-              Kenny Solutions
+              LessonBase
             </Typography>
             <Typography variant="h6">A teaching solution for all.</Typography>
           </Box>

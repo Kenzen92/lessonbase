@@ -24,7 +24,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: process.env.PORT || 4173,
     allowedHosts: [
-      'kennysolutions-8cf06dbf8504.herokuapp.com'
+      'https://lessonbase.vercel.app/'
     ]
   }
 })

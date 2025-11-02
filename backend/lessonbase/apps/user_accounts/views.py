@@ -359,7 +359,7 @@ def new_student(request):
     # No need to specify 'templates' in the path
     msg_plain = render_to_string('invitation_email.txt', {'token': token, 'confirm_account': f"{BASE_URL}/confirm_account/"})
     msg_html = render_to_string('invitation_email.html', {'token': token, 'confirm_account': f"{BASE_URL}/confirm_account/"})
-    subject = 'Here is your invitation to join Kennysolutions'
+    subject = 'Here is your invitation to join LessonBase'
     
     send_mail(
         subject,
