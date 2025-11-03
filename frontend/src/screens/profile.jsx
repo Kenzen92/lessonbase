@@ -92,6 +92,7 @@ function Profile() {
     data: userSubjects, // user's subjects (same as before)
     isLoading: userSubjectsLoading,
     error: userSubjectsError,
+    refetch: refetchSubjects, // Add refetch for subjects
     setSubjects,
     allSubjects, // new - the all-subjects query object
     setAllSubjects, // new - setter for all-subjects cache
@@ -109,14 +110,6 @@ function Profile() {
     value: subject.id,
     label: subject.name,
   }));
-
-  // compute selected options from the user's subjects (prefer the subjects query if available)
-  const selectedFromUser = (userSubjects ?? user?.subjects ?? []).map(
-    (subject) => ({
-      value: subject.id,
-      label: subject.name,
-    })
-  );
 
   // Use Formik hook
   const formik = useFormik({
@@ -184,8 +177,14 @@ function Profile() {
         // Update user data in session storage
         window.sessionStorage.setItem("user", JSON.stringify(updatedUser));
         console.log("User data updated in session storage.");
-        // Update the user cache in context
+
+        // Update the user cache in context and refetch to ensure consistency
         if (setUser) setUser(updatedUser);
+        if (refetch) await refetch(); // Refetch user data to get fresh data from server
+
+        // Refetch subjects to ensure the user's subjects are up to date
+        if (refetchSubjects) await refetchSubjects();
+
         setName(updatedUser.first_name); // Update displayed name
         setProfilePicturePreviewUrl(null); // Clear preview as the new official URL is set
 
@@ -204,6 +203,14 @@ function Profile() {
 
       if (!userLoading && user) {
         setName(user.first_name);
+
+        // compute selected options from the user's subjects (prefer the subjects query if available)
+        const selectedFromUser = (userSubjects ?? user?.subjects ?? []).map(
+          (subject) => ({
+            value: subject.id,
+            label: subject.name,
+          })
+        );
 
         formik.setValues({
           username: user.username || "",
@@ -228,7 +235,7 @@ function Profile() {
         URL.revokeObjectURL(profilePicturePreviewUrl);
       }
     };
-  }, [user, userLoading, subjectsData, subjectsLoading, selectedFromUser]);
+  }, [user, userLoading, subjectsData, subjectsLoading]);
 
   // Effect to handle storage changes (optional, might not be necessary if data is fetched on mount)
   // and to revoke old preview URLs when a new file is selected.
@@ -470,7 +477,7 @@ function Profile() {
                   name="subjects"
                   value={formik.values.subjects} // Use formik values
                   onChange={(selectedOptions) => {
-                    formik.setFieldValue("subjects", selectedOptions); // Update formik value
+                    formik.setFieldValue("subjects", selectedOptions || []); // Update formik value, handle null case
                     // Also trigger touch so error shows immediately if needed
                     formik.setFieldTouched("subjects", true, false); // Set touched without validating immediately
                   }}
