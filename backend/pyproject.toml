@@ -23,6 +23,9 @@ dependencies = [
     "mongoengine==0.29.0",
     "gunicorn>=23.0.0",
     "dj-database-url>=3.0.0",
+    "django-allauth[socialaccount]>=65.13.0",
+    "pyjwt==2.10.0",
+    "requests>=2.31.0"
 ]
 
 [build-system]

@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Required by allauth
     'rest_framework',
     'corsheaders',
     'channels',
@@ -65,6 +66,13 @@ INSTALLED_APPS = [
     'apps.storage',
     'apps.assignments',
     'backend',
+    # Allauth
+    'allauth',
+    'allauth.account',
+
+    # Optional -- requires install using `django-allauth[socialaccount]`.
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -78,10 +86,54 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Add the account middleware:
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'lessonbase.urls'
 
+# Django-allauth configuration (updated for latest version)
+ACCOUNT_LOGIN_METHODS = {'email'}  # Use email for authentication
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Required signup fields
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'  # Require email verification
+ACCOUNT_CONFIRM_EMAIL_ON_GET = False  # Don't auto-confirm on GET, we'll handle via API
+ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = None  # No redirect for anonymous users
+ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = None
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False  # Don't auto-login after confirmation
+ACCOUNT_ADAPTER = 'backend.adapters.CustomAccountAdapter'  # Custom adapter for API behavior
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
+
+# Social account settings
+SOCIALACCOUNT_ADAPTER = 'backend.adapters.CustomSocialAccountAdapter'
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # Social accounts are already verified
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-create account on social login
+SOCIALACCOUNT_QUERY_EMAIL = True  # Request email from social providers
+
+# Provider specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
+            'key': ''
+        }
+    }
+}
+
+# Frontend URL for email redirects
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+# Site ID (required by allauth)
+SITE_ID = 1
 
 
 TEMPLATES = [
@@ -95,6 +147,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -166,6 +219,7 @@ REST_FRAMEWORK = {
 
 
 
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
@@ -211,6 +265,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 AUTH_USER_MODEL = 'user_accounts.CustomAccount'
@@ -229,6 +285,20 @@ if cors_env:
     CORS_ALLOWED_ORIGINS = [o.strip() for o in cors_env.split(',') if o.strip()]
 else:
     CORS_ALLOWED_ORIGINS = default_cors
+
+# Additional CORS settings for authentication
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

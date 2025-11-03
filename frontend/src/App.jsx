@@ -8,6 +8,9 @@ import {
 import { IconContext } from "react-icons";
 import Login from "./screens/login";
 import Signup from "./screens/signup";
+import VerifyEmail from "./screens/verify-email";
+import ForgotPassword from "./screens/forgot-password";
+import ResetPassword from "./screens/reset-password";
 import ClassEventDashboard from "./components/Dashboard/class_event_dashboard";
 import Profile from "./screens/profile";
 import PrivateRoutes from "./components/privateRoute";
@@ -40,6 +43,9 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/auth/verify-email/:key" element={<VerifyEmail />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password/:uid/:token" element={<ResetPassword />} />
               <Route
                 path="/"
                 element={

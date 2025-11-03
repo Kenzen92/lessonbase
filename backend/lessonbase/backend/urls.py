@@ -5,6 +5,17 @@ from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentV
 from apps.subjects.views import all_subjects, subjects
 from apps.assignments.views import AssignmentAttemptViewSet, AssignmentViewSet, FeedbackViewSet
 from . import views
+from .auth_views import (
+    register,
+    login_view,
+    logout_view,
+    verify_email,
+    resend_verification,
+    password_reset_request,
+    password_reset_confirm,
+    google_login,
+    current_user,
+)
 from rest_framework.routers import DefaultRouter
 
 from apps.storage.views import serve_mongo_file
@@ -19,10 +30,23 @@ router.register(r'assignment-attempt', AssignmentAttemptViewSet, basename="assig
 router.register(r'feedback', FeedbackViewSet, basename='feedback')
 
 urlpatterns = [
-    path('auth/user', auth_user),
+    # New allauth-based authentication endpoints
+    path('auth/register/', register, name='auth_register'),
+    path('auth/login/', login_view, name='auth_login'),
+    path('auth/logout/', logout_view, name='auth_logout'),
+    path('auth/verify-email/', verify_email, name='auth_verify_email'),
+    path('auth/resend-verification/', resend_verification, name='auth_resend_verification'),
+    path('auth/password-reset/', password_reset_request, name='auth_password_reset'),
+    path('auth/password-reset-confirm/', password_reset_confirm, name='auth_password_reset_confirm'),
+    path('auth/google/', google_login, name='auth_google'),
+    path('auth/user/', current_user, name='auth_current_user'),
+    
+    # Legacy endpoints (keeping for backward compatibility, but consider deprecating)
+    path('login', login, name='legacy_login'),
+    path('logout/', logout, name='legacy_logout'),
+    
+    # Other endpoints
     path('profile/', profile),
-    path('login', login),
-    path('logout/', logout),
     path('class-event/student/<int:student_id>/', class_events_for_student), 
     path('subjects/all', all_subjects),
     path('subjects/', subjects),
