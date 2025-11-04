@@ -16,7 +16,8 @@ export default defineConfig({
       '/ws': {
         target: 'ws://localhost:8000',
         ws: true,
-        changeOrigin: true
+        changeOrigin: true,
+        // Vite will automatically upgrade to wss:// when the page is served over https://
       }
     }
   },

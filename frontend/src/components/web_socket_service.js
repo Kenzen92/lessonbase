@@ -1,5 +1,20 @@
 const WEBSOCKET_URL = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
 
+// Helper function to build WebSocket URL with correct protocol
+function getWebSocketURL(path) {
+    // If WEBSOCKET_URL already has a protocol (ws:// or wss://), use it directly
+    if (WEBSOCKET_URL.startsWith('ws://') || WEBSOCKET_URL.startsWith('wss://')) {
+        return `${WEBSOCKET_URL}${path}`;
+    }
+    
+    // Otherwise, use current page protocol to determine ws/wss
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = WEBSOCKET_URL.startsWith('/') ? window.location.host : '';
+    const base = WEBSOCKET_URL.startsWith('/') ? WEBSOCKET_URL : `/${WEBSOCKET_URL}`;
+    
+    return `${protocol}//${host}${base}${path}`;
+}
+
 class WebSocketService {
     static instance = null;
     callbacks = {};
@@ -16,8 +31,9 @@ class WebSocketService {
     }
 
     connect(roomName, token) {
-        const path = `${WEBSOCKET_URL}/chat/${roomName}/?token=${token}`;
-        this.socketRef = new WebSocket(path);
+        const path = `/chat/${roomName}/?token=${token}`;
+        const wsURL = getWebSocketURL(path);
+        this.socketRef = new WebSocket(wsURL);
 
         this.socketRef.onopen = () => {
             console.log('WebSocket open');
