@@ -25,6 +25,12 @@ FROM python:3.13-slim AS runtime
 # Copy uv binary into runtime image (was missing)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# Install runtime dependencies required for Python packages
+# libpq5: Required for psycopg2-binary (PostgreSQL adapter)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -33,16 +39,16 @@ ENV PYTHONUNBUFFERED=1 \
     UV_SYSTEM_PYTHON=1
 
 # Set work directory
-WORKDIR /app/lessonbase
+WORKDIR /app
 
-# Copy the application including virtual environment
-COPY --from=builder /app /app
+# Copy only the virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
 
 # Add the venv to PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy remaining source files
-COPY . /app/
+# Copy the Django project (lessonbase folder contents)
+COPY lessonbase/ /app/lessonbase/
 
 # Copy entrypoint script and make it executable
 COPY entrypoint.sh /app/entrypoint.sh
@@ -52,5 +58,5 @@ RUN chmod +x /app/entrypoint.sh /app/migrate.sh
 # Expose Django port
 EXPOSE 8000
 
-# Set entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Use CMD instead of ENTRYPOINT so release_command works properly
+CMD ["/app/entrypoint.sh"]

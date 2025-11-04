@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
-echo "🌐 Starting Django server with Gunicorn..."
-uv run gunicorn lessonbase.wsgi:application \
-    --bind 0.0.0.0:8000 \
-    --workers 2 \
-    --timeout 120 \
-    --access-logfile - \
-    --error-logfile -
+# Navigate to the Django project directory
+cd /app/lessonbase
+
+echo "=========================================="
+echo "🌐 Starting Django with Daphne (ASGI)..."
+echo "=========================================="
+echo "Environment: ${ENVIRONMENT:-development}"
+echo "Port: ${PORT:-8000}"
+echo "=========================================="
+
+# Start Daphne ASGI server with comprehensive logging
+exec daphne \
+    lessonbase.asgi:application \
+    --bind 0.0.0.0 \
+    --port "${PORT:-8000}" \
+    --verbosity 2 \
+    --access-log - \
+    --proxy-headers
+

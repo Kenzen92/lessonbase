@@ -5,13 +5,12 @@
 
 app = 'backend-late-haze-5388'
 primary_region = 'fra'
-console_command = '/app/lessonbase/manage.py shell'
+console_command = '/app/.venv/bin/python /app/lessonbase/manage.py shell'
 
 [build]
 
 [deploy]
   release_command = '/app/migrate.sh'
-
 
 [env]
   PORT = '8000'
@@ -25,16 +24,20 @@ console_command = '/app/lessonbase/manage.py shell'
   min_machines_running = 0
   processes = ['app']
 
+  [[http_service.checks]]
+    grace_period = "60s"
+    interval = "30s"
+    timeout = "10s"
+    method = "GET"
+    path = "/admin/login/"
+    [http_service.checks.headers]
+      User-Agent = "Fly-Health-Check"
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
 
 [[statics]]
-  guest_path = '/app/lessonbase/static'
+  guest_path = '/app/lessonbase/staticfiles'
   url_prefix = '/static/'
-
-[[services.tcp_checks]]
-  grace_period = "30s"
-  interval = "15s"
-  timeout = "2s"

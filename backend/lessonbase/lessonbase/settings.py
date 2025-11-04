@@ -34,11 +34,21 @@ HOSTNAME = os.environ.get('HOSTNAME')
 # Allow configuring ALLOWED_HOSTS via environment variable (comma-separated)
 # Example: ALLOWED_HOSTS=backend-late-haze-5388.fly.dev,mydomain.com
 env_allowed = os.environ.get('ALLOWED_HOSTS')
-ALLOWED_HOSTS = [
-    HOSTNAME,
-    'localhost',
-    '127.0.0.1',
-]
+
+# Add Fly.io internal IP handling for health checks
+if os.environ.get('ENVIRONMENT') == 'production':
+    # Allow all hosts in production (Fly.io uses internal IPs for health checks)
+    # This is safe as requests are routed through Fly's proxy
+    ALLOWED_HOSTS = ['*']
+else:
+    # Development mode - keep strict
+    ALLOWED_HOSTS = [
+        HOSTNAME,
+        'localhost',
+        '127.0.0.1',
+        '.fly.dev',  # Allow all Fly.io subdomains
+    ]
+
 if env_allowed:
     # Merge additional hosts from env (strip whitespace, ignore empties)
     ALLOWED_HOSTS += [h.strip() for h in env_allowed.split(',') if h.strip()]
