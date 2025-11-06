@@ -110,6 +110,7 @@ const ClassEventDashboard = () => {
           setFilteredClassEvents={setFilteredClassEvents}
           allClassGroups={classGroups}
         />
+
         {eventsLoading ? (
           <Box sx={{ textAlign: "center", mt: 4 }}>
             <FaSpinner color="#00b0ff" />

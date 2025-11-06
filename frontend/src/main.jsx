@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import * as Sentry from "@sentry/react";
 import App from "./App.jsx";
 import "./index.css";
 import { AuthProvider } from "./contexts/auth_context.jsx";
@@ -12,6 +13,21 @@ import { StatisticsProvider } from "./contexts/statistics_context.jsx";
 import { AssignmentsProvider } from "./contexts/assignments_context.jsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+
+// Initialize Sentry BEFORE React renders to catch all errors
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE, // 'development' or 'production'
+  enabled: import.meta.env.VITE_SENTRY_ENABLED !== 'false', // Can be controlled via env var
+  tracesSampleRate: 1.0,
+  sendDefaultPii: true,
+  integrations: [
+    Sentry.replayIntegration(),
+    Sentry.browserTracingIntegration(),
+  ],
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+});
 
 const queryClient = new QueryClient();
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';

@@ -28,11 +28,19 @@ import { useAuth } from "./contexts/auth_context";
 import InteractiveClassroom from "./components/InteractiveClassroom/InteractiveClassroom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { darkTheme } from "./styles/theme";
+import * as Sentry from "@sentry/react";
 
 function App() {
   const { auth } = useAuth();
 
   return (
+    <Sentry.ErrorBoundary 
+      fallback={
+        <p>
+          <strong>An error has occurred.</strong> Our team has been notified.
+        </p>
+      }
+    >
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <IconContext.Provider
@@ -76,6 +84,7 @@ function App() {
         </LocalizationProvider>
       </IconContext.Provider>
     </ThemeProvider>
+    </Sentry.ErrorBoundary>
   );
 }
 
