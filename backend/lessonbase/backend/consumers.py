@@ -173,13 +173,14 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
             state.current_lines[line['id']] = line
             state.lines.append(line)
             
-            # Broadcast to group
+            # Broadcast to group (excluding sender)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'broadcast_event',
                     'event_type': 'draw_start',
-                    'payload': payload
+                    'payload': payload,
+                    'sender_channel': self.channel_name
                 }
             )
             
@@ -196,13 +197,14 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                 line_index = next(i for i, line in enumerate(state.lines) if line['id'] == line_id)
                 state.lines[line_index] = current_line
                 
-                # Broadcast update
+                # Broadcast update (excluding sender)
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
                         'type': 'broadcast_event',
                         'event_type': 'draw_update',
-                        'payload': payload
+                        'payload': payload,
+                        'sender_channel': self.channel_name
                     }
                 )
                 
@@ -217,7 +219,7 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                 state.history.append(list(state.lines))
                 state.history_step = len(state.history) - 1
                 
-                # Broadcast completion
+                # Broadcast completion (excluding sender)
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
@@ -226,7 +228,8 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                         'payload': {
                             'lineId': line_id,
                             'historyStep': state.history_step
-                        }
+                        },
+                        'sender_channel': self.channel_name
                     }
                 )
                 
@@ -239,7 +242,8 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                     {
                         'type': 'broadcast_event',
                         'event_type': 'undo',
-                        'payload': {'historyStep': state.history_step}
+                        'payload': {'historyStep': state.history_step},
+                        'sender_channel': self.channel_name
                     }
                 )
                 
@@ -252,10 +256,55 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                     {
                         'type': 'broadcast_event',
                         'event_type': 'redo',
-                        'payload': {'historyStep': state.history_step}
+                        'payload': {'historyStep': state.history_step},
+                        'sender_channel': self.channel_name
                     }
                 )
                 
+        elif event_type == 'text_update':
+            text_id = payload['textId']
+            text_content = payload['text']
+
+            # Find and update the text in state
+            for line in state.lines:
+                if line.get('id') == text_id:
+                    line['text'] = text_content
+                    break
+
+            # Broadcast text update (excluding sender)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_event',
+                    'event_type': 'text_update',
+                    'payload': payload,
+                    'sender_channel': self.channel_name
+                }
+            )
+
+        elif event_type == 'text_move':
+            text_id = payload['textId']
+            x = payload['x']
+            y = payload['y']
+
+            # Find and update the text position in state
+            for line in state.lines:
+                if line.get('id') == text_id:
+                    line['x'] = x
+                    line['y'] = y
+                    break
+
+            # Broadcast position update (excluding sender)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_event',
+                    'event_type': 'text_move',
+                    'payload': payload,
+                    'sender_channel': self.channel_name
+                }
+            )
+
         elif event_type == 'clear':
             print("Clearing whiteboard state for room:", self.room_name)
             print(state.lines)
@@ -268,11 +317,16 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'broadcast_event',
                     'event_type': 'clear',
-                    'payload': {}
+                    'payload': {},
+                    'sender_channel': self.channel_name
                 }
             )
 
     async def broadcast_event(self, event):
+        # Skip sending to the original sender to prevent echo
+        if event.get('sender_channel') == self.channel_name:
+            return
+
         # Send event to WebSocket
         await self.send(text_data=json.dumps({
             'type': event['event_type'],

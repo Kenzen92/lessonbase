@@ -1,19 +1,23 @@
 import React from 'react';
 import { IconButton, Tooltip } from '@mui/material';
-import { 
-  FaPen, 
-  FaEraser, 
-  FaSquare, 
-  FaCircle, 
+import {
+  FaPen,
+  FaEraser,
+  FaSquare,
+  FaCircle,
   FaArrowRight,
+  FaICursor,
+  FaMousePointer
 } from 'react-icons/fa';
 
 const tools = [
+  { name: 'select', icon: FaMousePointer, tooltip: 'Select' },
   { name: 'pen', icon: FaPen, tooltip: 'Pen' },
   { name: 'eraser', icon: FaEraser, tooltip: 'Eraser' },
   { name: 'rectangle', icon: FaSquare, tooltip: 'Rectangle' },
   { name: 'circle', icon: FaCircle, tooltip: 'Circle' },
   { name: 'arrow', icon: FaArrowRight, tooltip: 'Arrow' },
+  { name: 'text', icon: FaICursor, tooltip: 'Text' },
 ];
 
 const ToolSelector = ({ selectedTool, onToolSelect }) => {

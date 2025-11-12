@@ -48,6 +48,8 @@ def create_required_objects(sender, **kwargs):
     teacher, teacher_created = Teacher.objects.get_or_create(username="teacher")
     if teacher_created:
         teacher.set_password("teacher")
+        teacher.email = "teacher@teacher.com"
+        teacher.is_confirmed = True
     teacher.students.add(*all_students)
     teacher.subjects.add(Subject.objects.order_by('?').first())
     teacher.save()
