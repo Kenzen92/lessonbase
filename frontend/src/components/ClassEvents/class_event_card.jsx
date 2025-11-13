@@ -204,7 +204,7 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
             title={isFutureClass ? "Class not started yet" : "Start class"}
           >
             <IconButton
-              onClick={() => navigate(`/interactive-classroom/${eventData.id}`)}
+              onClick={() => navigate(`/interactive-classroom/${eventData.access_token}`)}
               disabled={isFutureClass}
               sx={{
                 color: "#fff",

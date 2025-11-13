@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from apps.classes.views import ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student
+from apps.classes.views import ClassEventViewSet, class_material, class_report, student_statistics, teacher_statistics, class_events_for_student, validate_classroom_access, create_practice_classroom, cleanup_expired_classrooms
 from apps.user_accounts.views import ClassGroupViewSet, TeacherViewSet, StudentViewSet, confirm_account, login, logout, profile, auth_user
 from apps.subjects.views import all_subjects, subjects
 from apps.assignments.views import AssignmentAttemptViewSet, AssignmentViewSet, FeedbackViewSet
@@ -58,6 +58,11 @@ urlpatterns = [
     path('media/<str:collection>/<str:filename>/', serve_mongo_file, name='serve_mongo_file'),
     path('teacher-statistics', teacher_statistics, name='teacher_statistics'),
     path('student-statistics', student_statistics, name='student_statistics'),
+
+    # Classroom access and security endpoints
+    path('classroom/validate/<str:access_token>/', validate_classroom_access, name='validate_classroom_access'),
+    path('classroom/practice/create/', create_practice_classroom, name='create_practice_classroom'),
+    path('classroom/cleanup/', cleanup_expired_classrooms, name='cleanup_expired_classrooms'),
 
     path('health/', views.HealthCheckView.as_view(), name='health_check'),
 

@@ -5,6 +5,7 @@ from django.utils import timezone
 from apps.subjects.models import Subject
 from apps.user_accounts.models import ClassGroup, CustomUser
 from apps.storage.storage_backends import GridFSStorage  # Ensure this is your GridFS storage backend
+import secrets
 
 class Event(models.Model):
     name = models.CharField(max_length=100, null=True)
@@ -14,6 +15,11 @@ class Event(models.Model):
 
 
 class ClassEvent(Event):
+    CLASSROOM_TYPE_CHOICES = [
+        ('scheduled', 'Scheduled Class'),
+        ('practice', 'Practice/Demo Class'),
+    ]
+
     start_time = models.DateTimeField(null=False)
     duration = models.PositiveSmallIntegerField(
         null=False,
@@ -25,6 +31,48 @@ class ClassEvent(Event):
     teachers = models.ManyToManyField(CustomUser, related_name='class_events_as_teacher', blank=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_created=True, auto_now=True)
+
+    # New fields for security and lifecycle
+    classroom_type = models.CharField(
+        max_length=20,
+        choices=CLASSROOM_TYPE_CHOICES,
+        default='scheduled',
+        help_text="Type of classroom: scheduled or practice"
+    )
+    access_token = models.CharField(
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Secure token for classroom access"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether the classroom is currently active"
+    )
+
+    def save(self, *args, **kwargs):
+        # Generate secure access token if not present
+        if not self.access_token:
+            self.access_token = secrets.token_urlsafe(32)
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        """Check if classroom should be deleted (30 min after end time)"""
+        if not self.start_time:
+            return False
+        from datetime import timedelta
+        end_time = self.start_time + timedelta(minutes=self.duration)
+        grace_period = end_time + timedelta(minutes=30)
+        return timezone.now() > grace_period
+
+    def can_access(self, user):
+        """Check if user has access to this classroom"""
+        if not user or not user.is_authenticated:
+            return False
+        # Get the base user ID to handle proxy models (Teacher/Student extending CustomUser)
+        user_id = user.id if hasattr(user, 'id') else user.pk
+        return self.teachers.filter(id=user_id).exists() or self.students.filter(id=user_id).exists()
 
     def __str__(self):
         return f"{self.subject} - {self.start_time} - {self.duration}"

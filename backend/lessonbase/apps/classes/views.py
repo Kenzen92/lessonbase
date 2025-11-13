@@ -18,7 +18,7 @@ from .serialisers import  ClassEventDateOrderedSerializer, ClassEventSerializer
 from .models import  ClassEvent, TeachingResource
 from rest_framework import viewsets
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db.models import Count, Sum, Avg, Q, CharField
 
 
@@ -37,9 +37,17 @@ class ClassEventViewSet(viewsets.ViewSet):
     def list(self, request):
         user = request.user.get_real_instance()
         if isinstance(user, Teacher):
-            class_events = ClassEvent.objects.filter(teachers=user).distinct().select_related('subject').prefetch_related('students')
+            # Exclude practice classrooms from the regular dashboard list
+            class_events = ClassEvent.objects.filter(
+                teachers=user,
+                classroom_type='scheduled'
+            ).distinct().select_related('subject').prefetch_related('students')
         else:
-            class_events = ClassEvent.objects.filter(students=user).distinct().select_related('subject').prefetch_related('teachers')
+            # Students only see scheduled classrooms (they can't be in practice ones)
+            class_events = ClassEvent.objects.filter(
+                students=user,
+                classroom_type='scheduled'
+            ).distinct().select_related('subject').prefetch_related('teachers')
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(class_events, many=True)
         return Response(serializer.data)
@@ -107,7 +115,8 @@ class ClassEventViewSet(viewsets.ViewSet):
 @permission_classes([IsAuthenticated])
 def class_events_for_student(request, student_id=None):
     if request.method == 'GET':
-        class_events = ClassEvent.objects.filter(students=student_id)
+        # Only return scheduled classrooms, not practice ones
+        class_events = ClassEvent.objects.filter(students=student_id, classroom_type='scheduled')
         serializer = ClassEventSerializer(class_events, many=True)
         return Response(serializer.data)
 
@@ -121,10 +130,10 @@ def student_statistics(request):
         student = Student.objects.get(pk=request.user.id)
         current_datetime = datetime.now()
 
-        # Common Queries
-        total_classes = ClassEvent.objects.filter(students=student).count()
-        completed_classes = ClassEvent.objects.filter(students=student, start_time__lt=current_datetime).count()
-        upcoming_classes = ClassEvent.objects.filter(students=student, start_time__gte=current_datetime).count()
+        # Common Queries (exclude practice classrooms from statistics)
+        total_classes = ClassEvent.objects.filter(students=student, classroom_type='scheduled').count()
+        completed_classes = ClassEvent.objects.filter(students=student, classroom_type='scheduled', start_time__lt=current_datetime).count()
+        upcoming_classes = ClassEvent.objects.filter(students=student, classroom_type='scheduled', start_time__gte=current_datetime).count()
         total_assignments = Assignment.objects.filter(students=student).count()
 
         if page == "dashboard":
@@ -156,10 +165,10 @@ def teacher_statistics(request):
     try:
         teacher = Teacher.objects.get(pk=request.user.id)
         current_datetime = datetime.now()
-        
-        # Common Queries
+
+        # Common Queries (exclude practice classrooms from statistics)
         total_students = teacher.students.count()
-        upcoming_classes = ClassEvent.objects.filter(teachers=teacher, start_time__gte=current_datetime).count()
+        upcoming_classes = ClassEvent.objects.filter(teachers=teacher, classroom_type='scheduled', start_time__gte=current_datetime).count()
         total_assignments = Assignment.objects.filter(teachers=teacher).count()
         total_class_groups = ClassGroup.objects.filter(teachers=teacher).count()
         average_students_per_group = (ClassGroup.objects.filter(teachers=teacher)
@@ -171,7 +180,7 @@ def teacher_statistics(request):
             "total_students": total_students,
             "upcoming_classes": upcoming_classes,
             "pending_assignments": Assignment.objects.filter(teachers=teacher, marked=False).count(),
-            "total_teaching_hours": ClassEvent.objects.filter(teachers=teacher, start_time__lt=current_datetime)
+            "total_teaching_hours": ClassEvent.objects.filter(teachers=teacher, classroom_type='scheduled', start_time__lt=current_datetime)
             .aggregate(Sum("duration"))["duration__sum"] or 0,
             "active_students": teacher.students.filter(is_confirmed=True).count(),
             "inactive_students": teacher.students.filter(is_confirmed=False).count(),
@@ -321,6 +330,139 @@ def class_report(request):
     # Extract the message content correctly
     message_content = completion.choices[0].message.content
     return JsonResponse({"message": message_content})
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def validate_classroom_access(request, access_token):
+    """
+    Validates if the authenticated user has access to a classroom
+    Returns classroom details if access is granted
+    """
+    try:
+        classroom = ClassEvent.objects.get(access_token=access_token, is_active=True)
+
+        # Check if classroom has expired
+        if classroom.is_expired():
+            return Response({
+                'error': 'This classroom has expired',
+                'expired': True
+            }, status=status.HTTP_410_GONE)
+
+        # Check if user has access
+        user = request.user.get_real_instance()
+        if not classroom.can_access(user):
+            return Response({
+                'error': 'You do not have permission to access this classroom',
+                'forbidden': True
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Return classroom details
+        serializer = ClassEventSerializer(classroom)
+        user_id = user.id if hasattr(user, 'id') else user.pk
+        is_teacher = classroom.teachers.filter(id=user_id).exists()
+        return Response({
+            'access_granted': True,
+            'classroom': serializer.data,
+            'user_role': 'teacher' if is_teacher else 'student'
+        }, status=status.HTTP_200_OK)
+
+    except ClassEvent.DoesNotExist:
+        return Response({
+            'error': 'Invalid classroom access token',
+            'not_found': True
+        }, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def create_practice_classroom(request):
+    """
+    Creates a practice/demo classroom for teachers to experiment with
+    Practice classrooms expire after 2 hours
+    """
+    user = request.user.get_real_instance()
+
+    # Only teachers can create practice classrooms
+    if not isinstance(user, Teacher):
+        return Response({
+            'error': 'Only teachers can create practice classrooms'
+        }, status=status.HTTP_403_FORBIDDEN)
+
+    # Get a default subject for the teacher
+    try:
+        # Try to get the teacher's most used subject
+        from apps.subjects.models import Subject
+        subject = Subject.objects.filter(
+            classevent__teachers=user
+        ).annotate(
+            usage_count=Count('classevent')
+        ).order_by('-usage_count').first()
+
+        # If no subject found, get any subject or create a default one
+        if not subject:
+            subject = Subject.objects.first()
+            if not subject:
+                subject = Subject.objects.create(name="Practice Subject")
+    except Exception as e:
+        return Response({
+            'error': f'Error creating practice classroom: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Create practice classroom with 2-hour duration
+    practice_classroom = ClassEvent.objects.create(
+        name=f"Practice Classroom - {user.first_name}",
+        start_time=timezone.now(),
+        duration=120,  # 2 hours
+        subject=subject,
+        classroom_type='practice'
+    )
+
+    # Add teacher to the classroom
+    practice_classroom.teachers.add(user)
+
+    serializer = ClassEventSerializer(practice_classroom)
+    return Response({
+        'message': 'Practice classroom created successfully',
+        'classroom': serializer.data,
+        'access_token': practice_classroom.access_token
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def cleanup_expired_classrooms(request):
+    """
+    Manual trigger to cleanup expired classrooms
+    Should be called by a scheduled task (cron job or celery beat)
+    """
+    user = request.user.get_real_instance()
+
+    # Only allow staff/admin users to trigger cleanup
+    if not (user.is_staff or user.is_superuser):
+        return Response({
+            'error': 'Only administrators can trigger classroom cleanup'
+        }, status=status.HTTP_403_FORBIDDEN)
+
+    current_time = timezone.now()
+    deleted_count = 0
+
+    # Find all classrooms that should be deleted
+    classrooms = ClassEvent.objects.filter(is_active=True)
+
+    for classroom in classrooms:
+        if classroom.is_expired():
+            classroom.is_active = False
+            classroom.save()
+            deleted_count += 1
+
+    return Response({
+        'message': f'Successfully deactivated {deleted_count} expired classrooms',
+        'deactivated_count': deleted_count
+    }, status=status.HTTP_200_OK)
 
 
 

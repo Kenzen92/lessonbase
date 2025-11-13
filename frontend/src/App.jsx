@@ -74,7 +74,7 @@ function App() {
                 <Route path="/class-groups/:id?" element={<Classes />} />
                 <Route path="/assignments/:id?" element={<Assignments />} />
                 <Route
-                  path="/interactive-classroom/:id"
+                  path="/interactive-classroom/:accessToken"
                   element={<InteractiveClassroom />}
                 />
               </Route>

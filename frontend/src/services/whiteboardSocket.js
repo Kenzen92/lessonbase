@@ -19,7 +19,9 @@ function getWebSocketURL(path) {
 class WhiteboardSocketService {
   constructor(roomId) {
     this.roomId = roomId;
-    this.ws = new WebSocket(getWebSocketURL(`/whiteboard/${roomId}/`));
+    const token = window.sessionStorage.getItem("token");
+    const wsUrl = `${getWebSocketURL(`/whiteboard/${roomId}/`)}?token=${token}`;
+    this.ws = new WebSocket(wsUrl);
     this.setupWebSocket();
   }
 
@@ -33,11 +35,24 @@ class WhiteboardSocketService {
       console.error('WebSocket error:', error);
     };
 
-    this.ws.onclose = () => {
+    this.ws.onclose = (event) => {
       console.log('Disconnected from whiteboard socket');
-      // Attempt to reconnect after 3 seconds
+
+      // Check close codes for authentication errors
+      if (event.code === 4001) {
+        console.error('Authentication failed - invalid or missing token');
+        return; // Don't reconnect
+      }
+      if (event.code === 4003) {
+        console.error('Access denied - you do not have permission to access this classroom');
+        return; // Don't reconnect
+      }
+
+      // Attempt to reconnect after 3 seconds for other errors
       setTimeout(() => {
-        this.ws = new WebSocket(getWebSocketURL(`/whiteboard/${this.roomId}/`));
+        const token = window.sessionStorage.getItem("token");
+        const wsUrl = `${getWebSocketURL(`/whiteboard/${this.roomId}/`)}?token=${token}`;
+        this.ws = new WebSocket(wsUrl);
         this.setupWebSocket();
       }, 3000);
     };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Grid, Paper, IconButton, Tooltip } from "@mui/material";
+import { Box, Grid, Paper, IconButton, Tooltip, CircularProgress, Alert } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import FolderIcon from "@mui/icons-material/Folder";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -8,20 +8,95 @@ import Whiteboard from "./Whiteboard";
 import VideoChat from "./VideoChat";
 import TextChat from "./TextChat";
 
+const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+
 const InteractiveClassroom = () => {
-  const { id } = useParams();
+  const { accessToken } = useParams();
   const navigate = useNavigate();
   const [selectedTool, setSelectedTool] = useState("pen");
   const [selectedToolSize, setSelectedToolSize] = useState(2);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [classroomData, setClassroomData] = useState(null);
 
   useEffect(() => {
-    if (!id) {
+    if (!accessToken) {
       navigate("/dashboard");
       return;
     }
 
-    // Load class event details or set up WebSocket connection
-  }, [id, navigate]);
+    const validateAccess = async () => {
+      try {
+        const token = window.sessionStorage.getItem("token");
+        const response = await fetch(`${API_BASE_URL}/classroom/validate/${accessToken}/`, {
+          headers: {
+            "Authorization": `Token ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          if (data.expired) {
+            setError("This classroom has expired and is no longer available.");
+          } else if (data.forbidden) {
+            setError("You do not have permission to access this classroom.");
+          } else if (data.not_found) {
+            setError("Classroom not found. Please check your link.");
+          } else {
+            setError("Unable to access classroom. Please try again.");
+          }
+          setTimeout(() => navigate("/dashboard"), 3000);
+          return;
+        }
+
+        setClassroomData(data.classroom);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error validating classroom access:", err);
+        setError("Failed to connect to classroom. Please check your connection.");
+        setTimeout(() => navigate("/dashboard"), 3000);
+      }
+    };
+
+    validateAccess();
+  }, [accessToken, navigate]);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#1a1a1a"
+        }}
+      >
+        <CircularProgress sx={{ color: "#fff" }} />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#1a1a1a",
+          p: 3
+        }}
+      >
+        <Alert severity="error" sx={{ maxWidth: 500 }}>
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -51,7 +126,7 @@ const InteractiveClassroom = () => {
               setSelectedTool={setSelectedTool}
               selectedToolSize={selectedToolSize}
               setSelectedToolSize={setSelectedToolSize}
-              roomId={id}
+              roomId={accessToken}
             />
           </Paper>
         </Grid>

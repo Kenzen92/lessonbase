@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import {
   FaChalkboardTeacher,
   FaClock,
@@ -7,10 +7,14 @@ import {
   FaTasks,
   FaExclamationTriangle,
   FaFile,
+  FaFlask,
 } from "react-icons/fa";
-import { PrimaryButton } from "../../styles/buttons";
+import { PrimaryButton, SecondaryButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context.jsx";
 import { useStatistics } from "../../contexts/statistics_context.jsx";
+import { useNavigate } from "react-router-dom";
+
+const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 export default function ActionStatisticsBar({
   page,
@@ -19,6 +23,36 @@ export default function ActionStatisticsBar({
 }) {
   const { auth } = useAuth();
   const { statistics } = useStatistics();
+  const navigate = useNavigate();
+  const [creatingPractice, setCreatingPractice] = useState(false);
+
+  const handleCreatePracticeClassroom = async () => {
+    setCreatingPractice(true);
+    try {
+      const token = window.sessionStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/classroom/practice/create/`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Token ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        navigate(`/interactive-classroom/${data.access_token}`);
+      } else {
+        console.error("Failed to create practice classroom:", data.error);
+        alert(data.error || "Failed to create practice classroom");
+      }
+    } catch (err) {
+      console.error("Error creating practice classroom:", err);
+      alert("Failed to create practice classroom. Please try again.");
+    } finally {
+      setCreatingPractice(false);
+    }
+  };
 
   // Define stats per page
   const pageStats = {
@@ -114,14 +148,28 @@ export default function ActionStatisticsBar({
           marginTop: "1rem",
         }}
       >
-        {auth.userType === "teacher" && (
-          <PrimaryButton
-            onClick={() => actionFunction(true)}
-            sx={{ minWidth: 200 }}
-          >
-            {actionText}
-          </PrimaryButton>
-        )}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {auth.userType === "teacher" && (
+            <>
+              <PrimaryButton
+                onClick={() => actionFunction(true)}
+                sx={{ minWidth: 200 }}
+              >
+                {actionText}
+              </PrimaryButton>
+              {page === "dashboard" && (
+                <SecondaryButton
+                  onClick={handleCreatePracticeClassroom}
+                  disabled={creatingPractice}
+                  startIcon={<FaFlask />}
+                  sx={{ minWidth: 200 }}
+                >
+                  {creatingPractice ? "Creating..." : "Practice Classroom"}
+                </SecondaryButton>
+              )}
+            </>
+          )}
+        </Box>
 
         <Box
           sx={{

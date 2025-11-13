@@ -11,6 +11,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
 
+        # Get user from scope (set by TokenAuthMiddleware)
+        user = self.scope.get('user')
+
+        # Reject if user is not authenticated
+        if not user or not user.is_authenticated:
+            await self.close(code=4001)
+            return
+
+        # Verify classroom access
+        has_access = await self.verify_classroom_access(self.room_name, user)
+        if not has_access:
+            await self.close(code=4003)
+            return
+
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -20,6 +34,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Only load chat history once
         await self.load_chat_history(self.room_name)
+
+    @sync_to_async
+    def verify_classroom_access(self, access_token, user):
+        """Verify that the user has access to this classroom"""
+        from apps.classes.models import ClassEvent
+        try:
+            classroom = ClassEvent.objects.get(access_token=access_token, is_active=True)
+
+            # Check if classroom has expired
+            if classroom.is_expired():
+                return False
+
+            # Check if user is a teacher or student in this classroom
+            return classroom.can_access(user)
+        except ClassEvent.DoesNotExist:
+            return False
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -132,15 +162,29 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'whiteboard_{self.room_name}'
-        
+
+        # Get user from scope (set by TokenAuthMiddleware)
+        user = self.scope.get('user')
+
+        # Reject if user is not authenticated
+        if not user or not user.is_authenticated:
+            await self.close(code=4001)
+            return
+
+        # Verify classroom access
+        has_access = await self.verify_classroom_access(self.room_name, user)
+        if not has_access:
+            await self.close(code=4003)
+            return
+
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
-        
+
         await self.accept()
-        
+
         # Send current state to new connection
         state = self.room_states[self.room_name]
         await self.send(text_data=json.dumps({
@@ -151,6 +195,22 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                 'historyStep': state.history_step
             }
         }))
+
+    @sync_to_async
+    def verify_classroom_access(self, access_token, user):
+        """Verify that the user has access to this classroom"""
+        from apps.classes.models import ClassEvent
+        try:
+            classroom = ClassEvent.objects.get(access_token=access_token, is_active=True)
+
+            # Check if classroom has expired
+            if classroom.is_expired():
+                return False
+
+            # Check if user is a teacher or student in this classroom
+            return classroom.can_access(user)
+        except ClassEvent.DoesNotExist:
+            return False
 
     async def disconnect(self, close_code):
         # Leave room group
