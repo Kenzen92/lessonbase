@@ -17,7 +17,9 @@
       "mcp__chrome-devtools__evaluate_script",
       "mcp__chrome-devtools__press_key",
       "Bash(if exist nul erase nul)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(uv lock:*)",
+      "Bash(fly deploy:*)"
     ],
     "deny": [],
     "ask": []
