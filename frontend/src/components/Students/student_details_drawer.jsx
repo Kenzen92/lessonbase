@@ -40,7 +40,7 @@ export default function StudentDetailsDrawer({
   student,
   open,
   onClose,
-  fetchData,
+  refetchStudents,
   setChatId,
   setChatOpen,
   setDrawerOpen,
@@ -105,10 +105,13 @@ export default function StudentDetailsDrawer({
       if (!student || !student.id) {
         throw new Error("Student details not available to delete.");
       }
-      const data = await handleDeleteStudent(student?.id, navigate);
-      toast.success(data.message);
-      onClose();
-      fetchData();
+      await handleDeleteStudent(student?.id, navigate);
+      toast.success("Student deleted successfully");
+      // Small delay to ensure toast renders before drawer closes
+      setTimeout(() => {
+        onClose();
+        refetchStudents();
+      }, 100);
     } catch (error) {
       toast.error(error.message);
     }
@@ -232,14 +235,19 @@ export default function StudentDetailsDrawer({
         }}
       >
         {student ? (
-          <>
+          <Box
+            sx={{
+              minHeight: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             {/* Header Section with Close Button */}
             <Box
               sx={{
                 position: "sticky",
                 top: 0,
-                // background:
-                //   "linear-gradient(135deg, #08203cff 0%, #101628ff 100%)",
+                background: "linear-gradient(135deg, #10101dff 0%, #0a132bff 100%)",
                 zIndex: 10,
                 borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
                 p: 3,
@@ -306,7 +314,8 @@ export default function StudentDetailsDrawer({
               </Box>
             </Box>
 
-            <Box sx={{ p: 3 }}>
+            {/* Content Area */}
+            <Box sx={{ flex: 1, p: 3, display: "flex", flexDirection: "column" }}>
               {/* Quick Stats Cards */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid size={4}>
@@ -764,8 +773,8 @@ export default function StudentDetailsDrawer({
                 </CardContent>
               </Card>
 
-              {/* Action Buttons */}
-              <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
+              {/* Action Buttons with auto margin to push to bottom on large screens */}
+              <Box sx={{ display: "flex", gap: 2, mt: "auto", pt: 3 }}>
                 <PrimaryButton
                   fullWidth
                   onClick={
@@ -784,7 +793,7 @@ export default function StudentDetailsDrawer({
                 </WarningButton>
               </Box>
             </Box>
-          </>
+          </Box>
         ) : (
           <Box
             sx={{

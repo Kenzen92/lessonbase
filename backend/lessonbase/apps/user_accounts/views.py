@@ -119,7 +119,6 @@ class StudentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # cast polymorphic user type to actual instance
-
         user = self.request.user.get_real_instance()
         if user.polymorphic_ctype.name == "teacher":
             return (
@@ -133,7 +132,6 @@ class StudentViewSet(viewsets.ModelViewSet):
             )
     
     def create(self, request, *args, **kwargs):
-        print("creating")
         # Pass the modified data to the serializer
         data = request.data.copy()
         serializer = self.get_serializer(data=data)
@@ -156,7 +154,6 @@ class StudentViewSet(viewsets.ModelViewSet):
         """
         Update the class group
         """
-        print("updating")
         instance = self.get_object()
         data = request.data.copy()
         serializer = self.get_serializer(instance, data=data)
@@ -164,11 +161,18 @@ class StudentViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete the student
+        """
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def userRegister(request):
-    print("Request: ", request.data)
     # grab the ID's from the subjects and place them back into the request for the serializer to process
     subject_dicts = request.data['subjects']
     subject_ids = []

@@ -124,6 +124,7 @@ function Students() {
           setChatId={setChatId}
           setDrawerOpen={setDrawerOpen}
           chats={chats}
+          refetchStudents={refetchStudents}
         />
 
         <StudentListSearch
