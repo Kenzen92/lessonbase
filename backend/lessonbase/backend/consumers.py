@@ -305,6 +305,48 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+        elif event_type == 'shape_delete':
+            shape_id = payload['shapeId']
+
+            # Remove the shape from state
+            state.lines = [line for line in state.lines if line.get('id') != shape_id]
+
+            # Remove from current lines if it's there
+            if shape_id in state.current_lines:
+                del state.current_lines[shape_id]
+
+            # Broadcast delete (excluding sender)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_event',
+                    'event_type': 'shape_delete',
+                    'payload': payload,
+                    'sender_channel': self.channel_name
+                }
+            )
+
+        elif event_type == 'shape_move':
+            shape_id = payload['shapeId']
+            shape = payload['shape']
+
+            # Find and update the shape in state
+            for i, line in enumerate(state.lines):
+                if line.get('id') == shape_id:
+                    state.lines[i] = shape
+                    break
+
+            # Broadcast shape move (excluding sender)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'broadcast_event',
+                    'event_type': 'shape_move',
+                    'payload': payload,
+                    'sender_channel': self.channel_name
+                }
+            )
+
         elif event_type == 'clear':
             print("Clearing whiteboard state for room:", self.room_name)
             print(state.lines)

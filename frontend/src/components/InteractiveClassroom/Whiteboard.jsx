@@ -118,6 +118,20 @@ const Whiteboard = ({
             );
           });
           break;
+        case "shape_delete":
+          setLines((prevLines) => {
+            return prevLines.filter(line => line.id !== event.payload.shapeId);
+          });
+          break;
+        case "shape_move":
+          setLines((prevLines) => {
+            return prevLines.map((line) =>
+              line.id === event.payload.shapeId
+                ? event.payload.shape
+                : line
+            );
+          });
+          break;
         case "undo":
           if (historyStep > 0) {
             setHistoryStep(historyStep - 1);
