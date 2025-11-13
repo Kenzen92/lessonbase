@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Box, Paper } from "@mui/material";
+import { Box, Paper, Button } from "@mui/material";
 import WhiteboardSocketService from "../../services/whiteboardSocket";
 import Toolbar from "./Whiteboard/Toolbar";
 import Canvas from "./Whiteboard/Canvas";
@@ -120,15 +120,15 @@ const Whiteboard = ({
           break;
         case "shape_delete":
           setLines((prevLines) => {
-            return prevLines.filter(line => line.id !== event.payload.shapeId);
+            return prevLines.filter(
+              (line) => line.id !== event.payload.shapeId
+            );
           });
           break;
         case "shape_move":
           setLines((prevLines) => {
             return prevLines.map((line) =>
-              line.id === event.payload.shapeId
-                ? event.payload.shape
-                : line
+              line.id === event.payload.shapeId ? event.payload.shape : line
             );
           });
           break;
@@ -186,11 +186,17 @@ const Whiteboard = ({
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Delete or Backspace to delete selected shape
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedShapeId && !editingTextId) {
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        selectedShapeId &&
+        !editingTextId
+      ) {
         e.preventDefault();
 
         setLines((prevLines) => {
-          const updatedLines = prevLines.filter(line => line.id !== selectedShapeId);
+          const updatedLines = prevLines.filter(
+            (line) => line.id !== selectedShapeId
+          );
 
           // Update history
           setHistory((prevHistory) => [
@@ -211,45 +217,48 @@ const Whiteboard = ({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedShapeId, editingTextId, historyStep, emitDrawingEvent]);
 
   // Text handling functions - defined before handleMouseDown to avoid forward reference
-  const finishTextEditing = useCallback((force = false) => {
-    // Normalize force to boolean (in case an event object is passed)
-    const shouldForce = force === true;
-    if (editingTextId) {
-      // Prevent immediate closure - require at least 200ms to have passed
-      const timeSinceStart = Date.now() - (textEditStartTime.current || 0);
-      if (!shouldForce && timeSinceStart < 200) {
-        // Re-focus the textarea if it lost focus too quickly
-        if (textareaRef.current) {
-          textareaRef.current.focus();
+  const finishTextEditing = useCallback(
+    (force = false) => {
+      // Normalize force to boolean (in case an event object is passed)
+      const shouldForce = force === true;
+      if (editingTextId) {
+        // Prevent immediate closure - require at least 200ms to have passed
+        const timeSinceStart = Date.now() - (textEditStartTime.current || 0);
+        if (!shouldForce && timeSinceStart < 200) {
+          // Re-focus the textarea if it lost focus too quickly
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+          }
+          return;
         }
-        return;
+        setLines((prevLines) => {
+          const updatedLines = prevLines.map((line) =>
+            line.id === editingTextId ? { ...line, isEditing: false } : line
+          );
+
+          // Update history
+          setHistory((prevHistory) => [
+            ...prevHistory.slice(0, historyStep + 1),
+            updatedLines,
+          ]);
+          setHistoryStep((prevStep) => prevStep + 1);
+
+          return updatedLines;
+        });
+
+        setEditingTextId(null);
+        textEditStartTime.current = null;
       }
-      setLines((prevLines) => {
-        const updatedLines = prevLines.map((line) =>
-          line.id === editingTextId ? { ...line, isEditing: false } : line
-        );
-
-        // Update history
-        setHistory((prevHistory) => [
-          ...prevHistory.slice(0, historyStep + 1),
-          updatedLines,
-        ]);
-        setHistoryStep((prevStep) => prevStep + 1);
-
-        return updatedLines;
-      });
-
-      setEditingTextId(null);
-      textEditStartTime.current = null;
-    }
-  }, [editingTextId, historyStep]);
+    },
+    [editingTextId, historyStep]
+  );
 
   const handleTextDblClick = useCallback((textId) => {
     setEditingTextId(textId);
@@ -260,56 +269,69 @@ const Whiteboard = ({
       if (textareaRef.current) {
         textareaRef.current.focus();
         // Set initial height based on content
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height =
+          textareaRef.current.scrollHeight + "px";
       }
     }, 0);
   }, []);
 
-  const handleTextChange = useCallback((textId, newText) => {
-    setLines((prevLines) => {
-      const updatedLines = prevLines.map((line) =>
-        line.id === textId ? { ...line, text: newText } : line
-      );
-      return updatedLines;
-    });
+  const handleTextChange = useCallback(
+    (textId, newText) => {
+      setLines((prevLines) => {
+        const updatedLines = prevLines.map((line) =>
+          line.id === textId ? { ...line, text: newText } : line
+        );
+        return updatedLines;
+      });
 
-    // Emit text update event
-    emitDrawingEvent("text_update", {
-      textId,
-      text: newText,
-    });
-  }, [emitDrawingEvent]);
+      // Emit text update event
+      emitDrawingEvent("text_update", {
+        textId,
+        text: newText,
+      });
+    },
+    [emitDrawingEvent]
+  );
 
-  const handleTextDragEnd = useCallback((textId, x, y) => {
-    setLines((prevLines) => {
-      const updatedLines = prevLines.map((line) =>
-        line.id === textId ? { ...line, x, y } : line
-      );
-      return updatedLines;
-    });
+  const handleTextDragEnd = useCallback(
+    (textId, x, y) => {
+      setLines((prevLines) => {
+        const updatedLines = prevLines.map((line) =>
+          line.id === textId ? { ...line, x, y } : line
+        );
+        return updatedLines;
+      });
 
-    // Emit position update event
-    emitDrawingEvent("text_move", {
-      textId,
-      x,
-      y,
-    });
-  }, [emitDrawingEvent]);
+      // Emit position update event
+      emitDrawingEvent("text_move", {
+        textId,
+        x,
+        y,
+      });
+    },
+    [emitDrawingEvent]
+  );
 
   // Handle shape selection
-  const handleShapeClick = useCallback((shape) => {
-    if (selectedTool === 'select') {
-      setSelectedShapeId(shape.id);
-    }
-  }, [selectedTool]);
+  const handleShapeClick = useCallback(
+    (shape) => {
+      if (selectedTool === "select") {
+        setSelectedShapeId(shape.id);
+      }
+    },
+    [selectedTool]
+  );
 
   // Handle shape hover (for eraser tool highlighting)
-  const handleShapeHover = useCallback((shape) => {
-    if (selectedTool === 'eraser') {
-      setHoveredShapeId(shape ? shape.id : null);
-    }
-  }, [selectedTool]);
+  const handleShapeHover = useCallback(
+    (shape) => {
+      if (selectedTool === "eraser") {
+        setHoveredShapeId(shape ? shape.id : null);
+      }
+    },
+    [selectedTool]
+  );
 
   const handleMouseDown = useCallback(
     (e) => {
@@ -318,13 +340,13 @@ const Whiteboard = ({
         finishTextEditing(true); // Force finish when explicitly clicking away
 
         // Deselect when clicking empty space with select tool
-        if (selectedTool === 'select') {
+        if (selectedTool === "select") {
           setSelectedShapeId(null);
           return; // Don't start drawing with select tool
         }
 
         // Clear hover when clicking empty space with eraser
-        if (selectedTool === 'eraser') {
+        if (selectedTool === "eraser") {
           setHoveredShapeId(null);
           return;
         }
@@ -334,12 +356,16 @@ const Whiteboard = ({
       if (editingTextId) return;
 
       // Get the clicked shape (if any) for tools that need it
-      const clickedShape = hoveredShapeId ? lines.find(line => line.id === hoveredShapeId) : null;
+      const clickedShape = hoveredShapeId
+        ? lines.find((line) => line.id === hoveredShapeId)
+        : null;
 
       // For eraser tool, delete the clicked shape immediately
-      if (selectedTool === 'eraser' && clickedShape) {
+      if (selectedTool === "eraser" && clickedShape) {
         setLines((prevLines) => {
-          const updatedLines = prevLines.filter(line => line.id !== clickedShape.id);
+          const updatedLines = prevLines.filter(
+            (line) => line.id !== clickedShape.id
+          );
 
           // Update history
           setHistory((prevHistory) => [
@@ -361,15 +387,19 @@ const Whiteboard = ({
       }
 
       // For select tool, prepare for dragging selected shape
-      if (selectedTool === 'select' && selectedShapeId && e.target !== e.target.getStage()) {
+      if (
+        selectedTool === "select" &&
+        selectedShapeId &&
+        e.target !== e.target.getStage()
+      ) {
         isDrawing.current = true;
         const pos = e.target.getStage().getPointerPosition();
 
         // Find the selected shape
-        const selectedShape = lines.find(line => line.id === selectedShapeId);
+        const selectedShape = lines.find((line) => line.id === selectedShapeId);
         if (selectedShape) {
           currentLine.current = {
-            type: 'drag',
+            type: "drag",
             shapeId: selectedShapeId,
             startPos: pos,
             originalShape: { ...selectedShape },
@@ -379,24 +409,28 @@ const Whiteboard = ({
       }
 
       // Don't draw with select tool
-      if (selectedTool === 'select') return;
+      if (selectedTool === "select") return;
 
       isDrawing.current = true;
       const pos = e.target.getStage().getPointerPosition();
 
       const tool = getTool(selectedTool);
-      const newLine = tool.onMouseDown(pos, {
-        toolSizes,
-        selectedToolSize,
-        selectedColor,
-      }, clickedShape);
+      const newLine = tool.onMouseDown(
+        pos,
+        {
+          toolSizes,
+          selectedToolSize,
+          selectedColor,
+        },
+        clickedShape
+      );
 
       if (newLine) {
         currentLine.current = newLine;
         setLines((prevLines) => [...prevLines, newLine]);
 
         // If it's a text tool, set it as editing
-        if (selectedTool === 'text') {
+        if (selectedTool === "text") {
           setEditingTextId(newLine.id);
           textEditStartTime.current = Date.now();
         }
@@ -406,7 +440,18 @@ const Whiteboard = ({
         });
       }
     },
-    [selectedTool, selectedToolSize, selectedColor, emitDrawingEvent, editingTextId, finishTextEditing, selectedShapeId, hoveredShapeId, lines, historyStep]
+    [
+      selectedTool,
+      selectedToolSize,
+      selectedColor,
+      emitDrawingEvent,
+      editingTextId,
+      finishTextEditing,
+      selectedShapeId,
+      hoveredShapeId,
+      lines,
+      historyStep,
+    ]
   );
 
   const handleMouseMove = useCallback(
@@ -418,7 +463,7 @@ const Whiteboard = ({
         const point = stage.getPointerPosition();
 
         // Handle dragging selected shape
-        if (currentLine.current.type === 'drag') {
+        if (currentLine.current.type === "drag") {
           const dx = point.x - currentLine.current.startPos.x;
           const dy = point.y - currentLine.current.startPos.y;
 
@@ -428,7 +473,11 @@ const Whiteboard = ({
                 const original = currentLine.current.originalShape;
 
                 // Update position based on shape type
-                if (line.tool === 'text' || line.tool === 'rectangle' || line.tool === 'circle') {
+                if (
+                  line.tool === "text" ||
+                  line.tool === "rectangle" ||
+                  line.tool === "circle"
+                ) {
                   return { ...line, x: original.x + dx, y: original.y + dy };
                 } else if (line.points) {
                   // For lines (pen/eraser), offset all points
@@ -476,7 +525,7 @@ const Whiteboard = ({
     if (!isDrawing.current || !currentLine.current) return;
 
     // Handle end of drag operation
-    if (currentLine.current.type === 'drag') {
+    if (currentLine.current.type === "drag") {
       // Update history with the final dragged position
       setLines((prevLines) => {
         setHistory((prevHistory) => [
@@ -488,7 +537,9 @@ const Whiteboard = ({
       });
 
       // Emit shape move event
-      const draggedShape = lines.find(line => line.id === currentLine.current.shapeId);
+      const draggedShape = lines.find(
+        (line) => line.id === currentLine.current.shapeId
+      );
       if (draggedShape) {
         emitDrawingEvent("shape_move", {
           shapeId: draggedShape.id,
@@ -512,7 +563,7 @@ const Whiteboard = ({
       if (!newLine) return;
 
       // For text tool, don't update history yet - wait until editing is done
-      if (selectedTool === 'text') {
+      if (selectedTool === "text") {
         // Text is already in the lines array and in editing mode
         // Just emit the draw_end event but don't update history
         emitDrawingEvent("draw_end", {
@@ -625,80 +676,82 @@ const Whiteboard = ({
       />
 
       {/* Textarea overlay for text editing */}
-      {editingTextId && (() => {
-        const editingText = lines.find((line) => line.id === editingTextId);
-        if (!editingText) return null;
+      {editingTextId &&
+        (() => {
+          const editingText = lines.find((line) => line.id === editingTextId);
+          if (!editingText) return null;
 
-        const stage = stageRef.current;
-        if (!stage) return null;
+          const stage = stageRef.current;
+          if (!stage) return null;
 
-        // Get the position of the stage container on the page
-        const stageBox = stage.container().getBoundingClientRect();
+          // Get the position of the stage container on the page
+          const stageBox = stage.container().getBoundingClientRect();
 
-        // Calculate absolute position: stage position + text position in canvas
-        const absoluteX = stageBox.left + editingText.x;
-        const absoluteY = stageBox.top + editingText.y;
+          // Calculate absolute position: stage position + text position in canvas
+          const absoluteX = stageBox.left + editingText.x;
+          const absoluteY = stageBox.top + editingText.y;
 
-        return (
-          <textarea
-            ref={(node) => {
-              textareaRef.current = node;
-              if (node) {
-                // Set initial height
-                node.style.height = 'auto';
-                node.style.height = node.scrollHeight + 3 + 'px';
-              }
-            }}
-            value={editingText.text}
-            onChange={(e) => handleTextChange(editingTextId, e.target.value)}
-            onBlur={finishTextEditing}
-            onMouseDown={(e) => {
-              // Stop propagation to prevent stage click handler from interfering
-              e.stopPropagation();
-            }}
-            onKeyDown={(e) => {
-              // Enter without shift to finish editing
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                finishTextEditing(true); // Force finish
-              }
-              // Escape to cancel editing
-              if (e.key === 'Escape') {
-                finishTextEditing(true); // Force finish
-              }
-            }}
-            onInput={(e) => {
-              // Auto-resize height
-              e.target.style.height = 'auto';
-              e.target.style.height = e.target.scrollHeight + editingText.fontSize + 'px';
-            }}
-            style={{
-              position: 'absolute',
-              top: `${absoluteY}px`,
-              left: `${absoluteX}px`,
-              fontSize: `${editingText.fontSize}px`,
-              color: editingText.color,
-              border: 'none',
-              padding: '0px',
-              margin: '0px',
-              background: 'none',
-              outline: 'none',
-              resize: 'none',
-              overflow: 'hidden',
-              lineHeight: '1.2',
-              fontFamily: 'Arial, sans-serif',
-              minWidth: '100px',
-              minHeight: `${editingText.fontSize}px`,
-              zIndex: 1000,
-              whiteSpace: 'pre-wrap',
-              verticalAlign: 'top',
-              boxSizing: 'border-box',
-              transform: 'translateY(-2px)', // Fine-tune alignment with Konva Text
-            }}
-            autoFocus
-          />
-        );
-      })()}
+          return (
+            <textarea
+              ref={(node) => {
+                textareaRef.current = node;
+                if (node) {
+                  // Set initial height
+                  node.style.height = "auto";
+                  node.style.height = node.scrollHeight + 3 + "px";
+                }
+              }}
+              value={editingText.text}
+              onChange={(e) => handleTextChange(editingTextId, e.target.value)}
+              onBlur={finishTextEditing}
+              onMouseDown={(e) => {
+                // Stop propagation to prevent stage click handler from interfering
+                e.stopPropagation();
+              }}
+              onKeyDown={(e) => {
+                // Enter without shift to finish editing
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  finishTextEditing(true); // Force finish
+                }
+                // Escape to cancel editing
+                if (e.key === "Escape") {
+                  finishTextEditing(true); // Force finish
+                }
+              }}
+              onInput={(e) => {
+                // Auto-resize height
+                e.target.style.height = "auto";
+                e.target.style.height =
+                  e.target.scrollHeight + editingText.fontSize + "px";
+              }}
+              style={{
+                position: "absolute",
+                top: `${absoluteY}px`,
+                left: `${absoluteX}px`,
+                fontSize: `${editingText.fontSize}px`,
+                color: editingText.color,
+                border: "none",
+                padding: "0px",
+                margin: "0px",
+                background: "none",
+                outline: "none",
+                resize: "none",
+                overflow: "hidden",
+                lineHeight: "1.2",
+                fontFamily: "Arial, sans-serif",
+                minWidth: "100px",
+                minHeight: `${editingText.fontSize}px`,
+                zIndex: 1000,
+                whiteSpace: "pre-wrap",
+                verticalAlign: "top",
+                boxSizing: "border-box",
+                transform: "translateY(-2px)", // Fine-tune alignment with Konva Text
+              }}
+              autoFocus
+            />
+          );
+        })()}
     </Box>
   );
 };
