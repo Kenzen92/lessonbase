@@ -1,18 +1,19 @@
-// Helper function to build WebSocket URL with correct protocol
+// Helper function to build WebSocket URL
 function getWebSocketURL(path) {
     const WEBSOCKET_URL = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
-    
-    // If WEBSOCKET_URL already has a protocol (ws:// or wss://), use it directly
-    if (WEBSOCKET_URL && (WEBSOCKET_URL.startsWith('ws://') || WEBSOCKET_URL.startsWith('wss://'))) {
-        return `${WEBSOCKET_URL}${path}`;
+
+    if (!WEBSOCKET_URL) {
+        throw new Error('VITE_REACT_APP_WEBSOCKET_URL environment variable is not set');
     }
-    
-    // Otherwise, use current page protocol to determine ws/wss
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const base = WEBSOCKET_URL && WEBSOCKET_URL.startsWith('/') ? WEBSOCKET_URL : '/ws';
-    
-    return `${protocol}//${host}${base}${path}`;
+
+    if (!WEBSOCKET_URL.startsWith('ws://') && !WEBSOCKET_URL.startsWith('wss://')) {
+        throw new Error(
+            `Invalid VITE_REACT_APP_WEBSOCKET_URL: "${WEBSOCKET_URL}". ` +
+            'Must start with ws:// or wss://'
+        );
+    }
+
+    return `${WEBSOCKET_URL}${path}`;
 }
 
 class WhiteboardSocketService {
