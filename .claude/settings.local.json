@@ -24,7 +24,10 @@
       "Bash(chmod:*)",
       "Bash(docker build:*)",
       "Bash(docker push:*)",
-      "Bash(docker tag:*)"
+      "Bash(docker tag:*)",
+      "Bash(ssh:*)",
+      "Bash(wsl bash:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
