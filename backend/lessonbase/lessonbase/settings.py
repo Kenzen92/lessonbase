@@ -32,21 +32,23 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 HOSTNAME = os.environ.get('HOSTNAME')
 
 # Allow configuring ALLOWED_HOSTS via environment variable (comma-separated)
-# Example: ALLOWED_HOSTS=backend-late-haze-5388.fly.dev,mydomain.com
+# Example: ALLOWED_HOSTS=api.teach.jkenny.tech,backend.example.com
 env_allowed = os.environ.get('ALLOWED_HOSTS')
 
-# Add Fly.io internal IP handling for health checks
 if os.environ.get('ENVIRONMENT') == 'production':
-    # Allow all hosts in production (Fly.io uses internal IPs for health checks)
-    # This is safe as requests are routed through Fly's proxy
-    ALLOWED_HOSTS = ['*']
+    # Production hosts - VPS deployment
+    ALLOWED_HOSTS = [
+        'api.teach.jkenny.tech',
+        'teach.jkenny.tech',  # For WebSocket connections from frontend
+        '.jkenny.tech',  # Allow all jkenny.tech subdomains
+    ]
 else:
     # Development mode - keep strict
     ALLOWED_HOSTS = [
         HOSTNAME,
         'localhost',
         '127.0.0.1',
-        '.fly.dev',  # Allow all Fly.io subdomains
+        '0.0.0.0',
     ]
 
 if env_allowed:
@@ -141,6 +143,10 @@ SOCIALACCOUNT_PROVIDERS = {
 
 # Frontend URL for email redirects
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
+
+# Production frontend URL
+if os.environ.get('ENVIRONMENT') == 'production':
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://teach.jkenny.tech')
 
 # Site ID (required by allauth)
 SITE_ID = 1
@@ -286,12 +292,19 @@ AUTH_USER_MODEL = 'user_accounts.CustomAccount'
 
 # CORS configuration. In production we recommend setting this via an
 # environment variable containing a comma-separated list of origins
-# (for example: CORS_ALLOWED_ORIGINS=https://your-frontend.vercel.app)
+# (for example: CORS_ALLOWED_ORIGINS=https://teach.jkenny.tech)
 default_cors = [
     "http://localhost:5173",
     "http://127.0.0.1:3000",
-    "https://lessonbase.vercel.app"
+    "http://localhost:3000",
 ]
+
+# Production CORS origins for VPS deployment
+if os.environ.get('ENVIRONMENT') == 'production':
+    default_cors = [
+        "https://teach.jkenny.tech",
+    ]
+
 cors_env = os.environ.get('CORS_ALLOWED_ORIGINS')
 if cors_env:
     # Allow passing a comma-separated list in the environment
