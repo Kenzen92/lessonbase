@@ -4,7 +4,7 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
-    container_name: kennysolutions_db
+    container_name: lessonbase_db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -23,7 +23,7 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: kennysolutions_redis
+    container_name: lessonbase_redis
     restart: unless-stopped
     volumes:
       - redis_data:/data
@@ -38,8 +38,8 @@ services:
 
   # Django Backend API
   backend:
-    image: ${DOCKER_USERNAME}/kennysolutions-backend:latest
-    container_name: kennysolutions_backend
+    image: ${DOCKER_USERNAME}/lessonbase-backend:latest
+    container_name: lessonbase_backend
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -73,8 +73,8 @@ services:
 
   # React Frontend
   frontend:
-    image: ${DOCKER_USERNAME}/kennysolutions-frontend:latest
-    container_name: kennysolutions_frontend
+    image: ${DOCKER_USERNAME}/lessonbase-frontend:latest
+    container_name: lessonbase_frontend
     restart: unless-stopped
     networks:
       - app_network
@@ -87,7 +87,7 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: kennysolutions_nginx
+    container_name: lessonbase_nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -112,7 +112,7 @@ services:
   # Certbot for SSL certificates
   certbot:
     image: certbot/certbot:latest
-    container_name: kennysolutions_certbot
+    container_name: lessonbase_certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot

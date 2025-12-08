@@ -8,8 +8,8 @@ on:
 
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/kennysolutions-frontend
-  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/kennysolutions-backend
+  FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/lessonbase-frontend
+  BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/lessonbase-backend
 
 jobs:
   build-and-push:
