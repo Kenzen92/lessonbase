@@ -2,13 +2,13 @@
 
 # PostgreSQL Backup Script
 # Creates daily backups of the PostgreSQL database
-# Add to crontab: 0 2 * * * /opt/kennysolutions/scripts/backup-database.sh
+# Add to crontab: 0 2 * * * /opt/kennysolutions/scripts/database/backup-database.sh
 
 set -e
 
 # Configuration
 BACKUP_DIR="/opt/kennysolutions/backups"
-COMPOSE_FILE="/opt/kennysolutions/docker-compose.vps.yml"
+COMPOSE_FILE="/opt/kennysolutions/deploy/docker/docker-compose.vps.yml"
 RETENTION_DAYS=30
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="kennysolutions_backup_${DATE}.sql.gz"

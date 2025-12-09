@@ -76,7 +76,7 @@ if errorlevel 1 (
 
 echo.
 echo [6/6] Verifying images...
-docker images | findstr kennysolutions
+docker images | findstr lessonbase
 
 echo.
 echo ====================================

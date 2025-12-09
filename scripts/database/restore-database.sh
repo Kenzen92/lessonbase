@@ -21,7 +21,7 @@ if [ -z "$1" ]; then
 fi
 
 BACKUP_FILE=$1
-COMPOSE_FILE="/opt/kennysolutions/docker-compose.vps.yml"
+COMPOSE_FILE="/opt/kennysolutions/deploy/docker/docker-compose.vps.yml"
 
 # Check if backup file exists
 if [ ! -f "${BACKUP_FILE}" ]; then

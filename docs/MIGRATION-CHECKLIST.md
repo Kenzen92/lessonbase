@@ -53,11 +53,11 @@ Prepare these values (keep secure):
 - [ ] Verify certificates exist in `/opt/kennysolutions/certbot/conf/`
 
 ### ✅ Application Deployment
-- [ ] Build images: `docker compose -f docker-compose.vps.yml build`
-- [ ] Start services: `docker compose -f docker-compose.vps.yml up -d`
+- [ ] Build images: `docker compose -f deploy/docker/docker-compose.vps.yml build`
+- [ ] Start services: `docker compose -f deploy/docker/docker-compose.vps.yml up -d`
 - [ ] Check containers: `docker ps` (all should be running)
-- [ ] Run migrations: `docker compose -f docker-compose.vps.yml exec backend /app/migrate.sh`
-- [ ] Create superuser: `docker compose -f docker-compose.vps.yml exec backend python /app/lessonbase/manage.py createsuperuser`
+- [ ] Run migrations: `docker compose -f deploy/docker/docker-compose.vps.yml exec backend /app/migrate.sh`
+- [ ] Create superuser: `docker compose -f deploy/docker/docker-compose.vps.yml exec backend python /app/lessonbase/manage.py createsuperuser`
 - [ ] Test frontend: `curl https://teach.jkenny.tech`
 - [ ] Test backend: `curl https://api.teach.jkenny.tech/admin/login/`
 
