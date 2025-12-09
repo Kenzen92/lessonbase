@@ -43,13 +43,11 @@ fi
 # Build backend image
 echo ""
 echo -e "${GREEN}[2/6] Building backend image...${NC}"
-cd backend
-docker build -t ${BACKEND_IMAGE}:latest -f Dockerfile .
+docker build -t ${BACKEND_IMAGE}:latest -f backend/Dockerfile backend/
 if [ $? -ne 0 ]; then
     echo -e "${RED}ERROR: Backend build failed${NC}"
     exit 1
 fi
-cd ..
 
 # Push backend image
 echo ""
@@ -63,13 +61,11 @@ fi
 # Build frontend image
 echo ""
 echo -e "${GREEN}[4/6] Building frontend image...${NC}"
-cd frontend
-docker build -t ${FRONTEND_IMAGE}:latest -f Dockerfile .
+docker build -t ${FRONTEND_IMAGE}:latest -f frontend/Dockerfile frontend/
 if [ $? -ne 0 ]; then
     echo -e "${RED}ERROR: Frontend build failed${NC}"
     exit 1
 fi
-cd ..
 
 # Push frontend image
 echo ""
@@ -95,5 +91,5 @@ echo -e "${YELLOW}Frontend:${NC} https://hub.docker.com/r/${DOCKER_USERNAME}/les
 echo ""
 echo -e "${BLUE}Next steps:${NC}"
 echo "1. Update your .env file on VPS with DOCKER_USERNAME=kenzen92"
-echo "2. Deploy to VPS using docker-compose.vps.yml"
+echo "2. Deploy to VPS using: docker-compose -f deploy/docker/docker-compose.vps.yml up -d"
 echo ""

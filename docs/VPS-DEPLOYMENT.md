@@ -61,10 +61,10 @@ git clone https://github.com/yourusername/kennysolutions.git /opt/kennysolutions
 cd /opt/kennysolutions
 
 # Make scripts executable
-chmod +x scripts/*.sh
+chmod +x scripts/**/*.sh
 
 # Run initial setup
-sudo bash scripts/vps-initial-setup.sh
+sudo bash scripts/deploy/vps-initial-setup.sh
 ```
 
 This script will:
@@ -78,7 +78,7 @@ This script will:
 
 ```bash
 cd /opt/kennysolutions
-cp .env.template .env
+cp deploy/env/.env.vps.example .env
 nano .env
 ```
 
@@ -139,7 +139,7 @@ openssl rand -base64 32
 ### Option A: Wildcard Certificate (Recommended)
 
 ```bash
-sudo bash scripts/ssl-setup.sh
+sudo bash scripts/ssl/ssl-setup.sh
 # Select option 1 (DNS Challenge)
 ```
 
@@ -154,7 +154,7 @@ Wait for DNS propagation, then press Enter to continue.
 ### Option B: Individual Certificates
 
 ```bash
-sudo bash scripts/ssl-setup.sh
+sudo bash scripts/ssl/ssl-setup.sh
 # Select option 2 (HTTP Challenge)
 ```
 
@@ -170,25 +170,25 @@ This will automatically obtain certificates for `teach.jkenny.tech` and `api.tea
 cd /opt/kennysolutions
 
 # Pull images from Docker Hub (if built via CI/CD)
-docker compose -f docker-compose.vps.yml pull
+docker compose -f deploy/docker/docker-compose.vps.yml pull
 
 # Or build locally
-docker compose -f docker-compose.vps.yml build
+docker compose -f deploy/docker/docker-compose.vps.yml build
 
 # Start all services
-docker compose -f docker-compose.vps.yml up -d
+docker compose -f deploy/docker/docker-compose.vps.yml up -d
 ```
 
 ### 2. Run Database Migrations
 
 ```bash
-docker compose -f docker-compose.vps.yml exec backend /app/migrate.sh
+docker compose -f deploy/docker/docker-compose.vps.yml exec backend /app/migrate.sh
 ```
 
 ### 3. Create Django Superuser
 
 ```bash
-docker compose -f docker-compose.vps.yml exec backend python /app/lessonbase/manage.py createsuperuser
+docker compose -f deploy/docker/docker-compose.vps.yml exec backend python /app/lessonbase/manage.py createsuperuser
 ```
 
 ### 4. Verify Deployment
@@ -198,7 +198,7 @@ docker compose -f docker-compose.vps.yml exec backend python /app/lessonbase/man
 docker ps
 
 # Check logs
-docker compose -f docker-compose.vps.yml logs -f
+docker compose -f deploy/docker/docker-compose.vps.yml logs -f
 
 # Test endpoints
 curl https://teach.jkenny.tech
@@ -272,10 +272,10 @@ GitHub Actions will:
 
 ```bash
 # Make backup script executable
-chmod +x /opt/kennysolutions/scripts/backup-database.sh
+chmod +x /opt/kennysolutions/scripts/database/backup-database.sh
 
 # Test backup
-sudo bash /opt/kennysolutions/scripts/backup-database.sh
+sudo bash /opt/kennysolutions/scripts/database/backup-database.sh
 
 # Add to crontab for daily backups at 2 AM
 crontab -e
@@ -283,7 +283,7 @@ crontab -e
 
 Add this line:
 ```bash
-0 2 * * * /opt/kennysolutions/scripts/backup-database.sh >> /var/log/kennysolutions-backup.log 2>&1
+0 2 * * * /opt/kennysolutions/scripts/database/backup-database.sh >> /var/log/kennysolutions-backup.log 2>&1
 ```
 
 ### 2. Restore from Backup
@@ -293,7 +293,7 @@ Add this line:
 ls -lh /opt/kennysolutions/backups/
 
 # Restore a backup
-sudo bash /opt/kennysolutions/scripts/restore-database.sh /opt/kennysolutions/backups/kennysolutions_backup_YYYYMMDD_HHMMSS.sql.gz
+sudo bash /opt/kennysolutions/scripts/database/restore-database.sh /opt/kennysolutions/backups/kennysolutions_backup_YYYYMMDD_HHMMSS.sql.gz
 ```
 
 ---
@@ -304,29 +304,29 @@ sudo bash /opt/kennysolutions/scripts/restore-database.sh /opt/kennysolutions/ba
 
 ```bash
 # All services
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml logs -f
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml logs -f
 
 # Specific service
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml logs -f backend
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml logs -f frontend
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml logs -f nginx
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml logs -f backend
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml logs -f frontend
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml logs -f nginx
 ```
 
 ### Check Service Status
 
 ```bash
 docker ps
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml ps
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml ps
 ```
 
 ### Restart Services
 
 ```bash
 # All services
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml restart
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml restart
 
 # Specific service
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml restart backend
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml restart backend
 ```
 
 ### Update Application
@@ -334,7 +334,7 @@ docker compose -f /opt/kennysolutions/docker-compose.vps.yml restart backend
 ```bash
 cd /opt/kennysolutions
 git pull origin main
-docker compose -f docker-compose.vps.yml up -d --build
+docker compose -f deploy/docker/docker-compose.vps.yml up -d --build
 ```
 
 ### SSL Certificate Renewal
@@ -379,7 +379,7 @@ ssh root@<VPS_IP>
 
 # Restore using restore script
 cd /opt/kennysolutions
-bash scripts/restore-database.sh /opt/kennysolutions/backups/fly_backup_*.sql.gz
+bash scripts/database/restore-database.sh /opt/kennysolutions/backups/fly_backup_*.sql.gz
 ```
 
 ---
@@ -402,13 +402,13 @@ docker compose -f docker-compose.vps.yml restart nginx
 **Solution:**
 ```bash
 # Check backend logs
-docker compose -f docker-compose.vps.yml logs backend
+docker compose -f deploy/docker/docker-compose.vps.yml logs backend
 
 # Restart backend
-docker compose -f docker-compose.vps.yml restart backend
+docker compose -f deploy/docker/docker-compose.vps.yml restart backend
 
 # Run migrations
-docker compose -f docker-compose.vps.yml exec backend /app/migrate.sh
+docker compose -f deploy/docker/docker-compose.vps.yml exec backend /app/migrate.sh
 ```
 
 ### Issue: Frontend Not Loading
@@ -416,13 +416,13 @@ docker compose -f docker-compose.vps.yml exec backend /app/migrate.sh
 **Solution:**
 ```bash
 # Check nginx logs
-docker compose -f docker-compose.vps.yml logs nginx
+docker compose -f deploy/docker/docker-compose.vps.yml logs nginx
 
 # Verify frontend container
-docker compose -f docker-compose.vps.yml exec frontend ls /usr/share/nginx/html
+docker compose -f deploy/docker/docker-compose.vps.yml exec frontend ls /usr/share/nginx/html
 
 # Rebuild frontend
-docker compose -f docker-compose.vps.yml up -d --build frontend
+docker compose -f deploy/docker/docker-compose.vps.yml up -d --build frontend
 ```
 
 ### Issue: Database Connection Error
@@ -430,13 +430,13 @@ docker compose -f docker-compose.vps.yml up -d --build frontend
 **Solution:**
 ```bash
 # Check database is running
-docker compose -f docker-compose.vps.yml ps db
+docker compose -f deploy/docker/docker-compose.vps.yml ps db
 
 # Check environment variables
-docker compose -f docker-compose.vps.yml exec backend env | grep POSTGRES
+docker compose -f deploy/docker/docker-compose.vps.yml exec backend env | grep POSTGRES
 
 # Restart database
-docker compose -f docker-compose.vps.yml restart db
+docker compose -f deploy/docker/docker-compose.vps.yml restart db
 ```
 
 ---
@@ -483,22 +483,22 @@ docker ps -a
 docker stats
 
 # Execute commands in containers
-docker compose -f docker-compose.vps.yml exec backend python /app/lessonbase/manage.py shell
+docker compose -f deploy/docker/docker-compose.vps.yml exec backend python /app/lessonbase/manage.py shell
 
 # View nginx configuration
-docker compose -f docker-compose.vps.yml exec nginx cat /etc/nginx/nginx.conf
+docker compose -f deploy/docker/docker-compose.vps.yml exec nginx cat /etc/nginx/nginx.conf
 
 # Test nginx configuration
-docker compose -f docker-compose.vps.yml exec nginx nginx -t
+docker compose -f deploy/docker/docker-compose.vps.yml exec nginx nginx -t
 
 # Reload nginx without downtime
-docker compose -f docker-compose.vps.yml exec nginx nginx -s reload
+docker compose -f deploy/docker/docker-compose.vps.yml exec nginx nginx -s reload
 
 # Access database CLI
-docker compose -f docker-compose.vps.yml exec db psql -U kennysolutions_user -d kennysolutions_db
+docker compose -f deploy/docker/docker-compose.vps.yml exec db psql -U kennysolutions_user -d kennysolutions_db
 
 # Access Redis CLI
-docker compose -f docker-compose.vps.yml exec redis redis-cli -a <REDIS_PASSWORD>
+docker compose -f deploy/docker/docker-compose.vps.yml exec redis redis-cli -a <REDIS_PASSWORD>
 ```
 
 ---

@@ -13,7 +13,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 PROJECT_DIR="/opt/kennysolutions"
-COMPOSE_FILE="docker-compose.vps.yml"
+COMPOSE_FILE="deploy/docker/docker-compose.vps.yml"
 
 echo -e "${GREEN}🚀 Starting quick deployment...${NC}"
 

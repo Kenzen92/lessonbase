@@ -17,10 +17,11 @@ A comprehensive **open-source teaching management platform** that empowers educa
 
 ### Prerequisites
 
-- Docker
-- Node.js (for frontend development)
-- MongoDB
-- API keys for the AI tools (OpenAI)
+- Docker & Docker Compose
+- Node.js 18+ (for frontend development)
+- PostgreSQL 16+ (via Docker)
+- Redis (via Docker)
+- API keys for AI tools (OpenAI)
   > **Note**: The platform does not include API keys. Users must provide their own.
 
 ### Installation
@@ -29,43 +30,39 @@ A comprehensive **open-source teaching management platform** that empowers educa
    ```bash
    git clone git@github.com:Kenzen92/lessonbase.git
    cd lessonbase
-
    ```
-2. **Set Up the Backend**:
 
-   - Navigate to the `backend` directory:
-     ```bash
-     cd backend
-     ```
-   - Configure your `.env` file with your database settings and API keys.
-   - Create the docker image:
-     ```bash
-     docker compose build
-     ```
-   - Run the container in the background:
-     ```bash
-     docker compose up -d
-     ```
+2. **Configure Environment**:
+   ```bash
+   # Copy backend environment template
+   cp deploy/env/.env.backend.example backend/.env
 
-3. **Set Up the Frontend**:
+   # Edit backend/.env with your database settings and API keys
+   ```
 
-   - Navigate to the `frontend` directory:
-     ```bash
-     cd ../frontend
-     ```
-   - Install dependencies:
-     ```bash
-     npm install
-     ```
+3. **Start Development Environment**:
+   ```bash
+   # Navigate to docker compose directory
+   cd deploy/docker
 
-4. **Run the Application**:
+   # Start all services (PostgreSQL, Redis, Django backend)
+   docker-compose up
 
-   - Start the frontend development server:
-     ```bash
-     npm run dev
-     ```
+   # Or run in detached mode
+   docker-compose up -d
+   ```
 
-5. Access the platform in your browser at `http://localhost:3000`.
+4. **Set Up the Frontend** (in separate terminal):
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+5. **Access the Application**:
+   - Frontend: `http://localhost:5173`
+   - Backend API: `http://localhost:8000`
+   - Django Admin: `http://localhost:8000/admin`
 
 ---
 

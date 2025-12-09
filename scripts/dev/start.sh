@@ -5,8 +5,8 @@ echo "Starting dev environment..."
 
 # Resolve script directory and project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BACKEND_DIR="$ROOT_DIR/backend"
+ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DOCKER_DIR="$ROOT_DIR/deploy/docker"
 FRONTEND_DIR="$ROOT_DIR/frontend"
 
 command_exists() {
@@ -20,16 +20,16 @@ if ! command_exists docker; then
 	exit 1
 fi
 
-if [ ! -d "$BACKEND_DIR" ]; then
-	echo "Error: backend folder not found at $BACKEND_DIR"
+if [ ! -d "$DOCKER_DIR" ]; then
+	echo "Error: docker folder not found at $DOCKER_DIR"
 	exit 1
 fi
 
-echo "-- Starting backend (docker compose) in $BACKEND_DIR --"
-pushd "$BACKEND_DIR" >/dev/null
+echo "-- Starting backend (docker compose) in $DOCKER_DIR --"
+pushd "$DOCKER_DIR" >/dev/null
 
-echo "Running: docker compose -f docker-compose.dev.yml up -d --build"
-docker compose -f docker-compose.dev.yml up -d --build
+echo "Running: docker-compose up -d --build"
+docker-compose up -d --build
 
 popd >/dev/null
 

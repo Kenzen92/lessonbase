@@ -1,0 +1,37 @@
+# Development overrides
+# This file is automatically loaded when running docker-compose in development
+# It provides development-specific configurations like port exposure and volume mounts
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: kennysolutions_db
+      POSTGRES_USER: kenny
+      POSTGRES_PASSWORD: kenny
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kenny -d kennysolutions_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"  # Expose PostgreSQL for local dev tools
+
+  redis:
+    ports:
+      - "6379:6379"  # Expose Redis for local dev tools
+
+  web:
+    command: >
+      sh -c "cd /app/lessonbase &&
+             uv run python manage.py migrate &&
+             uv run python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "1"
+      ENVIRONMENT: "development"
+    volumes:
+      # Mount source code for hot-reloading
+      - ../../backend/lessonbase:/app/lessonbase
+      # Keep .venv inside container to avoid rebuild lag
+      - /app/.venv

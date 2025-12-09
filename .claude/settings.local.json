@@ -27,7 +27,16 @@
       "Bash(docker tag:*)",
       "Bash(ssh:*)",
       "Bash(wsl bash:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(docker-compose config:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

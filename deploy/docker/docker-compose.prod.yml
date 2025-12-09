@@ -1,0 +1,21 @@
+# Production overrides
+# Use this with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+# Provides production-specific configurations like no port exposure and production settings
+
+services:
+  db:
+    # No ports exposed - only accessible within Docker network
+    restart: unless-stopped
+
+  redis:
+    # No ports exposed - only accessible within Docker network
+    restart: unless-stopped
+
+  web:
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: "production"
+      DEBUG: "0"
+    restart: unless-stopped
+    # No volume mounts - uses code baked into image
