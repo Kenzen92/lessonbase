@@ -30,7 +30,7 @@ echo ""
 
 # Stop nginx if running
 echo -e "${GREEN}⏸️ Stopping nginx (if running)...${NC}"
-docker compose -f /opt/kennysolutions/docker-compose.vps.yml stop nginx || true
+docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml stop nginx || true
 
 # Method 1: Using DNS challenge (for wildcard certificates)
 echo -e "${GREEN}🔐 Obtaining wildcard SSL certificate...${NC}"
@@ -63,7 +63,7 @@ elif [ "$choice" == "2" ]; then
     echo -e "${GREEN}Starting HTTP challenge for individual subdomains...${NC}"
 
     # Start nginx for HTTP challenge
-    docker compose -f /opt/kennysolutions/docker-compose.vps.yml up -d nginx
+    docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml up -d nginx
 
     # Wait for nginx to start
     sleep 5
@@ -106,7 +106,7 @@ fi
 echo -e "${GREEN}♻️ Setting up auto-renewal...${NC}"
 cat > /etc/cron.d/certbot-renewal <<EOF
 # Renew SSL certificates twice daily
-0 0,12 * * * root docker compose -f /opt/kennysolutions/docker-compose.vps.yml run --rm certbot renew --quiet && docker compose -f /opt/kennysolutions/docker-compose.vps.yml restart nginx
+0 0,12 * * * root docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml run --rm certbot renew --quiet && docker compose -f /opt/kennysolutions/deploy/docker/docker-compose.vps.yml restart nginx
 EOF
 
 echo -e "${GREEN}✅ Auto-renewal configured${NC}"
@@ -114,7 +114,7 @@ echo -e "${GREEN}✅ Auto-renewal configured${NC}"
 # Restart nginx with SSL
 echo -e "${GREEN}🔄 Restarting nginx with SSL...${NC}"
 cd /opt/kennysolutions
-docker compose -f docker-compose.vps.yml up -d nginx
+docker compose -f deploy/docker/docker-compose.vps.yml up -d nginx
 
 echo ""
 echo -e "${GREEN}✅ SSL Setup Complete!${NC}"
