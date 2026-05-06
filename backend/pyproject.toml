@@ -1,0 +1,36 @@
+[project]
+name = "lessonbase"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "kenzen92", email = "jamespeterkenny@googlemail.com" }
+]
+requires-python = ">=3.13"
+
+dependencies = [
+    "django==5.2.5",
+    "psycopg2-binary>=2.9.1",
+    "djangorestframework==3.15.1",
+    "django-polymorphic==4.1.0",
+    "Faker==24.4.0",
+    "django-cors-headers==4.3.1",
+    "channels==4.1.0",
+    "channels-redis>=4.2.0",
+    "daphne==4.1.2",
+    "boto3>=1.35.0",
+    "django-storages==1.14.3",
+    "pillow==12.0.0",
+    "openai==1.35.3",
+    "gunicorn>=23.0.0",
+    "dj-database-url>=3.0.0",
+    "django-allauth[socialaccount]>=65.13.0",
+    "pyjwt==2.10.0",
+    "requests>=2.31.0"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lessonbase"]

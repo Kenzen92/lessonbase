@@ -1,0 +1,85 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TEST_COMPOSE_FILE: deploy/docker/docker-compose.test.yml
+  FRONTEND_API_URL: http://backend:8000
+  FRONTEND_WS_URL: ws://backend:8000/ws
+  FRONTEND_GOOGLE_CLIENT_ID: lessonbase-test-client-id.apps.googleusercontent.com
+
+jobs:
+  backend-django:
+    name: Backend Django Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run migrations, checks, and Django tests
+        run: |
+          docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py migrate --noinput
+          docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py check
+          docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py test --verbosity 2
+
+      - name: Tear down backend test stack
+        if: always()
+        run: docker compose -f "$TEST_COMPOSE_FILE" down --volumes --remove-orphans
+
+  backend-runtime-smoke:
+    name: Backend Runtime Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start production-like backend stack
+        run: |
+          docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py migrate --noinput
+          docker compose -f "$TEST_COMPOSE_FILE" up -d --wait backend
+
+      - name: Smoke test backend runtime
+        run: |
+          docker compose -f "$TEST_COMPOSE_FILE" exec -T backend python -c "import urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/admin/login/', headers={'Host': 'backend'}); urllib.request.urlopen(req)"
+
+      - name: Dump backend logs on failure
+        if: failure()
+        run: docker compose -f "$TEST_COMPOSE_FILE" logs backend db redis
+
+      - name: Tear down smoke stack
+        if: always()
+        run: docker compose -f "$TEST_COMPOSE_FILE" down --volumes --remove-orphans
+
+  frontend-build:
+    name: Frontend Production Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build frontend image with test values
+        run: |
+          docker build \
+            --file frontend/Dockerfile \
+            --build-arg VITE_REACT_APP_API_URL="$FRONTEND_API_URL" \
+            --build-arg VITE_REACT_APP_WEBSOCKET_URL="$FRONTEND_WS_URL" \
+            --build-arg VITE_GOOGLE_CLIENT_ID="$FRONTEND_GOOGLE_CLIENT_ID" \
+            --tag lessonbase-frontend-test:ci \
+            frontend
+

@@ -1,0 +1,56 @@
+.dashboard-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.main-content {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari) */
+.dashboard-container::-webkit-scrollbar {
+  display: none;
+}
+
+.class-event-toggle {
+  width: 100%;
+}
+
+.previous-future-toggle-buttons {
+  margin-top: 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.toggle-active {
+  border-color: rgb(255, 255, 255);
+}
+
+.cards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Adjust as needed for spacing between rows */
+}
+
+.day-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.events-row {
+  display: flex;
+  flex-wrap: wrap; /* Ensures events wrap if they overflow */
+  gap: 16px; /* Adjust as needed for spacing between events */
+}
+
+.toggle-button {
+  width: 15%;
+  justify-self: center;
+}

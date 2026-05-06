@@ -1,0 +1,133 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  min-height: 100%;
+  background: linear-gradient(
+    135deg,
+    #050810 0%,
+    #0a0e1a 25%,
+    #0d1222 50%,
+    #0a1929 100%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+body {
+  margin: 0px;
+  padding: 0;
+  min-height: 100vh;
+  background: transparent;
+  /* Add padding to compensate for potential scrollbar width */
+  padding-right: calc(100vw - 100%);
+  /* Ensure content doesn't get cut off when scrollbar appears */
+  overflow-x: hidden;
+}
+
+.app-container {
+  min-height: 100vh;
+  width: 100vw;
+  position: relative;
+  /* Ensure header and content align with the padding */
+  margin-right: calc(100% - 100vw);
+}
+a {
+  font-weight: 550;
+  font-size: medium;
+  color: #cfcfcf;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+/* General button styles */
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+/* Primary button (default look) */
+.btn-primary {
+  background-color: #1a1a1a;
+  color: white;
+}
+
+.btn-primary:hover {
+  border-color: #646cff;
+}
+
+.btn-primary:focus,
+.btn-primary:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Secondary button (inverted) */
+.btn-secondary {
+  background-color: white;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+}
+
+.btn-secondary:hover {
+  border-color: #646cff;
+}
+
+.btn-secondary:focus,
+.btn-secondary:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+
+  .btn-primary {
+    background-color: #f9f9f9;
+    color: #213547;
+  }
+
+  .btn-primary:hover {
+    border-color: #747bff;
+  }
+
+  .btn-secondary {
+    background-color: #213547;
+    color: #f9f9f9;
+  }
+
+  .btn-secondary:hover {
+    border-color: #747bff;
+  }
+}

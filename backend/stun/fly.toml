@@ -1,0 +1,19 @@
+app = 'kennysolutions-stun'
+primary_region = 'fra'
+
+[build]
+
+[env]
+  STUN_PORT = '3478'
+
+[[services]]
+  internal_port = 3478
+  protocol = 'udp'
+
+  [[services.ports]]
+    port = 3478
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1

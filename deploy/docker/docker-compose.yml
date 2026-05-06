@@ -1,0 +1,53 @@
+# Base docker-compose configuration
+# This file contains shared configuration for all environments
+# Use with docker-compose.override.yml (dev) or docker-compose.prod.yml (production)
+
+name: lessonbase
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ../../backend/.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    environment:
+      UV_SYSTEM_PYTHON: "1"
+      PYTHONUNBUFFERED: "1"
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../../backend/.env
+
+volumes:
+  postgres_data:
+  redis_data:

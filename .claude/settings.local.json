@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose:*)",
+      "WebFetch(domain:code.claude.com)",
+      "Bash(npx:*)",
+      "mcp__chrome-devtools__performance_start_trace",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill_form",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__press_key",
+      "Bash(if exist nul erase nul)",
+      "Bash(findstr:*)",
+      "Bash(uv lock:*)",
+      "Bash(fly deploy:*)",
+      "Bash(docker login:*)",
+      "Bash(chmod:*)",
+      "Bash(docker build:*)",
+      "Bash(docker push:*)",
+      "Bash(docker tag:*)",
+      "Bash(ssh:*)",
+      "Bash(wsl bash:*)",
+      "Bash(git add:*)",
+      "Bash(tree:*)",
+      "Bash(mkdir:*)",
+      "Bash(docker-compose config:*)",
+      "Bash(docker-compose build:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(curl:*)",
+      "Bash(wsl ssh *)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "chrome-devtools"
+  ]
+}

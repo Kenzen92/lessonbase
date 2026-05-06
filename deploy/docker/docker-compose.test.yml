@@ -1,0 +1,98 @@
+name: lessonbase-test
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: lessonbase_test
+      POSTGRES_USER: lessonbase
+      POSTGRES_PASSWORD: lessonbase
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lessonbase -d lessonbase_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "lessonbase-redis-test"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "lessonbase-redis-test", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend-test:
+    image: lessonbase-backend-test:ci
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    working_dir: /app/lessonbase
+    entrypoint: []
+    environment:
+      POSTGRES_DB: lessonbase_test
+      POSTGRES_USER: lessonbase
+      POSTGRES_PASSWORD: lessonbase
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://:lessonbase-redis-test@redis:6379
+      ENVIRONMENT: production
+      SECRET_KEY: lessonbase-test-secret-key
+      ALLOWED_HOSTS: backend,localhost,127.0.0.1
+      FRONTEND_URL: http://frontend
+      CORS_ALLOWED_ORIGINS: http://frontend
+      CSRF_TRUSTED_ORIGINS: http://frontend
+      GOOGLE_CLIENT_ID: lessonbase-test-client-id.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: lessonbase-test-client-secret
+      EMAIL_HOST_USER: ci@example.com
+      EMAIL_HOST_PASSWORD: not-a-real-password
+      R2_BUCKET_NAME: lessonbase
+      R2_ACCESS_KEY_ID: lessonbase-test-r2-key
+      R2_ACCESS_SECRET: lessonbase-test-r2-secret
+      R2_S3_API: https://example.r2.cloudflarestorage.com
+      OPENAI_API_KEY: test-openai-key
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  backend:
+    image: lessonbase-backend-test:ci
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: lessonbase_test
+      POSTGRES_USER: lessonbase
+      POSTGRES_PASSWORD: lessonbase
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://:lessonbase-redis-test@redis:6379
+      ENVIRONMENT: production
+      SECRET_KEY: lessonbase-test-secret-key
+      ALLOWED_HOSTS: backend,localhost,127.0.0.1
+      FRONTEND_URL: http://frontend
+      CORS_ALLOWED_ORIGINS: http://frontend
+      CSRF_TRUSTED_ORIGINS: http://frontend
+      GOOGLE_CLIENT_ID: lessonbase-test-client-id.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: lessonbase-test-client-secret
+      EMAIL_HOST_USER: ci@example.com
+      EMAIL_HOST_PASSWORD: not-a-real-password
+      R2_BUCKET_NAME: lessonbase
+      R2_ACCESS_KEY_ID: lessonbase-test-r2-key
+      R2_ACCESS_SECRET: lessonbase-test-r2-secret
+      R2_S3_API: https://example.r2.cloudflarestorage.com
+      OPENAI_API_KEY: test-openai-key
+      PORT: 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/admin/login/', headers={'Host': 'backend'}); urllib.request.urlopen(req)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
