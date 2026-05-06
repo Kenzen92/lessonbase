@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["Test"]  # Trigger on workflow run
     types: [completed]
+    branches: [main]  # Only deploy from main branch
 
 
 env:
@@ -16,6 +17,8 @@ jobs:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
     environment: production
+    # Only deploy if tests succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout code
