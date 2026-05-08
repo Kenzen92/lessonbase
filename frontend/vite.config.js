@@ -25,7 +25,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: process.env.PORT || 4173,
     allowedHosts: [
-      'https://lessonbase.vercel.app'
+      'https://teach.jkennyu.tech'
     ]
   }
 })
