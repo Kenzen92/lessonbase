@@ -19,7 +19,6 @@
       "Bash(if exist nul erase nul)",
       "Bash(findstr:*)",
       "Bash(uv lock:*)",
-      "Bash(fly deploy:*)",
       "Bash(docker login:*)",
       "Bash(chmod:*)",
       "Bash(docker build:*)",
