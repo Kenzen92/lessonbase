@@ -7,8 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joho/godotenv"
 	stun "kennysolutions/stun"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
