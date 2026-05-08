@@ -53,6 +53,12 @@ fi
 if command_exists go; then
 	if [ -d "$STUN_DIR" ]; then
 		echo "-- Starting STUN server in $STUN_DIR --"
+		# copy the .env file to the STUN directory for configuration
+		if [ -f "$ENV_FILE" ]; then
+			cp "$ENV_FILE" "$STUN_DIR/.env"
+		else
+			echo "Warning: .env file not found at $ENV_FILE, STUN server may not be configured properly."
+		fi
 		pushd "$STUN_DIR" >/dev/null
 		echo "Running: go run ./cmd (background)"
 		go run ./cmd &
