@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	stun "kennysolutions/stun"
 )
 
@@ -17,6 +18,12 @@ func main() {
 	}
 
 	secret := os.Getenv("STUN_SECRET")
+	if secret == "" {
+		if err := godotenv.Load("cmd/.env", ".env"); err != nil {
+			log.Printf("No .env file loaded for STUN server: %v", err)
+		}
+		secret = os.Getenv("STUN_SECRET")
+	}
 
 	var auth *stun.Authenticator
 	if secret != "" {
