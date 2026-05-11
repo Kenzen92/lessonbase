@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
+const apiProxyTarget = process.env.VITE_PROXY_API_TARGET || 'http://localhost:8000'
+const wsProxyTarget = process.env.VITE_PROXY_WS_TARGET || 'ws://localhost:8000'
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -9,12 +12,13 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: apiProxyTarget,
         changeOrigin: true,
-        secure: false
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
       },
       '/ws': {
-        target: 'ws://localhost:8000',
+        target: wsProxyTarget,
         ws: true,
         changeOrigin: true,
         // Vite will automatically upgrade to wss:// when the page is served over https://
