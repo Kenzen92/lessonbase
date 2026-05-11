@@ -55,7 +55,7 @@ export const handleUnauthorizedRequest = (navigate) => {
   navigate("/login");
 };
 export const fetchStudents = async (navigate) => {
-  return await apiRequest(getFullUrl('/student'), "GET", null, navigate);
+  return await apiRequest(getFullUrl('/student/'), "GET", null, navigate);
 };
 
 export const fetchSubjects = async (navigate) => {
@@ -96,11 +96,11 @@ export const handleUpdateClassGroup = async (classGroupData, currentClassId, nav
 
 export const fetchTeacherStatistics = async (navigate) => {
   return await apiRequest(getFullUrl(`/teacher-statistics`), "GET", null, navigate);
-};  
+};
 
 export const fetchStudentStatistics = async (navigate) => {
   return await apiRequest(`${BASE_URL}/student-statistics`, "GET", null, navigate);
-};  
+};
 
 export const cancelClassEvent = async (eventID, navigate) => {
   return await apiRequest(`${BASE_URL}/class-event/${eventID}/`, "DELETE", null, navigate);
@@ -131,7 +131,7 @@ export const editTeacherProfile = async (id, profileData, navigate) => {
 };
 
 export const fetchProfileData = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/profile`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/profile/`, "GET", null, navigate);
 };
 
 export const fetchStudentProfile = async (id, navigate) => {

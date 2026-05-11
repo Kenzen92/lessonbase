@@ -16,16 +16,23 @@ import { FaWindowClose } from "react-icons/fa";
 const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [isSocketReady, setIsSocketReady] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     setMessages([]);
+    setIsSocketReady(false);
     const auth = window.sessionStorage.getItem("token");
     WebSocketInstance.connect(chatId, auth);
-    WebSocketInstance.addCallbacks(messageCallback);
+    WebSocketInstance.addCallbacks(
+      messageCallback,
+      () => setIsSocketReady(true),
+      () => setIsSocketReady(false)
+    );
 
     return () => {
+      setIsSocketReady(false);
       WebSocketInstance.disconnect();
     };
   }, [chatId]);
@@ -44,13 +51,14 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
         message: parsedData.message,
         timestamp: parsedData.timestamp,
         sender: parsedData.sender,
+        sender_id: parsedData.sender_id,
       },
     ]);
   };
 
   const sendMessageHandler = (e) => {
     e.preventDefault();
-    if (message.trim()) {
+    if (message.trim() && isSocketReady) {
       const messageObject = {
         message: message,
         command: "message",
@@ -70,6 +78,7 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
 
   return (
     <Box
+      data-testid="direct-chat-panel"
       sx={{
         position: "fixed",
         bottom: 20,
@@ -122,12 +131,13 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
           {messages.map((msg, index) => (
             <Box
               key={index}
+              data-testid="direct-chat-message"
               sx={{
                 alignSelf:
-                  msg.sender.id === currentUserId ? "flex-end" : "flex-start",
+                  msg.sender_id === currentUserId ? "flex-end" : "flex-start",
                 bgcolor:
-                  msg.sender.id === currentUserId ? "primary.main" : "grey.800",
-                color: msg.sender.id === currentUserId ? "white" : "grey.300",
+                  msg.sender_id === currentUserId ? "primary.main" : "grey.800",
+                color: msg.sender_id === currentUserId ? "white" : "grey.300",
                 px: 2,
                 py: 1,
                 borderRadius: 2,
@@ -140,9 +150,9 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
               >
                 <Timestamp timestamp={msg.timestamp} />
               </Typography>
-              {msg.sender.id !== currentUserId && (
+              {msg.sender_id !== currentUserId && (
                 <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-                  {msg.sender.username}
+                  {msg.sender}
                 </Typography>
               )}
               <Typography variant="body1">{msg.message}</Typography>
@@ -151,6 +161,8 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
         </Box>
         <form onSubmit={sendMessageHandler}>
           <TextField
+            inputProps={{ "data-testid": "direct-chat-message-input" }}
+            disabled={!isSocketReady}
             fullWidth
             variant="outlined"
             placeholder="Type your message here..."
@@ -178,6 +190,8 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
               sx: { color: "white" },
               endAdornment: (
                 <Button
+                  data-testid="direct-chat-send"
+                  disabled={!isSocketReady}
                   type="submit"
                   variant="contained"
                   color="primary"

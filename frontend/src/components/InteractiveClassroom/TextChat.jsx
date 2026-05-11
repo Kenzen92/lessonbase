@@ -15,6 +15,7 @@ const TextChat = ({ roomId }) => {
   const { auth } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isSocketReady, setIsSocketReady] = useState(false);
   const wsRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -26,6 +27,10 @@ const TextChat = ({ roomId }) => {
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
+    ws.onopen = () => {
+      setIsSocketReady(true);
+    };
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       setMessages((prev) => [...prev, data]);
@@ -36,12 +41,14 @@ const TextChat = ({ roomId }) => {
     };
 
     ws.onclose = (event) => {
+      setIsSocketReady(false);
       if (event.code === 4001 || event.code === 4003) return;
     };
 
     return () => {
       ws.close();
       wsRef.current = null;
+      setIsSocketReady(false);
     };
   }, [roomId]);
 
@@ -83,6 +90,7 @@ const TextChat = ({ roomId }) => {
 
       {/* Messages */}
       <Box
+        data-testid="classroom-chat-messages"
         sx={{
           flex: 1,
           overflowY: "auto",
@@ -103,6 +111,7 @@ const TextChat = ({ roomId }) => {
           return (
             <Box
               key={i}
+              data-testid="classroom-chat-message"
               sx={{
                 alignSelf: isOwn ? "flex-end" : "flex-start",
                 maxWidth: "85%",
@@ -137,6 +146,8 @@ const TextChat = ({ roomId }) => {
       {/* Input */}
       <Box sx={{ display: "flex", alignItems: "center", px: 1, py: 0.5, gap: 0.5 }}>
         <TextField
+          inputProps={{ "data-testid": "classroom-chat-message-input" }}
+          disabled={!isSocketReady}
           fullWidth
           size="small"
           placeholder="Type a message..."
@@ -155,7 +166,7 @@ const TextChat = ({ roomId }) => {
             },
           }}
         />
-        <IconButton onClick={sendMessage} size="small" sx={{ color: "rgba(33,150,243,0.8)" }}>
+        <IconButton data-testid="classroom-chat-send" onClick={sendMessage} size="small" sx={{ color: "rgba(33,150,243,0.8)" }}>
           <SendIcon fontSize="small" />
         </IconButton>
       </Box>
