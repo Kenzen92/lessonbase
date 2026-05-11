@@ -32,11 +32,14 @@ class WebSocketService {
     }
 
     connect(roomName, token) {
-        const path = `/chat/${roomName}/?token=${token}`;
+        const path = `/direct-chat/${roomName}/?token=${token}`;
         const wsURL = getWebSocketURL(path);
         this.socketRef = new WebSocket(wsURL);
 
         this.socketRef.onopen = () => {
+            if (this.callbacks.open) {
+                this.callbacks.open();
+            }
             console.log('WebSocket open');
         };
 
@@ -45,6 +48,9 @@ class WebSocketService {
         };
 
         this.socketRef.onclose = () => {
+            if (this.callbacks.close) {
+                this.callbacks.close();
+            }
             console.log('WebSocket closed');
         };
 
@@ -57,6 +63,9 @@ class WebSocketService {
         if (this.socketRef) {
             this.socketRef.close();
             this.socketRef = null; // Ensure the connection is cleared
+            if (this.callbacks.close) {
+                this.callbacks.close();
+            }
             console.log("WebSocket connection closed manually");
         }
     }
@@ -72,14 +81,16 @@ class WebSocketService {
 
     sendMessage(data) {
         try {
-            this.socketRef.send(JSON.stringify({ ...data }));
+            this.socketRef.send(JSON.stringify({ message: data.message }));
         } catch (err) {
             console.log(err.message);
         }
     }
 
-    addCallbacks(messageCallback) {
+    addCallbacks(messageCallback, openCallback = null, closeCallback = null) {
         this.callbacks['message'] = messageCallback;
+        this.callbacks['open'] = openCallback;
+        this.callbacks['close'] = closeCallback;
     }
 
     waitForSocketConnection(callback) {

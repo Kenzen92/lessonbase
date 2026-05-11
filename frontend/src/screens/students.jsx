@@ -34,6 +34,7 @@ function Students() {
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [chats, setChats] = useState([]);
+  const [chatsLoaded, setChatsLoaded] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatId, setChatId] = useState(null);
   const [currentStudent, setCurrentStudent] = useState(null);
@@ -47,8 +48,7 @@ function Students() {
 
     // Auto-open student if URL has ID
     if (id) {
-      const intId = parseInt(id, 10);
-      const student = studentsData.find((s) => s.id === intId);
+      const student = studentsData.find((entry) => String(entry.id) === String(id));
       if (student) {
         setCurrentStudent(student);
         setDrawerOpen(true);
@@ -61,12 +61,17 @@ function Students() {
     if (!user?.id) return;
 
     const fetchChatsData = async () => {
-      const chatData = await fetchChats();
-      const processedChats = chatData.map((chat) => ({
-        ...chat,
-        participants: chat.participants.filter((p) => p !== user.id),
-      }));
-      setChats(processedChats);
+      setChatsLoaded(false);
+      try {
+        const chatData = await fetchChats();
+        const processedChats = (chatData || []).map((chat) => ({
+          ...chat,
+          participants: chat.participants.filter((p) => p !== user.id),
+        }));
+        setChats(processedChats);
+      } finally {
+        setChatsLoaded(true);
+      }
     };
 
     fetchChatsData();
@@ -124,6 +129,7 @@ function Students() {
           setChatId={setChatId}
           setDrawerOpen={setDrawerOpen}
           chats={chats}
+          chatsLoaded={chatsLoaded}
           refetchStudents={refetchStudents}
         />
 
@@ -200,6 +206,7 @@ function Students() {
             chatId={chatId}
             chatOpen={chatOpen}
             setChatOpen={setChatOpen}
+            currentUserId={user?.id}
           />
         )}
       </Container>

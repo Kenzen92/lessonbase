@@ -45,6 +45,7 @@ export default function StudentDetailsDrawer({
   setChatOpen,
   setDrawerOpen,
   chats,
+  chatsLoaded,
 }) {
   const navigate = useNavigate();
   const [previousClass, setPreviousClass] = useState(null);
@@ -82,17 +83,15 @@ export default function StudentDetailsDrawer({
 
   const handleCreateChat = async () => {
     try {
-      // Ensure student and student.id are available before creating chat
       if (!student || !student.id) {
         throw new Error("Student details not available to create chat.");
       }
-      const response = await createChat(student.id, navigate);
+      const data = await createChat(student.id, navigate);
 
-      if (!response.ok) {
+      if (!data?.id) {
         throw new Error("Failed to create chat");
       }
 
-      const data = await response.json();
       handleSelectChat(data.id);
     } catch (error) {
       toast.error(error.message);
@@ -776,13 +775,15 @@ export default function StudentDetailsDrawer({
               {/* Action Buttons with auto margin to push to bottom on large screens */}
               <Box sx={{ display: "flex", gap: 2, mt: "auto", pt: 3 }}>
                 <PrimaryButton
+                  data-testid="student-drawer-chat-action"
                   fullWidth
+                  disabled={!student || (!chatId && !chatsLoaded)}
                   onClick={
                     chatId ? () => handleSelectChat(chatId) : handleCreateChat
                   }
                   sx={{ flex: 1 }}
                 >
-                  {chatId ? "Open Chat" : "Create Chat"}
+                  {chatId ? "Open Chat" : chatsLoaded ? "Create Chat" : "Loading Chat..."}
                 </PrimaryButton>
                 <WarningButton
                   fullWidth

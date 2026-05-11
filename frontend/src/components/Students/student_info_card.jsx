@@ -18,6 +18,7 @@ const StudentInfoCard = ({
   setDrawerOpen,
   setCurrentStudent,
   setChatOpen,
+  setChatId,
   chats,
 }) => {
   const [chatId, setChatIdState] = useState(null);
@@ -131,6 +132,7 @@ const StudentInfoCard = ({
 
         {/* Chat Button */}
         <Button
+          data-testid={`student-chat-button-${student.id}`}
           variant="contained"
           size="small"
           startIcon={<ChatBubbleOutlineIcon />}
@@ -143,7 +145,13 @@ const StudentInfoCard = ({
           onClick={(event) => {
             event.stopPropagation();
             setCurrentStudent(student);
-            setChatOpen(true);
+            if (chatId) {
+              setChatId(chatId);
+              setChatOpen(true);
+              return;
+            }
+
+            setDrawerOpen(true);
           }}
         >
           Chat
