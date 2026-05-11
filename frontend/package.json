@@ -9,6 +9,8 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start": "vite preview --host 0.0.0.0 --port $PORT",
+    "test:e2e": "playwright test",
+    "test:e2e:chat": "playwright test tests/e2e/chat-flows.spec.js",
     "heroku-postbuild": "vite build"
   },
   "dependencies": {
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "@hookform/resolvers": "^4.0.0",
+    "@playwright/test": "^1.54.2",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "eslint": "^8.57.0",
