@@ -185,29 +185,13 @@ jobs:
             echo "🗄️ Running database migrations..."
             docker compose run --rm backend /app/migrate.sh
 
-            # Idempotently align certbot state with the deploy's compose path.
-            # The legacy /root/code/lessonbase/certbot/ directory holds the Let's
-            # Encrypt account, archive, and live symlinks that have been renewed
-            # for months. The compose file mounts ./certbot/{conf,www} from the
-            # deploy directory (/opt/lessonbase). Without this sync, recreating
-            # nginx points it at an empty /opt/lessonbase/certbot and serves the
-            # original Dec 9 cert (now expired). `rsync --update` copies only
-            # newer files, so once certbot is recreated against the new path the
-            # legacy tree stops winning and this becomes a no-op.
-            LEGACY_CERTBOT=/root/code/lessonbase/certbot
-            if [ -d "$LEGACY_CERTBOT" ]; then
-              echo "📁 Syncing certbot state from $LEGACY_CERTBOT → /opt/lessonbase/certbot/"
-              mkdir -p /opt/lessonbase/certbot
-              rsync -aH --update "$LEGACY_CERTBOT/" /opt/lessonbase/certbot/
-            fi
-
-            # Restart services. Nginx and certbot must be force-recreated so
-            # they pick up changes to /opt/lessonbase/{nginx,certbot}/ (e.g.
-            # WebSocket upgrade headers; renewed TLS certs from the migrated
-            # certbot path).
+            # Restart services. Nginx is force-recreated so it picks up any
+            # changes to /opt/lessonbase/nginx/conf.d (e.g. WebSocket upgrade
+            # headers) — plain `up -d` leaves the existing container in place
+            # when only bind-mounted files have changed.
             echo "♻️ Restarting services..."
             docker compose up -d --pull always --no-build backend frontend
-            docker compose up -d --force-recreate --no-deps nginx certbot
+            docker compose up -d --force-recreate --no-deps nginx
 
             # Cleanup old images
             echo "🧹 Cleaning up old images..."
