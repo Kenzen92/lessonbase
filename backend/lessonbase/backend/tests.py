@@ -2,6 +2,7 @@ from asgiref.sync import async_to_sync
 from channels.testing import WebsocketCommunicator
 from django.test import TestCase, TransactionTestCase, override_settings
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from lessonbase.asgi import application
 
@@ -102,6 +103,32 @@ class ChatGroupTestCase(BaseTestCase):
         self.assertEqual(chat.participants.count(), 2)
         self.assertIn(self.teacher, chat.participants.all())
         self.assertIn(self.student, chat.participants.all())
+
+    def test_post_chats_creates_chat_with_participants(self):
+        # Regression: production POST /chats/ returned 500 because
+        # backend_chat.id was bigint while the model declared UUIDField
+        # (migration 0005 was a no-op against an edited 0001_initial).
+        # Exercising the real endpoint catches model/schema drift on a
+        # freshly migrated test DB.
+        from backend.models import Chat
+
+        token = Token.objects.create(user=self.teacher)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+        response = client.post(
+            "/chats/",
+            {"participants": [self.student.id]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(Chat.objects.count(), 1)
+        chat = Chat.objects.get()
+        self.assertSetEqual(
+            set(chat.participants.values_list("id", flat=True)),
+            {self.teacher.id, self.student.id},
+        )
 
     def test_message_creation(self):
         from backend.models import Chat, Message
