@@ -34,7 +34,7 @@ function App() {
   const { auth } = useAuth();
 
   return (
-    <Sentry.ErrorBoundary 
+    <Sentry.ErrorBoundary
       fallback={
         <p>
           <strong>An error has occurred.</strong> Our team has been notified.
@@ -51,6 +51,8 @@ function App() {
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/signup/student" element={<Signup defaultUserType="student" />} />
+              <Route path="/signup/teacher" element={<Signup defaultUserType="teacher" />} />
               <Route path="/auth/verify-email/:key" element={<VerifyEmail />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password/:uid/:token" element={<ResetPassword />} />

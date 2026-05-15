@@ -107,14 +107,14 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Run chat browser E2E suite
-        run: ./scripts/test/run-chat-e2e.sh
+      - name: Run frontend browser E2E suite
+        run: ./scripts/test/run-frontend-e2e.sh
 
       - name: Upload Playwright artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-chat-artifacts
+          name: playwright-frontend-artifacts
           path: |
             frontend/playwright-report
             frontend/test-results
@@ -124,7 +124,7 @@ jobs:
         if: failure()
         run: docker compose -f "$TEST_COMPOSE_FILE" logs backend backend-test db redis
 
-      - name: Tear down chat E2E stack
+      - name: Tear down frontend E2E stack
         if: always()
         run: docker compose -f "$TEST_COMPOSE_FILE" down --volumes --remove-orphans
 
