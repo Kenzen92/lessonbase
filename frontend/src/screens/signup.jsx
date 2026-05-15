@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -20,7 +20,7 @@ import { registerUser, googleAuth } from "../services/authService";
 import { useAuth } from "../contexts/auth_context";
 import "../styles/signup.css";
 
-function Signup() {
+function Signup({ defaultUserType = null }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -31,6 +31,12 @@ function Signup() {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  useEffect(() => {
+    if (defaultUserType) {
+      setUserType(defaultUserType);
+    }
+  }, [defaultUserType]);
 
   const handleUserTypeChange = (event, newUserType) => {
     if (newUserType !== null) {
