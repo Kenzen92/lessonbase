@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from apps.user_accounts.models import ClassGroup
-from backend.serializers import TeacherClassEventSerializer
+from apps.core.serializers import TeacherClassEventSerializer
 from apps.user_accounts.serializers import (
     StudentSerializer,
     ClassGroupUserSerializer,

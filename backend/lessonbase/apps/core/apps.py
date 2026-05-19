@@ -194,9 +194,11 @@ def create_required_objects(sender, **kwargs):
         )
 
 
-class MyAppConfig(AppConfig):
+class CoreConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "backend"
+    name = "apps.core"
+    label = "backend"
+    verbose_name = "Core"
 
     def ready(self):
         post_migrate.connect(create_required_objects, sender=self)
