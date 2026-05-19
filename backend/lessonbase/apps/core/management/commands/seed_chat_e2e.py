@@ -21,9 +21,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from apps.classes.models import ClassEvent
+        from apps.core.models import Chat, ClassroomChatMessage, Message
         from apps.subjects.models import Subject
         from apps.user_accounts.models import Student, Teacher
-        from backend.models import Chat, ClassroomChatMessage, Message
 
         Subject.objects.filter(name=self.subject_name).delete()
         subject = Subject.objects.create(

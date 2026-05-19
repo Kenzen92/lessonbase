@@ -1,4 +1,4 @@
-from backend.tests import BaseTestCase
+from apps.core.tests import BaseTestCase
 
 
 class SetUpTestCase(BaseTestCase):

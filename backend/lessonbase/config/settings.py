@@ -77,7 +77,7 @@ INSTALLED_APPS = [
     "apps.classes",
     "apps.storage",
     "apps.assignments",
-    "backend",
+    "apps.core.apps.CoreConfig",
     # Allauth
     "allauth",
     "allauth.account",
@@ -101,7 +101,7 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-ROOT_URLCONF = "lessonbase.urls"
+ROOT_URLCONF = "config.urls"
 
 # Django-allauth configuration (updated for latest version)
 ACCOUNT_LOGIN_METHODS = {"email"}  # Use email for authentication
@@ -114,14 +114,14 @@ ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = (
 ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = None
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False  # Don't auto-login after confirmation
 ACCOUNT_ADAPTER = (
-    "backend.adapters.CustomAccountAdapter"  # Custom adapter for API behavior
+    "apps.core.adapters.CustomAccountAdapter"  # Custom adapter for API behavior
 )
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 ACCOUNT_USER_MODEL_EMAIL_FIELD = "email"
 
 # Social account settings
-SOCIALACCOUNT_ADAPTER = "backend.adapters.CustomSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "apps.core.adapters.CustomSocialAccountAdapter"
 SOCIALACCOUNT_EMAIL_VERIFICATION = "none"  # Social accounts are already verified
 SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-create account on social login
 SOCIALACCOUNT_QUERY_EMAIL = True  # Request email from social providers
@@ -172,8 +172,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "lessonbase.wsgi.application"
-ASGI_APPLICATION = "lessonbase.asgi.application"
+WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {

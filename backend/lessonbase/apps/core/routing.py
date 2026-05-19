@@ -1,5 +1,6 @@
 from django.urls import re_path
-from backend import consumers
+
+from . import consumers
 
 print("Defining WebSocket URL patterns...")
 

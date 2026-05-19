@@ -4,7 +4,7 @@ from django.test import TestCase, TransactionTestCase, override_settings
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from lessonbase.asgi import application
+from config.asgi import application
 
 TEST_CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 
@@ -96,7 +96,7 @@ class BaseTransactionTestCase(UserFixtureMixin, TransactionTestCase):
 
 class ChatGroupTestCase(BaseTestCase):
     def test_chat_creation(self):
-        from backend.models import Chat
+        from apps.core.models import Chat
 
         chat = Chat.objects.create(name="Test Chat")
         chat.participants.add(self.teacher, self.student)
@@ -110,7 +110,7 @@ class ChatGroupTestCase(BaseTestCase):
         # (migration 0005 was a no-op against an edited 0001_initial).
         # Exercising the real endpoint catches model/schema drift on a
         # freshly migrated test DB.
-        from backend.models import Chat
+        from apps.core.models import Chat
 
         token = Token.objects.create(user=self.teacher)
         client = APIClient()
@@ -131,7 +131,7 @@ class ChatGroupTestCase(BaseTestCase):
         )
 
     def test_message_creation(self):
-        from backend.models import Chat, Message
+        from apps.core.models import Chat, Message
 
         chat = Chat.objects.create(name="Test Chat")
         chat.participants.add(self.teacher, self.student)
@@ -152,7 +152,7 @@ class ChatGroupTestCase(BaseTestCase):
 class DirectChatSecurityAndLogicTests(BaseTransactionTestCase):
     def setUp(self):
         super().setUp()
-        from backend.models import Chat, Message
+        from apps.core.models import Chat, Message
 
         self.chat = Chat.objects.create(name="Teacher Student Chat")
         self.chat.participants.add(self.teacher, self.student)
@@ -252,7 +252,7 @@ class ClassroomChatSecurityAndLogicTests(BaseTransactionTestCase):
     def setUp(self):
         super().setUp()
         from apps.classes.models import ClassEvent
-        from backend.models import ClassroomChatMessage
+        from apps.core.models import ClassroomChatMessage
 
         self.teacher_token = Token.objects.create(user=self.teacher)
         self.student_token = Token.objects.create(user=self.student)

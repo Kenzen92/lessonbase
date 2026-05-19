@@ -13,7 +13,7 @@ echo "=========================================="
 
 # Start Daphne ASGI server with comprehensive logging
 exec daphne \
-    lessonbase.asgi:application \
+    config.asgi:application \
     --bind 0.0.0.0 \
     --port "${PORT:-8000}" \
     --verbosity 2 \
