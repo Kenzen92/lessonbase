@@ -138,6 +138,8 @@ jobs:
             update_env R2_ACCESS_SECRET     "${{ secrets.R2_ACCESS_SECRET }}"
             update_env R2_S3_API            "${{ secrets.R2_S3_API }}"
             update_env R2_BUCKET_NAME       "${{ secrets.R2_BUCKET_NAME }}"
+            # Path on the host where other services drop nginx vhosts.
+            update_env NGINX_EXTRAS_DIR     "/opt/nginx-extras"
             echo "✅ .env updated"
 
       - name: Sync nginx configs to VPS
@@ -151,9 +153,12 @@ jobs:
             echo "📋 Updating nginx configs from git..."
             cd /tmp
             rm -rf deploy-temp
-            git clone --depth 1 --branch main --single-branch https://github.com/Kenzen92/kennysolutions.git deploy-temp
+            git clone --depth 1 --branch main --single-branch https://github.com/Kenzen92/lessonbase.git deploy-temp
             cp -r deploy-temp/nginx/* /opt/lessonbase/nginx/
             rm -rf deploy-temp
+            # External vhosts dir lives outside the lessonbase repo so other
+            # apps sharing this host can drop confs without touching this stack.
+            mkdir -p /opt/nginx-extras
             echo "✅ Nginx configs updated"
 
       - name: Deploy to VPS via SSH
