@@ -88,13 +88,15 @@ function PostClassFeedbackModal({ open, classEventId }) {
         </Box>
 
         <TextField
-          data-testid="session-feedback-comment"
           label="Leave a comment (optional)"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           multiline
           rows={3}
           fullWidth
+          // Put data-testid on the underlying <textarea> so Playwright's .fill()
+          // targets an editable element (not the MuiFormControl wrapper div).
+          inputProps={{ "data-testid": "session-feedback-comment" }}
           InputLabelProps={{ style: { color: "rgba(255,255,255,0.7)" } }}
           sx={{
             mb: 3,
