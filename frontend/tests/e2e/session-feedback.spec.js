@@ -71,11 +71,11 @@ test.describe("session feedback flow", () => {
 
     await expect(page.getByTestId("session-feedback-modal")).toBeVisible();
 
-    // Select 4 stars — MUI Rating renders radio inputs; target the 4th star
+    // Select 4 stars — click the visible label element (MUI Rating hides the radio inputs)
     await page
       .getByTestId("session-feedback-rating")
-      .locator('input[value="4"]')
-      .check({ force: true });
+      .locator('label[aria-label="4 Stars"]')
+      .click();
 
     await page
       .getByTestId("session-feedback-comment")
@@ -147,10 +147,10 @@ test.describe("session feedback flow", () => {
       password: seed.teacher.password,
     });
 
-    // Open the past classroom's detail drawer directly via URL
-    await page.goto(`${baseURL}/dashboard/${seed.classroom.class_event_id}`);
+    // Open the past classroom's detail drawer via URL (past_classroom has start_time in the past)
+    await page.goto(`${baseURL}/dashboard/${seed.past_classroom.id}`);
 
-    // Wait for the drawer to open
+    // Wait for the drawer to open and show the feedback section
     await expect(
       page.getByText("Session Feedback", { exact: true })
     ).toBeVisible({ timeout: 15000 });
