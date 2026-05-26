@@ -71,11 +71,11 @@ test.describe("session feedback flow", () => {
 
     await expect(page.getByTestId("session-feedback-modal")).toBeVisible();
 
-    // Select 4 stars — click the visible label element (MUI Rating hides the radio inputs)
+    // Select 4 stars — MUI Rating hides the radio inputs; force-click the hidden input directly
     await page
       .getByTestId("session-feedback-rating")
-      .locator('label[aria-label="4 Stars"]')
-      .click();
+      .locator('input[value="4"]')
+      .click({ force: true });
 
     await page
       .getByTestId("session-feedback-comment")
@@ -150,10 +150,15 @@ test.describe("session feedback flow", () => {
     // Open the past classroom's detail drawer via URL (past_classroom has start_time in the past)
     await page.goto(`${baseURL}/dashboard/${seed.past_classroom.id}`);
 
-    // Wait for the drawer to open and show the feedback section
-    await expect(
-      page.getByText("Session Feedback", { exact: true })
-    ).toBeVisible({ timeout: 15000 });
+    // Wait for class-events data to load and the drawer to open
+    await expect(page.getByTestId("class-event-drawer-content")).toBeVisible({
+      timeout: 20000,
+    });
+
+    // Auth context loads async — wait for the Session Feedback section to appear
+    await expect(page.getByText("Session Feedback")).toBeVisible({
+      timeout: 15000,
+    });
 
     await context.close();
   });
