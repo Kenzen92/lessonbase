@@ -80,6 +80,19 @@ class Command(BaseCommand):
         classroom.teachers.add(teacher)
         classroom.students.add(student)
 
+        # Past classroom: start_time in the past so `previous === true` in dashboard
+        ClassEvent.objects.filter(access_token="playwright-past-classroom").delete()
+        past_classroom = ClassEvent.objects.create(
+            name="Playwright Past Classroom",
+            start_time=timezone.now() - timedelta(hours=2),
+            duration=60,
+            subject=subject,
+            access_token="playwright-past-classroom",
+            is_active=True,
+        )
+        past_classroom.teachers.add(teacher)
+        past_classroom.students.add(student)
+
         payload = {
             "teacher": {
                 "id": teacher.id,
@@ -101,6 +114,11 @@ class Command(BaseCommand):
                 "id": classroom.id,
                 "access_token": classroom.access_token,
                 "name": classroom.name,
+            },
+            "past_classroom": {
+                "id": past_classroom.id,
+                "access_token": past_classroom.access_token,
+                "name": past_classroom.name,
             },
         }
 

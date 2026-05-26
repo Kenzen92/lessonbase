@@ -28,7 +28,7 @@ from .models import ClassEvent, TeachingResource, SessionFeedback
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import datetime, timedelta
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Sum, Avg, Q, CharField
 
 
@@ -470,12 +470,13 @@ class SessionFeedbackViewSet(viewsets.ViewSet):
             )
 
         try:
-            feedback = SessionFeedback.objects.create(
-                class_event=class_event,
-                student=user,
-                rating=rating,
-                comment=comment,
-            )
+            with transaction.atomic():
+                feedback = SessionFeedback.objects.create(
+                    class_event=class_event,
+                    student=user,
+                    rating=rating,
+                    comment=comment,
+                )
             return Response(
                 SessionFeedbackSerializer(feedback).data,
                 status=status.HTTP_201_CREATED,
