@@ -2,6 +2,7 @@ from django.urls import path, include
 
 from apps.classes.views import (
     ClassEventViewSet,
+    SessionFeedbackViewSet,
     class_material,
     class_report,
     student_statistics,
@@ -53,6 +54,7 @@ router.register(
     r"assignment-attempt", AssignmentAttemptViewSet, basename="assignment-attempt"
 )
 router.register(r"feedback", FeedbackViewSet, basename="feedback")
+router.register(r"session-feedback", SessionFeedbackViewSet, basename="session-feedback")
 
 urlpatterns = [
     # New allauth-based authentication endpoints

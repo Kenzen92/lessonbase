@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import ClassResources from "../Resources/class_resources";
+import ClassFeedbackSummary from "./class_feedback_summary";
 import { getSubjectIcon } from "../../utils/icons";
 import { PrimaryButton, WarningButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context";
@@ -22,6 +23,7 @@ import {
   FaClock,
   FaUsers,
   FaBook,
+  FaStar,
 } from "react-icons/fa";
 
 export default function ClassEventDetailsDrawer({
@@ -285,6 +287,35 @@ export default function ClassEventDetailsDrawer({
                   />
                 </CardContent>
               </Card>
+
+              {/* Session Feedback — teachers only, past classes */}
+              {auth.userType === "teacher" && currentClassEvent.previous && (
+                <Card
+                  sx={{
+                    backgroundColor: "rgba(255, 255, 255, 0.05)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    mb: 3,
+                  }}
+                >
+                  <CardContent>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: "#fff",
+                        mb: 2,
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <FaStar color="#ffc107" />
+                      Session Feedback
+                    </Typography>
+                    <ClassFeedbackSummary classEventId={currentClassEvent.id} />
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Action Buttons */}
               {auth.userType == "teacher" && (

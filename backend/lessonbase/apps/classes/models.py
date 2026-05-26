@@ -90,6 +90,27 @@ class ClassEvent(Event):
         return f"{self.subject} - {self.start_time} - {self.duration}"
 
 
+class SessionFeedback(models.Model):
+    class_event = models.ForeignKey(
+        ClassEvent, on_delete=models.CASCADE, related_name="session_feedbacks"
+    )
+    student = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name="session_feedbacks"
+    )
+    rating = models.SmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Student's rating of the session (1–5).",
+    )
+    comment = models.TextField(max_length=1000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("class_event", "student")
+
+    def __str__(self):
+        return f"{self.student} rated {self.class_event} — {self.rating}/5"
+
+
 class TeachingResource(models.Model):
     """
     A teaching resource represents a file or URL link to a resource related to a subject.

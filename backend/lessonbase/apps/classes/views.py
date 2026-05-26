@@ -23,11 +23,12 @@ from apps.classes.serialisers import (
 )
 from django.core.exceptions import ValidationError
 from apps.assignments.models import Assignment
-from .serialisers import ClassEventDateOrderedSerializer, ClassEventSerializer
-from .models import ClassEvent, TeachingResource
+from .serialisers import ClassEventDateOrderedSerializer, ClassEventSerializer, SessionFeedbackSerializer
+from .models import ClassEvent, TeachingResource, SessionFeedback
 from rest_framework import viewsets
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django.db import IntegrityError
 from django.db.models import Count, Sum, Avg, Q, CharField
 
 
@@ -417,6 +418,118 @@ def class_report(request):
     # Extract the message content correctly
     message_content = completion.choices[0].message.content
     return JsonResponse({"message": message_content})
+
+
+class SessionFeedbackViewSet(viewsets.ViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request):
+        user = request.user.get_real_instance()
+        if not isinstance(user, Student):
+            return Response(
+                {"error": "Only students can submit session feedback"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        class_event_id = request.data.get("class_event")
+        rating = request.data.get("rating")
+        comment = request.data.get("comment", "")
+
+        if class_event_id is None or rating is None:
+            return Response(
+                {"error": "class_event and rating are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            rating = int(rating)
+        except (TypeError, ValueError):
+            return Response(
+                {"error": "rating must be an integer"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not 1 <= rating <= 5:
+            return Response(
+                {"error": "rating must be between 1 and 5"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            class_event = ClassEvent.objects.get(id=class_event_id)
+        except ClassEvent.DoesNotExist:
+            return Response(
+                {"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not class_event.students.filter(id=user.id).exists():
+            return Response(
+                {"error": "You were not enrolled in this class"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            feedback = SessionFeedback.objects.create(
+                class_event=class_event,
+                student=user,
+                rating=rating,
+                comment=comment,
+            )
+            return Response(
+                SessionFeedbackSerializer(feedback).data,
+                status=status.HTTP_201_CREATED,
+            )
+        except IntegrityError:
+            return Response(
+                {"error": "You have already submitted feedback for this class"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(detail=True, methods=["get"])
+    def aggregate(self, request, pk=None):
+        user = request.user.get_real_instance()
+        if not isinstance(user, Teacher):
+            return Response(
+                {"error": "Only teachers can view aggregated feedback"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            class_event = ClassEvent.objects.get(id=pk)
+        except ClassEvent.DoesNotExist:
+            return Response(
+                {"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not class_event.teachers.filter(id=user.id).exists():
+            return Response(
+                {"error": "You do not teach this class"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        feedbacks = SessionFeedback.objects.filter(class_event=class_event)
+        agg = feedbacks.aggregate(
+            average_rating=Avg("rating"),
+            total_responses=Count("id"),
+        )
+        rating_distribution = {
+            str(i): feedbacks.filter(rating=i).count() for i in range(1, 6)
+        }
+        comments = list(
+            feedbacks.exclude(comment="").values(
+                "student__first_name", "student__last_name", "comment", "rating", "created_at"
+            )
+        )
+        return Response(
+            {
+                "class_event_id": pk,
+                "average_rating": round(agg["average_rating"], 2) if agg["average_rating"] else None,
+                "total_responses": agg["total_responses"],
+                "rating_distribution": rating_distribution,
+                "comments": comments,
+            }
+        )
 
 
 @api_view(["GET"])
