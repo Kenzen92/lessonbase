@@ -7,6 +7,7 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import Whiteboard from "./Whiteboard";
 import VideoChat from "./VideoChat";
 import TextChat from "./TextChat";
+import PostClassFeedbackModal from "./PostClassFeedbackModal";
 
 const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -18,6 +19,8 @@ const InteractiveClassroom = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [classroomData, setClassroomData] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   useEffect(() => {
     if (!accessToken) {
@@ -52,6 +55,7 @@ const InteractiveClassroom = () => {
         }
 
         setClassroomData(data.classroom);
+        setUserRole(data.user_role);
         setLoading(false);
       } catch (err) {
         console.error("Error validating classroom access:", err);
@@ -231,7 +235,14 @@ const InteractiveClassroom = () => {
           >
             <Tooltip title="Exit Classroom" arrow>
               <IconButton
-                onClick={() => navigate("/dashboard")}
+                data-testid="exit-classroom-btn"
+                onClick={() => {
+                  if (userRole === "student") {
+                    setShowFeedbackModal(true);
+                  } else {
+                    navigate("/dashboard");
+                  }
+                }}
                 sx={{
                   color: "rgba(255, 100, 100, 0.8)",
                   "&:hover": {
@@ -246,6 +257,10 @@ const InteractiveClassroom = () => {
           </Paper>
         </Grid>
       </Grid>
+      <PostClassFeedbackModal
+        open={showFeedbackModal}
+        classEventId={classroomData?.id}
+      />
     </Box>
   );
 };

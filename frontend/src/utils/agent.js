@@ -134,6 +134,24 @@ export const fetchProfileData = async (navigate) => {
   return await apiRequest(`${BASE_URL}/profile/`, "GET", null, navigate);
 };
 
+export const submitSessionFeedback = async (classEventId, rating, comment, navigate) => {
+  return await apiRequest(
+    getFullUrl("/session-feedback/"),
+    "POST",
+    { class_event: classEventId, rating, comment: comment || "" },
+    navigate,
+  );
+};
+
+export const fetchSessionFeedbackAggregate = async (classEventId, navigate) => {
+  return await apiRequest(
+    getFullUrl(`/session-feedback/${classEventId}/aggregate/`),
+    "GET",
+    null,
+    navigate,
+  );
+};
+
 export const fetchStudentProfile = async (id, navigate) => {
   return await apiRequest(`${BASE_URL}/student/${id}`, "GET", null, navigate);
 };

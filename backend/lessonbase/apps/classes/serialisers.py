@@ -7,7 +7,7 @@ from apps.user_accounts.serializers import (
 )
 from rest_framework import serializers
 from apps.subjects.models import Subject
-from apps.classes.models import ClassEvent, TeachingResource
+from apps.classes.models import ClassEvent, TeachingResource, SessionFeedback
 from apps.subjects.serializers import SubjectSerializer
 
 
@@ -84,6 +84,13 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
             "classroom_type",
         ]
         read_only_fields = ["id", "access_token"]
+
+
+class SessionFeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionFeedback
+        fields = ["id", "class_event", "rating", "comment", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
 class ClassEventSerializer(serializers.ModelSerializer):
