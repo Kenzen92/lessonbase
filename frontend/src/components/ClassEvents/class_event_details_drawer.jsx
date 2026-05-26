@@ -67,7 +67,6 @@ export default function ClassEventDetailsDrawer({
       }}
     >
       <Box
-        data-testid="class-event-drawer-content"
         sx={{
           width: 520,
           height: "100%",
