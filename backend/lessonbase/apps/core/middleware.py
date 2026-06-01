@@ -4,13 +4,27 @@ from django.contrib.auth.models import AnonymousUser
 from channels.db import database_sync_to_async
 from rest_framework.authtoken.models import Token
 
+from .authentication import token_is_expired, refresh_token_if_stale
+
+
 @database_sync_to_async
 def get_user(token_key):
     try:
         token = Token.objects.get(key=token_key)
-        return token.user
     except Token.DoesNotExist:
         return AnonymousUser()
+
+    # Apply the same expiry/rotation rules as the HTTP API so a stale token
+    # can't be used to open a WebSocket connection. These operate on the token
+    # itself; token.user is then resolved via the (polymorphic) related manager
+    # exactly as before, which eagerly loads the content type and keeps the
+    # later str(user) safe to call from this async middleware.
+    if token_is_expired(token):
+        token.delete()
+        return AnonymousUser()
+
+    refresh_token_if_stale(token)
+    return token.user
 
 class TokenAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):

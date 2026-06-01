@@ -7,7 +7,10 @@ from rest_framework.decorators import (
     permission_classes,
     authentication_classes,
 )
-from rest_framework.authentication import TokenAuthentication
+from apps.core.authentication import (
+    ExpiringTokenAuthentication as TokenAuthentication,
+    get_or_rotate_token,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import permissions, status
@@ -225,7 +228,8 @@ def login(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
         user = serializer.validated_data  # This should give you the user instance
-        token, created = Token.objects.get_or_create(user=user)
+        # Reuse the user's token (sliding its expiry), rotating only if expired.
+        token = get_or_rotate_token(user)
 
         if user.polymorphic_ctype.model == "teacher":
             return Response(
