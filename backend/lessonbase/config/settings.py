@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 import dj_database_url
 
@@ -263,8 +264,29 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly",
-    ]
+    ],
+    # Expiring/auto-rotating token auth (see apps/core/authentication.py). Used as
+    # the project-wide default so any view that doesn't set its own
+    # authentication_classes still gets expiring tokens rather than the stock
+    # non-expiring ones.
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.core.authentication.ExpiringTokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
 }
+
+# Auth token lifetime / rotation.
+# A token expires after this much *inactivity* (sliding window). Active users
+# keep their session — and stay logged in across browser restarts — while
+# abandoned tokens are invalidated. Configurable via AUTH_TOKEN_INACTIVITY_DAYS.
+AUTH_TOKEN_INACTIVITY_TTL = timedelta(
+    days=int(os.environ.get("AUTH_TOKEN_INACTIVITY_DAYS", "14"))
+)
+# A used token's "last seen" timestamp is only refreshed once it is older than
+# this, to avoid a database write on every authenticated request.
+AUTH_TOKEN_REFRESH_THRESHOLD = timedelta(
+    minutes=int(os.environ.get("AUTH_TOKEN_REFRESH_MINUTES", "5"))
+)
 
 
 # Password validation

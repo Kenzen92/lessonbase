@@ -5,9 +5,11 @@ from rest_framework.decorators import (
     authentication_classes,
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
+from .authentication import (
+    ExpiringTokenAuthentication as TokenAuthentication,
+    get_or_rotate_token,
+)
 from django.contrib.auth import get_user_model
 from allauth.account.models import (
     EmailAddress,
@@ -91,8 +93,8 @@ def login_view(request):
     if serializer.is_valid():
         user = serializer.validated_data["user"]
 
-        # Get or create token
-        token, created = Token.objects.get_or_create(user=user)
+        # Reuse the user's token (sliding its expiry), rotating only if expired.
+        token = get_or_rotate_token(user)
 
         # Get user type
         real_user = user.get_real_instance()
@@ -414,8 +416,8 @@ def google_login(request):
                 },
             )
 
-            # Get or create token
-            token, created = Token.objects.get_or_create(user=user)
+            # Reuse the user's token (sliding its expiry), rotating only if expired.
+            token = get_or_rotate_token(user)
 
             # Get user type
             real_user = user.get_real_instance()
