@@ -26,6 +26,7 @@ import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
 import { fetchAssignment, fetchAssignmentAttempt } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
+import { getToken } from "../../utils/tokenStorage";
 import { useAuth } from "../../contexts/auth_context";
 import StudentAssignmentAttemptForm from "./student_assignment_attempt_form";
 import { PrimaryButton, WarningButton } from "../../styles/buttons";
@@ -63,7 +64,7 @@ export default function AssignmentDetailsDrawer({
 
   const handleDeleteAssignment = async () => {
     try {
-      const auth = window.sessionStorage.getItem("token");
+      const auth = getToken();
       const response = await fetch(`/assignment/${assignment.id}/`, {
         method: "DELETE",
         headers: {

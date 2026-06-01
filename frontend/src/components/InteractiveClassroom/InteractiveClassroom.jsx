@@ -8,6 +8,7 @@ import Whiteboard from "./Whiteboard";
 import VideoChat from "./VideoChat";
 import TextChat from "./TextChat";
 import PostClassFeedbackModal from "./PostClassFeedbackModal";
+import { getToken } from "../../utils/tokenStorage";
 
 const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -30,7 +31,7 @@ const InteractiveClassroom = () => {
 
     const validateAccess = async () => {
       try {
-        const token = window.sessionStorage.getItem("token");
+        const token = getToken();
         const response = await fetch(`${API_BASE_URL}/classroom/validate/${accessToken}/`, {
           headers: {
             "Authorization": `Token ${token}`,

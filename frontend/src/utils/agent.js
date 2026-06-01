@@ -1,3 +1,5 @@
+import { getToken, clearAuth } from "./tokenStorage";
+
 export const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 // Helper function to ensure URL is properly formatted
@@ -7,7 +9,7 @@ const getFullUrl = (url) => {
 };
 
 export const apiRequest = async (url, method = "GET", body = null, navigate=null) => {
-  const auth = window.sessionStorage.getItem("token");
+  const auth = getToken();
   const headers = {
     Authorization: `Token ${auth}`,
     "Content-Type": "application/json",
@@ -50,8 +52,8 @@ export const apiRequest = async (url, method = "GET", body = null, navigate=null
 
 // Custom function for handling unauthorized requests
 export const handleUnauthorizedRequest = (navigate) => {
-  // Clear session storage and redirect to login
-  window.sessionStorage.clear();
+  // Clear persisted auth and redirect to login
+  clearAuth();
   navigate("/login");
 };
 export const fetchStudents = async (navigate) => {

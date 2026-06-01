@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import StudentSearch from "../Students/student_search";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
+import { getToken } from "../../utils/tokenStorage";
 import { toast } from "react-toastify";
 import inputStyle from "../../styles/input";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
@@ -120,7 +121,7 @@ const ClassEventWizard = ({
     };
 
     try {
-      const auth = window.sessionStorage.getItem("token");
+      const auth = getToken();
       const response = await fetch(`${BASE_URL}/class-event/`, {
         method: classData ? "PUT" : "POST", // Use PUT for updates, POST for new entries
         headers: {

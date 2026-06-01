@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import moment from "moment";
 import { FaWindowClose } from "react-icons/fa";
+import { getToken } from "../../utils/tokenStorage";
 
 const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
   const [message, setMessage] = useState("");
@@ -23,7 +24,7 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
   useEffect(() => {
     setMessages([]);
     setIsSocketReady(false);
-    const auth = window.sessionStorage.getItem("token");
+    const auth = getToken();
     WebSocketInstance.connect(chatId, auth);
     WebSocketInstance.addCallbacks(
       messageCallback,

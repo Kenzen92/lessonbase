@@ -1,3 +1,5 @@
+import { getToken } from "../utils/tokenStorage";
+
 // Helper function to build WebSocket URL
 function getWebSocketURL(path) {
     const WEBSOCKET_URL = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
@@ -19,7 +21,7 @@ function getWebSocketURL(path) {
 class WhiteboardSocketService {
   constructor(roomId) {
     this.roomId = roomId;
-    const token = window.sessionStorage.getItem("token");
+    const token = getToken();
     const wsUrl = `${getWebSocketURL(`/whiteboard/${roomId}/`)}?token=${token}`;
     this.ws = new WebSocket(wsUrl);
     this.setupWebSocket();
@@ -50,7 +52,7 @@ class WhiteboardSocketService {
 
       // Attempt to reconnect after 3 seconds for other errors
       setTimeout(() => {
-        const token = window.sessionStorage.getItem("token");
+        const token = getToken();
         const wsUrl = `${getWebSocketURL(`/whiteboard/${this.roomId}/`)}?token=${token}`;
         this.ws = new WebSocket(wsUrl);
         this.setupWebSocket();

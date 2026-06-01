@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Box, Typography, TextField, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { useAuth } from "../../contexts/auth_context";
+import { getToken } from "../../utils/tokenStorage";
 
 function getWebSocketURL(path) {
   const WEBSOCKET_URL = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
@@ -22,7 +23,7 @@ const TextChat = ({ roomId }) => {
   useEffect(() => {
     if (!roomId) return;
 
-    const token = window.sessionStorage.getItem("token");
+    const token = getToken();
     const wsUrl = `${getWebSocketURL(`/chat/${roomId}/`)}?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
