@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Button, Grid, TextField, Typography, Box, Divider, CircularProgress } from "@mui/material";
+import { Button, Grid, TextField, Typography, Box, Divider, CircularProgress, FormControlLabel, Checkbox } from "@mui/material";
 import { GoogleLogin } from '@react-oauth/google';
 import { motion } from "framer-motion";
 import { useAuth } from "../contexts/auth_context";
@@ -14,6 +14,7 @@ function Login() {
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -24,10 +25,12 @@ function Login() {
     
     try {
       const data = await loginUser({ email, password });
-      
-      // Store token and update auth context
-      login(data.token, data.user_type, data.user);
-      
+
+      // Store token and update auth context. When "remember me" is enabled the
+      // token is persisted across browser restarts; otherwise it lasts only for
+      // the current browser session.
+      login(data.token, data.user_type, data.user, { remember: rememberMe });
+
       toast.success(`Welcome back, ${data.user.first_name || data.user.email}!`);
       navigate("/dashboard");
     } catch (error) {
@@ -47,9 +50,9 @@ function Login() {
       // The credentialResponse contains the JWT token, not access_token
       // We need to send it to our backend which will verify it
       const data = await googleAuth(credentialResponse.credential, 'student');
-      
-      // Store token and update auth context
-      login(data.token, data.user_type, data.user);
+
+      // Store token and update auth context (honoring the remember-me choice)
+      login(data.token, data.user_type, data.user, { remember: rememberMe });
       
       if (data.is_new_user) {
         toast.success(`Welcome to LessonBase, ${data.user.first_name || data.user.email}!`);
@@ -178,7 +181,29 @@ function Login() {
                   disabled={isLoading}
                 />
                 
-                <Box sx={{ mt: 1, mb: 2, textAlign: "right" }}>
+                <Box
+                  sx={{
+                    mt: 1,
+                    mb: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        disabled={isLoading}
+                        size="small"
+                        inputProps={{ "aria-label": "Remember me" }}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">Remember me</Typography>
+                    }
+                  />
                   <Link to="/forgot-password" style={{ textDecoration: "none" }}>
                     <Typography variant="body2" color="primary">
                       Forgot Password?

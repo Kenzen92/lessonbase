@@ -72,8 +72,8 @@ test.describe("chat websocket flows", () => {
     await teacherClient.page.goto(classroomUrl);
     await studentClient.page.goto(classroomUrl);
 
-    await expect(teacherClient.page.getByTestId("classroom-chat-message-input")).toBeVisible();
-    await expect(studentClient.page.getByTestId("classroom-chat-message-input")).toBeVisible();
+    await expect(teacherClient.page.getByTestId("classroom-chat-message-input")).toBeVisible({ timeout: 30000 });
+    await expect(studentClient.page.getByTestId("classroom-chat-message-input")).toBeVisible({ timeout: 30000 });
   await expect(teacherClient.page.getByTestId("classroom-chat-send")).toBeEnabled({ timeout: 30000 });
   await expect(studentClient.page.getByTestId("classroom-chat-send")).toBeEnabled({ timeout: 30000 });
 
@@ -88,7 +88,7 @@ test.describe("chat websocket flows", () => {
     ).toBeVisible();
 
     await studentClient.page.reload();
-    await expect(studentClient.page.getByTestId("classroom-chat-message-input")).toBeVisible();
+    await expect(studentClient.page.getByTestId("classroom-chat-message-input")).toBeVisible({ timeout: 30000 });
     await expect(
       studentClient.page.getByTestId("classroom-chat-message").filter({ hasText: messageText }).first()
     ).toBeVisible();

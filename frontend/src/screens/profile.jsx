@@ -24,6 +24,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload"; // Optional: Icon
 import inputStyle from "../styles/input";
 import { useUser } from "../contexts/user_context";
 import { useSubjects } from "../contexts/subjects_context";
+import { getToken, setUser as cacheUser } from "../utils/tokenStorage";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 // Styled components for modern look (optional, can use sx prop too)
@@ -142,7 +143,7 @@ function Profile() {
       }
 
       try {
-        const auth = window.sessionStorage.getItem("token");
+        const auth = getToken();
         if (!auth) {
           toast.error("Authentication token not found. Please log in again.");
           navigate("/login"); // Redirect to login if no token
@@ -174,9 +175,8 @@ function Profile() {
         const data = await response.json();
         const updatedUser = data; // Assuming the backend returns the updated user object
 
-        // Update user data in session storage
-        window.sessionStorage.setItem("user", JSON.stringify(updatedUser));
-        console.log("User data updated in session storage.");
+        // Update cached user data (persisted alongside the token)
+        cacheUser(updatedUser);
 
         // Update the user cache in context and refetch to ensure consistency
         if (setUser) setUser(updatedUser);

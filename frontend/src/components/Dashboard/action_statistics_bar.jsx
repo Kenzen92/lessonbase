@@ -13,6 +13,7 @@ import { PrimaryButton, SecondaryButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context.jsx";
 import { useStatistics } from "../../contexts/statistics_context.jsx";
 import { useNavigate } from "react-router-dom";
+import { getToken } from "../../utils/tokenStorage";
 
 const API_BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -29,7 +30,7 @@ export default function ActionStatisticsBar({
   const handleCreatePracticeClassroom = async () => {
     setCreatingPractice(true);
     try {
-      const token = window.sessionStorage.getItem("token");
+      const token = getToken();
       const response = await fetch(`${API_BASE_URL}/classroom/practice/create/`, {
         method: "POST",
         headers: {

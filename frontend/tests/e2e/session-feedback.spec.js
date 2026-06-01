@@ -153,7 +153,11 @@ test.describe("session feedback flow", () => {
     });
 
     const result = await page.evaluate(async (classId) => {
-      const token = window.sessionStorage.getItem("token");
+      // Mirror the app's tokenStorage.getToken(): persistent login keeps the
+      // token in localStorage, falling back to sessionStorage for session-only logins.
+      const token =
+        window.localStorage.getItem("token") ||
+        window.sessionStorage.getItem("token");
       const res = await fetch(`/api/session-feedback/${classId}/aggregate/`, {
         headers: { Authorization: `Token ${token}` },
       });

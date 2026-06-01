@@ -20,6 +20,7 @@ import StudentListSearch from "../components/Students/student_list_search";
 import { useStudents } from "../contexts/students_context";
 import { useUser } from "../contexts/user_context";
 import { FaSpinner } from "react-icons/fa";
+import { getToken } from "../utils/tokenStorage";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 function Students() {
@@ -83,7 +84,7 @@ function Students() {
 
     const url = `${BASE_URL}/new-student/`;
     const payload = { email };
-    const auth = window.sessionStorage.getItem("token");
+    const auth = getToken();
 
     try {
       toast.promise(

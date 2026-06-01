@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useAuth } from "../contexts/auth_context";
+import { getToken, clearAuth } from "../utils/tokenStorage";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 const Navigation = () => {
@@ -29,7 +30,7 @@ const Navigation = () => {
 
   const handleLogoutConfirm = async () => {
     const url = `${BASE_URL}/logout/`;
-    const auth = window.sessionStorage.getItem("token");
+    const auth = getToken();
 
     try {
       const response = await fetch(url, {
@@ -49,7 +50,7 @@ const Navigation = () => {
         return;
       }
 
-      window.sessionStorage.removeItem("token");
+      clearAuth();
       navigate("/login");
     } catch (error) {
       console.error(error);

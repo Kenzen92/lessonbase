@@ -1,20 +1,23 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { getCurrentUser } from "../services/authService";
+import { getToken, setToken, clearAuth } from "../utils/tokenStorage";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [auth, setAuth] = useState({
-    token: window.sessionStorage.getItem("token"),
+    token: getToken(),
     userType: null,
     user: null,
     isLoading: true,
   });
 
   useEffect(() => {
-    const token = window.sessionStorage.getItem("token");
+    const token = getToken();
 
     if (token && !auth.user) {
+      // A token persisted from a previous session — validate it against the
+      // backend before trusting it, so a stale/revoked token logs the user out.
       getCurrentUser(token)
         .then((data) => {
           setAuth({
@@ -27,20 +30,20 @@ export function AuthProvider({ children }) {
         .catch((err) => {
           console.error("Failed to fetch user data", err);
           setAuth({ token: null, userType: null, user: null, isLoading: false });
-          window.sessionStorage.removeItem("token");
+          clearAuth();
         });
     } else if (!token) {
       setAuth({ token: null, userType: null, user: null, isLoading: false });
     }
   }, []);
 
-  const login = (token, userType, user) => {
-    window.sessionStorage.setItem("token", token);
+  const login = (token, userType, user, { remember = true } = {}) => {
+    setToken(token, { persist: remember });
     setAuth({ token, userType, user, isLoading: false });
   };
 
   const logout = () => {
-    window.sessionStorage.removeItem("token");
+    clearAuth();
     setAuth({ token: null, userType: null, user: null, isLoading: false });
   };
 

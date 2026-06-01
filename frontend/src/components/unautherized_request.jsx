@@ -1,4 +1,5 @@
 import { toast } from "react-toastify";
+import { clearAuth } from "../utils/tokenStorage";
 
 export default function handleUnauthorizedRequest(navigate) {
   const countdownDuration = 1; // Countdown duration in seconds
@@ -11,7 +12,7 @@ export default function handleUnauthorizedRequest(navigate) {
 
   // Redirect to login page after countdown
   setTimeout(() => {
-    window.sessionStorage.removeItem("Token");
+    clearAuth();
     navigate("/login");
   }, countdownDuration * 1000);
 }
