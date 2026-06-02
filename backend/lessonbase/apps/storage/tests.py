@@ -1,5 +1,12 @@
+import uuid
 from tempfile import TemporaryDirectory
 
+import uuid
+from tempfile import TemporaryDirectory
+
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -123,3 +130,38 @@ class StorageTests(TestCase):
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         return SimpleUploadedFile(name, content, content_type="text/plain")
+
+
+class R2StorageIntegrationTests(TestCase):
+    def _ensure_r2_settings(self):
+        if settings.STORAGES.get("default", {}).get("BACKEND") != "apps.storage.storage_backends.R2MediaStorage":
+            self.skipTest("R2 storage backend is not configured as the default storage backend.")
+
+        if not settings.AWS_S3_ENDPOINT_URL or not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+            self.skipTest("R2 credentials are not configured for integration tests.")
+
+    def test_r2_storage_upload_and_readback(self):
+        self._ensure_r2_settings()
+
+        test_key = f"ci-r2-test/{uuid.uuid4().hex}.txt"
+        content = b"lessonbase R2 integration test\n"
+
+        stored_key = default_storage.save(test_key, ContentFile(content))
+
+        def cleanup():
+            try:
+                default_storage.delete(stored_key)
+            except Exception:
+                pass
+
+        self.addCleanup(cleanup)
+
+        self.assertEqual(stored_key, test_key)
+        self.assertTrue(default_storage.exists(stored_key))
+
+        with default_storage.open(stored_key, "rb") as saved_file:
+            self.assertEqual(saved_file.read(), content)
+
+        object_url = default_storage.url(stored_key)
+        self.assertIn("/media/", object_url)
+        self.assertTrue(object_url.endswith(stored_key))
