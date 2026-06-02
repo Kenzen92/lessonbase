@@ -137,7 +137,10 @@ class R2StorageIntegrationTests(TestCase):
         if settings.STORAGES.get("default", {}).get("BACKEND") != "apps.storage.storage_backends.R2MediaStorage":
             self.skipTest("R2 storage backend is not configured as the default storage backend.")
 
-        if not settings.AWS_S3_ENDPOINT_URL or not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+        if not settings.AWS_S3_ENDPOINT_URL or "example.r2.cloudflarestorage.com" in settings.AWS_S3_ENDPOINT_URL:
+            self.skipTest("R2 endpoint is not configured for integration tests.")
+
+        if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
             self.skipTest("R2 credentials are not configured for integration tests.")
 
     def test_r2_storage_upload_and_readback(self):

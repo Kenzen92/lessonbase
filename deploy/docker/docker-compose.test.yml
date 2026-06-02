@@ -64,7 +64,7 @@ services:
       R2_BUCKET_NAME: ${R2_BUCKET_NAME:-lessonbase}
       R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-lessonbase-test-r2-key}
       R2_ACCESS_SECRET: ${R2_ACCESS_SECRET:-lessonbase-test-r2-secret}
-      R2_S3_API: ${R2_S3_API:-https://example.r2.cloudflarestorage.com}
+      R2_S3_API: ${R2_S3_API:-}
       OPENAI_API_KEY: test-openai-key
     depends_on:
       db:
@@ -99,7 +99,7 @@ services:
       R2_BUCKET_NAME: ${R2_BUCKET_NAME:-lessonbase}
       R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-lessonbase-test-r2-key}
       R2_ACCESS_SECRET: ${R2_ACCESS_SECRET:-lessonbase-test-r2-secret}
-      R2_S3_API: ${R2_S3_API:-https://example.r2.cloudflarestorage.com}
+      R2_S3_API: ${R2_S3_API:-}
       OPENAI_API_KEY: test-openai-key
       PORT: 8000
     depends_on:
