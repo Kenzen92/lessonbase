@@ -15,9 +15,24 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "lessonbase-redis-test"]
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "lessonbase-redis-test",
+      ]
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "lessonbase-redis-test", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "--no-auth-warning",
+          "-a",
+          "lessonbase-redis-test",
+          "ping",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -46,10 +61,10 @@ services:
       GOOGLE_CLIENT_SECRET: lessonbase-test-client-secret
       EMAIL_HOST_USER: ci@example.com
       EMAIL_HOST_PASSWORD: not-a-real-password
-      R2_BUCKET_NAME: lessonbase
-      R2_ACCESS_KEY_ID: lessonbase-test-r2-key
-      R2_ACCESS_SECRET: lessonbase-test-r2-secret
-      R2_S3_API: https://example.r2.cloudflarestorage.com
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-lessonbase}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-lessonbase-test-r2-key}
+      R2_ACCESS_SECRET: ${R2_ACCESS_SECRET:-lessonbase-test-r2-secret}
+      R2_S3_API: ${R2_S3_API:-https://example.r2.cloudflarestorage.com}
       OPENAI_API_KEY: test-openai-key
     depends_on:
       db:
@@ -81,10 +96,10 @@ services:
       GOOGLE_CLIENT_SECRET: lessonbase-test-client-secret
       EMAIL_HOST_USER: ci@example.com
       EMAIL_HOST_PASSWORD: not-a-real-password
-      R2_BUCKET_NAME: lessonbase
-      R2_ACCESS_KEY_ID: lessonbase-test-r2-key
-      R2_ACCESS_SECRET: lessonbase-test-r2-secret
-      R2_S3_API: https://example.r2.cloudflarestorage.com
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-lessonbase}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-lessonbase-test-r2-key}
+      R2_ACCESS_SECRET: ${R2_ACCESS_SECRET:-lessonbase-test-r2-secret}
+      R2_S3_API: ${R2_S3_API:-https://example.r2.cloudflarestorage.com}
       OPENAI_API_KEY: test-openai-key
       PORT: 8000
     depends_on:
@@ -93,7 +108,13 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/admin/login/', headers={'Host': 'backend'}); urllib.request.urlopen(req)"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; req = urllib.request.Request('http://127.0.0.1:8000/admin/login/', headers={'Host': 'backend'}); urllib.request.urlopen(req)",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

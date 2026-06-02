@@ -17,6 +17,11 @@ env:
   FRONTEND_API_URL: http://backend:8000
   FRONTEND_WS_URL: ws://backend:8000/ws
   FRONTEND_GOOGLE_CLIENT_ID: lessonbase-test-client-id.apps.googleusercontent.com
+  R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+  R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+  R2_ACCESS_SECRET: ${{ secrets.R2_ACCESS_SECRET }}
+  R2_S3_API: ${{ secrets.R2_S3_API }}
+  R2_REGION: ${{ secrets.R2_REGION }}
 
 jobs:
   backend-django:

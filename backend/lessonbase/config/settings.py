@@ -192,13 +192,7 @@ R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY") or os.environ.get(
     "R2_ACCESS_SECRET"
 )
 R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "lessonbase")
-R2_ENDPOINT_URL = os.environ.get(
-    "R2_ENDPOINT_URL",
-    os.environ.get("R2_S3_API")
-    or os.environ.get("R2_ENDPOINT")
-    or os.environ.get("AWS_S3_ENDPOINT_URL")
-    or (f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com" if R2_ACCOUNT_ID else None),
-)
+R2_ENDPOINT_URL = os.environ.get("R2_S3_API")
 
 AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
