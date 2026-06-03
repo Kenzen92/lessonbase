@@ -38,7 +38,7 @@ jobs:
         run: |
           docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py migrate --noinput
           docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py check
-          docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py test --verbosity 2
+          docker compose -f "$TEST_COMPOSE_FILE" run --rm backend-test python manage.py test --settings=config.settings_test --verbosity 2
 
       - name: Tear down backend test stack
         if: always()
