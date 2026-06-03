@@ -1,4 +1,11 @@
-import { createContext, useContext, useMemo, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useCallback,
+  useState,
+  useEffect,
+} from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import useAuthQuery from "../hooks/useAuthQuery.jsx";
 import {
@@ -12,6 +19,12 @@ export const AssignmentsContext = createContext(null);
 export const AssignmentsProvider = ({ children }) => {
   const queryClient = useQueryClient();
 
+  // Lazy gate: the query stays disabled until a component actually consumes
+  // this context (via useAssignments), so we don't fetch assignments on routes
+  // that never read them.
+  const [active, setActive] = useState(false);
+  const activate = useCallback(() => setActive(true), []);
+
   const {
     data: assignments,
     isLoading,
@@ -21,6 +34,7 @@ export const AssignmentsProvider = ({ children }) => {
   } = useAuthQuery(["assignments"], fetchAllAssignments, {
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 1,
+    enabled: active,
   });
 
   // Manual setter for updating cached assignments data
@@ -167,10 +181,14 @@ export const AssignmentsProvider = ({ children }) => {
       // Original query data
       data: assignments,
       assignments,
-      isLoading,
+      // While inactive the query is disabled and react-query reports
+      // isLoading=false with no data; surface it as loading so consumers that
+      // gate rendering on isLoading don't read undefined data before activation.
+      isLoading: !active || isLoading,
       isError,
       error,
       refetch,
+      activate,
 
       // Cache manipulation methods
       setAssignments,
@@ -193,10 +211,12 @@ export const AssignmentsProvider = ({ children }) => {
     }),
     [
       assignments,
+      active,
       isLoading,
       isError,
       error,
       refetch,
+      activate,
       setAssignments,
       updateAssignment,
       addAssignment,
@@ -226,5 +246,14 @@ export const useAssignments = () => {
     throw new Error(
       "useAssignments must be used within an AssignmentsProvider"
     );
+
+  // Activating on mount is what makes the underlying query fire. Because this
+  // runs only when a component consumes the context, routes that never call
+  // useAssignments never trigger the /assignment/ fetch.
+  const { activate } = ctx;
+  useEffect(() => {
+    activate();
+  }, [activate]);
+
   return ctx;
 };

@@ -85,7 +85,6 @@ export default function StudentAssignmentAttemptForm({
         formData,
         navigate
       );
-      console.log(result);
     } catch (error) {
       console.error("Submission error:", error);
     } finally {

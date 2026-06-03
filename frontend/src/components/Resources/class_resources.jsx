@@ -45,7 +45,6 @@ const ClassResources = ({
   };
 
   const handleSubmit = () => {
-    console.log("submitting");
     const formData = new FormData();
 
     // Append selected files to form data
@@ -57,7 +56,7 @@ const ClassResources = ({
     if (assignmentAttemptId)
       formData.append("assignment_attempt_id", assignmentAttemptId);
     const auth = getToken();
-    fetch(`${BASE_URL}/class_material`, {
+    fetch(`${BASE_URL}/class_material/`, {
       method: "POST",
       headers: {
         Authorization: `Token ${auth}`,

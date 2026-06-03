@@ -52,7 +52,6 @@ const Dropzone = ({ onDrop }) => {
       },
       maxSize: 50 * 1024 * 1024, // 50MB
       onDropAccepted: (files) => {
-        console.log(files);
         onDrop(files);
       },
       onDropRejected: (files) => {

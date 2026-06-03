@@ -84,7 +84,6 @@ const AddAssignmentWizard = ({
   };
 
   const handleNext = () => {
-    console.log("handling next");
     setStep((prev) => prev + 1);
   };
 
@@ -94,7 +93,6 @@ const AddAssignmentWizard = ({
 
   // This function will now receive the validated form data from handleSubmit
   const handleFinalSubmit = async (data) => {
-    console.log("students: ", selectedStudents);
     // Format the due_date using dayjs to 'YYYY-MM-DD'
     const formattedDueDate = data.due_date
       ? dayjs(data.due_date).format("YYYY-MM-DD")
@@ -117,8 +115,6 @@ const AddAssignmentWizard = ({
       files: selectedFiles, // You'll likely need to handle file uploads separately or in handleCreateAssignment
     };
 
-    console.log("Assignment data to send:", assignmentData);
-
     try {
       // Ensure handleCreateAssignment is available
       if (typeof handleCreateAssignment !== "function") {
@@ -128,7 +124,6 @@ const AddAssignmentWizard = ({
       }
 
       const result = await handleCreateAssignment(assignmentData);
-      console.log("result: ", result);
       if (result.status == 201) {
         toast.success(result.message || "Assignment created successfully!");
 
