@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -5,189 +6,169 @@ import {
   Typography,
   CircularProgress,
   Chip,
+  Link,
 } from "@mui/material";
-import React, { useState, useEffect, useCallback } from "react";
 import Dropzone from "../Resources/dropzone";
-import { submitAssignmentAttempt } from "../../utils/agent"; // Your imported API call function
-import inputStyle from "../../styles/input";
+import { toast } from "react-toastify";
 import { FaUpload } from "react-icons/fa";
-import { handleDeleteAssignmentFile } from "../../utils/agent";
-import { useNavigate } from "react-router-dom";
-import { handleSubmitAssignmentFiles } from "../../utils/agent";
+import { resolveMediaUrl } from "../../utils/media";
+import { getToken } from "../../utils/tokenStorage";
 
-// Assume navigate is passed as a prop from react-router-dom
-export default function StudentAssignmentAttemptForm({
-  assignment,
-  assignmentAttempt = null,
-}) {
-  const navigate = useNavigate();
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+
+export default function StudentAssignmentAttemptForm({ assignment, assignmentAttempt = null, onReload }) {
   const [answerText, setAnswerText] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState([]); // State for files to be uploaded
-  const [existingFiles, setExistingFiles] = useState([]); // State for info about already submitted files
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [existingFiles, setExistingFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Effect to load existing data if assignmentAttempt is provided
   useEffect(() => {
     if (assignmentAttempt) {
       setAnswerText(assignmentAttempt.answer_text || "");
-      setExistingFiles(assignmentAttempt.submitted_files || []);
+      setExistingFiles(assignmentAttempt.files || []);
     }
   }, [assignmentAttempt]);
 
-  // Determine if the attempt is already submitted/graded to disable inputs
   const isAttemptCompleted =
     assignmentAttempt &&
-    (assignmentAttempt.graded || assignmentAttempt.accepted);
-
-  const handleTextChange = (event) => {
-    setAnswerText(event.target.value);
-  };
+    assignmentAttempt.status !== "draft" &&
+    assignmentAttempt.status !== "returned";
 
   const handleFileDrop = (files) => {
-    setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
   const handleRemoveFile = (fileToRemove) => {
-    setSelectedFiles(selectedFiles.filter((file) => file !== fileToRemove));
-  };
-
-  const handleDeleteFile = (resourceURL) => {
-    const deleteBody = JSON.stringify({ file_url: resourceURL });
-    handleDeleteAssignmentFile(deleteBody)
-      .then((response) => {
-        if (response.ok) {
-          toast.success("File deleted successfully");
-          handleReloadData();
-        } else {
-          toast.error("Failed to delete file");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        toast.error("An error occurred while deleting the file");
-      });
+    setSelectedFiles((prev) => prev.filter((f) => f !== fileToRemove));
   };
 
   const handleSubmit = async () => {
+    if (!assignment?.id) return;
     setIsLoading(true);
     try {
-      // assignmentId is required for the API call structure provided
-      if (!assignment.id) {
-        throw new Error("assignment ID is missing.");
-      }
       const formData = new FormData();
-      selectedFiles.forEach((file) => formData.append(file, file.filename));
       formData.append("answer_text", answerText);
-      formData.append("assignment_id", assignment.id);
-      // The API call function signature is submitAssignmentAttempt(assignmentID, data, navigate)
-      const result = await submitAssignmentAttempt(
-        assignment.id,
-        formData,
-        navigate
-      );
+      formData.append("assignment", assignment.id);
+      // Fix: use file.name as the filename, not the File object as the key
+      selectedFiles.forEach((file) => formData.append("files", file, file.name));
+
+      const res = await fetch(`${BASE_URL}/assignment/${assignment.id}/submissions/`, {
+        method: "POST",
+        headers: { Authorization: `Token ${getToken()}` },
+        body: formData,
+      });
+
+      if (res.ok || res.status === 201) {
+        toast.success("Submission saved successfully");
+        setSelectedFiles([]);
+        onReload?.();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || err.detail || "Submission failed");
+      }
     } catch (error) {
       console.error("Submission error:", error);
+      toast.error("An error occurred while submitting");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Box sx={{ mt: 2, p: 2, border: "1px solid #ccc", borderRadius: 1 }}>
+    <Box sx={{ mt: 2, p: 2, border: "1px solid rgba(255,255,255,0.1)", borderRadius: 1 }}>
       <Typography variant="h6" gutterBottom sx={{ color: "white" }}>
-        {assignmentAttempt ? "assignment Attempt" : "Submit assignment"}
+        {assignmentAttempt ? "Your Submission" : "Submit Assignment"}
       </Typography>
 
-      {/* Display existing attempt status if applicable */}
+      {/* Submission status */}
       {assignmentAttempt && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="subtitle1" sx={{ color: "white" }}>
-            Submission Status:
+            Status: {assignmentAttempt.status}
           </Typography>
-          <Typography variant="body2" sx={{ color: "white" }}>
-            Submitted At:{" "}
-            {new Date(assignmentAttempt.submitted_at).toLocaleString()}
-          </Typography>
-          <Typography variant="body2" sx={{ color: "white" }}>
-            Graded: {assignmentAttempt.graded ? "Yes" : "No"}
-          </Typography>
-          {assignmentAttempt.graded && (
-            <Typography variant="body2" sx={{ color: "white" }}>
-              Accepted: {assignmentAttempt.accepted ? "Yes" : "No"}
+          {assignmentAttempt.submitted_at && (
+            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
+              Submitted: {new Date(assignmentAttempt.submitted_at).toLocaleString()}
             </Typography>
           )}
         </Box>
       )}
 
-      {/* Text Answer Input */}
+      {/* Text answer */}
       <TextField
         label="Your Answer (Optional)"
         multiline
         rows={4}
         fullWidth
         value={answerText}
-        onChange={handleTextChange}
+        onChange={(e) => setAnswerText(e.target.value)}
         margin="normal"
-        disabled={isAttemptCompleted} // Disable if attempt is completed
-        sx={{ ...inputStyle }}
+        disabled={isAttemptCompleted}
+        sx={{
+          "& .MuiOutlinedInput-root": {
+            color: "#fff",
+            "& fieldset": { borderColor: "rgba(255,255,255,0.2)" },
+            "&:hover fieldset": { borderColor: "rgba(255,255,255,0.3)" },
+            "&.Mui-focused fieldset": { borderColor: "#2196F3" },
+          },
+          "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" },
+        }}
       />
 
-      {/* DropBox */}
-      <Dropzone onDrop={handleFileDrop} />
+      {/* Existing files */}
       {existingFiles.length === 0 ? (
-        <Typography variant="body1" color={"#fff"} sx={{ mt: 4 }}>
-          No class resources available.
+        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.5)", mt: 2 }}>
+          No files attached yet.
         </Typography>
       ) : (
-        existingFiles.map((resource, index) => (
+        existingFiles.map((resource, i) => (
           <Chip
-            key={index}
+            key={resource.id ?? i}
             label={
               <Link
-                href={resource.file}
+                href={resolveMediaUrl(resource.file || resource.file_url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "inherit", textDecoration: "none" }}
+                download={resource.original_name || resource.title}
+                sx={{ color: "inherit", textDecoration: "none" }}
               >
-                {resource.name}
+                {resource.title || resource.original_name || "File"}
               </Link>
             }
-            onDelete={() => handleDeleteFile(resource.file)}
-            sx={{
-              margin: "0.5rem",
-              width: "100%",
-              justifyContent: "space-between",
-            }}
             color="primary"
+            sx={{ m: "0.25rem", width: "100%", justifyContent: "space-between" }}
           />
         ))
       )}
-      {selectedFiles.map((file, index) => (
-        <Chip
-          key={index}
-          label={file.name}
-          onDelete={() => handleRemoveFile(file)}
-          color="secondary"
-          sx={{
-            margin: "0.5rem",
-            width: "100%",
-            justifyContent: "space-between",
-            color: "secondary",
-          }}
-        />
-      ))}
 
-      {/* Submission Button */}
+      {/* Dropzone — only when submission is editable */}
+      {!isAttemptCompleted && (
+        <>
+          <Box sx={{ mt: 2 }}>
+            <Dropzone onDrop={handleFileDrop} />
+          </Box>
+          {selectedFiles.map((file, i) => (
+            <Chip
+              key={i}
+              label={file.name}
+              onDelete={() => handleRemoveFile(file)}
+              color="secondary"
+              sx={{ m: "0.25rem", width: "100%", justifyContent: "space-between" }}
+            />
+          ))}
+        </>
+      )}
+
+      {/* Submit button */}
       <Box sx={{ mt: 2, textAlign: "right" }}>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSubmit}
-          disabled={isLoading || isAttemptCompleted} // Disable while loading or if attempt is completed
-          startIcon={isLoading ? <CircularProgress size={20} /> : null}
+          disabled={isLoading || isAttemptCompleted}
+          startIcon={isLoading ? <CircularProgress size={20} /> : <FaUpload />}
         >
-          {assignmentAttempt ? "Update Attempt" : "Submit Attempt"}{" "}
-          {/* Button text can change */}
+          {assignmentAttempt ? "Update Submission" : "Submit"}
         </Button>
       </Box>
     </Box>

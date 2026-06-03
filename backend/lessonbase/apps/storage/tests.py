@@ -12,7 +12,8 @@ from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
-from apps.classes.models import ClassEvent, TeachingResource
+from apps.classes.models import ClassEvent
+from apps.resources.models import Resource
 from apps.subjects.models import Subject
 from apps.user_accounts.models import Teacher
 
@@ -96,21 +97,20 @@ class StorageTests(TestCase):
         self.assertEqual(media_response["Content-Type"], "image/gif")
         self.assertEqual(b"".join(media_response.streaming_content), ONE_BY_ONE_GIF)
 
-    def test_teaching_resource_upload_and_readback(self):
+    def test_resource_upload_and_readback(self):
+        """Upload a file via the new class-event resources endpoint and verify
+        it is served correctly through the media view."""
         file_content = b"lessonbase storage test resource\n"
         response = self.client.post(
-            "/class_material/",
-            {
-                "class_id": str(self.class_event.id),
-                "file": self._text_upload("lesson-plan.txt", file_content),
-            },
+            f"/class-event/{self.class_event.id}/resources/",
+            {"file": self._text_upload("lesson-plan.txt", file_content)},
             format="multipart",
         )
 
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, response.data)
 
-        resource = TeachingResource.objects.get(class_event=self.class_event)
-        self.assertEqual(resource.name, "lesson-plan.txt")
+        resource = Resource.objects.get(class_links__class_event=self.class_event)
+        self.assertEqual(resource.original_name, "lesson-plan.txt")
         self.assertTrue(resource.file.name.startswith("resources/"))
 
         media_response = self.client.get(f"/media/{resource.file.name}")

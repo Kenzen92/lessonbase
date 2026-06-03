@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
-import { fetchAssignment, fetchAssignmentAttempt } from "../../utils/agent";
+import { fetchAssignment, fetchAssignmentSubmissions } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
 import { getToken } from "../../utils/tokenStorage";
 import { useAuth } from "../../contexts/auth_context";
@@ -398,7 +398,7 @@ function TeacherStudentView({
   const [studentAttempts, setStudentAttempts] = useState({});
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
 
-  // Fetch all student attempts when assignment details are loaded
+  // Fetch all student submissions in one request when assignment details load
   useEffect(() => {
     const fetchAllAttempts = async () => {
       if (
@@ -411,26 +411,17 @@ function TeacherStudentView({
       const attempts = {};
 
       try {
-        await Promise.all(
-          assignmentDetails.students.map(async (student) => {
-            try {
-              const attempt = await fetchAssignmentAttempt(
-                assignment.id,
-                student.id
-              );
-              if (attempt) {
-                attempts[student.id] = attempt;
-              }
-            } catch (error) {
-              // Student has no attempt, which is fine
-              console.debug(`No attempt for student ${student.id}`);
+        const submissions = await fetchAssignmentSubmissions(assignment.id);
+        if (Array.isArray(submissions)) {
+          submissions.forEach((sub) => {
+            if (sub.student?.id) {
+              attempts[sub.student.id] = sub;
             }
-          })
-        );
-
+          });
+        }
         setStudentAttempts(attempts);
       } catch (error) {
-        console.error("Error fetching student attempts:", error);
+        console.error("Error fetching student submissions:", error);
       } finally {
         setIsLoadingAttempts(false);
       }
@@ -452,13 +443,12 @@ function TeacherStudentView({
 
     assignmentDetails.students.forEach((student) => {
       const attempt = studentAttempts[student.id];
-      if (attempt) {
-        if (attempt.graded) {
-          groups.graded.push(student);
-        } else {
-          groups.needsGrading.push(student);
-        }
+      if (attempt && ["graded", "returned"].includes(attempt.status)) {
+        groups.graded.push(student);
+      } else if (attempt && attempt.status === "submitted") {
+        groups.needsGrading.push(student);
       } else {
+        // no submission, draft, or not yet loaded
         groups.notSubmitted.push(student);
       }
     });

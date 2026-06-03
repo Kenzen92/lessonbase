@@ -7,6 +7,14 @@ const wsProxyTarget = process.env.VITE_PROXY_WS_TARGET || 'ws://localhost:8000'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.js",
+    css: false,
+    include: ["src/**/*.test.{js,jsx}"],
+    exclude: ["tests/**", "node_modules/**"],
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,

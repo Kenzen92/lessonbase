@@ -1,7 +1,6 @@
 import datetime
-from urllib.parse import urlparse
 
-from django.db.models import Count, Sum, Q, Case, When, Value
+from django.db.models import Count, Sum, Q, Case, When, Value, Avg
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from openai import OpenAI
@@ -20,16 +19,15 @@ from apps.user_accounts.models import ClassGroup, Student, Teacher
 from apps.classes.serialisers import (
     ClassEventSerializer,
     ClassEventCreateSerializer,
+    ClassEventDateOrderedSerializer,
+    SessionFeedbackSerializer,
 )
-from django.core.exceptions import ValidationError
 from apps.assignments.models import Assignment
-from .serialisers import ClassEventDateOrderedSerializer, ClassEventSerializer, SessionFeedbackSerializer
-from .models import ClassEvent, TeachingResource, SessionFeedback
+from .models import ClassEvent, SessionFeedback
 from rest_framework import viewsets
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.db import IntegrityError, transaction
-from django.db.models import Count, Sum, Avg, Q, CharField
 
 
 class ClassEventViewSet(viewsets.ViewSet):
@@ -41,13 +39,11 @@ class ClassEventViewSet(viewsets.ViewSet):
             return ClassEventCreateSerializer
         if self.action == "list":
             return ClassEventDateOrderedSerializer
-        else:
-            return ClassEventSerializer
+        return ClassEventSerializer
 
     def list(self, request):
         user = request.user.get_real_instance()
         if isinstance(user, Teacher):
-            # Exclude practice classrooms from the regular dashboard list
             class_events = (
                 ClassEvent.objects.filter(teachers=user, classroom_type="scheduled")
                 .distinct()
@@ -55,7 +51,6 @@ class ClassEventViewSet(viewsets.ViewSet):
                 .prefetch_related("students")
             )
         else:
-            # Students only see scheduled classrooms (they can't be in practice ones)
             class_events = (
                 ClassEvent.objects.filter(students=user, classroom_type="scheduled")
                 .distinct()
@@ -81,9 +76,7 @@ class ClassEventViewSet(viewsets.ViewSet):
                 {"message": "Class event created successfully"},
                 status=status.HTTP_201_CREATED,
             )
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, pk=None):
         try:
@@ -105,10 +98,7 @@ class ClassEventViewSet(viewsets.ViewSet):
         try:
             class_event = ClassEvent.objects.get(id=pk)
             class_event.delete()
-            return Response(
-                {"message": "Class event deleted successfully"},
-                status=status.HTTP_204_NO_CONTENT,
-            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except ClassEvent.DoesNotExist:
             return Response(
                 {"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND
@@ -117,7 +107,7 @@ class ClassEventViewSet(viewsets.ViewSet):
     def _update_class_event(self, request, pk, partial):
         if not pk:
             return Response(
-                {"error": "Class event ID is required for updating"},
+                {"error": "Class event ID is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -126,7 +116,6 @@ class ClassEventViewSet(viewsets.ViewSet):
             return Response(
                 {"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND
             )
-
         teacher_ids = [request.user.pk]
         student_ids = request.data.get("students", [])
         teachers = Teacher.objects.filter(pk__in=teacher_ids)
@@ -137,13 +126,8 @@ class ClassEventViewSet(viewsets.ViewSet):
             class_event = serializer.save()
             class_event.teachers.set(teachers)
             class_event.students.set(students)
-            return Response(
-                {"message": "Class event updated successfully"},
-                status=status.HTTP_200_OK,
-            )
-        return Response(
-            {"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
-        )
+            return Response({"message": "Class event updated successfully"})
+        return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["GET", "POST", "DELETE", "PUT", "PATCH"])
@@ -151,7 +135,6 @@ class ClassEventViewSet(viewsets.ViewSet):
 @permission_classes([IsAuthenticated])
 def class_events_for_student(request, student_id=None):
     if request.method == "GET":
-        # Only return scheduled classrooms, not practice ones
         class_events = ClassEvent.objects.filter(
             students=student_id, classroom_type="scheduled"
         )
@@ -163,12 +146,13 @@ def class_events_for_student(request, student_id=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def student_statistics(request):
+    from apps.resources.models import Resource
+
     page = request.GET.get("page")
     try:
         student = Student.objects.get(pk=request.user.id)
-        current_datetime = datetime.now()
+        current_datetime = datetime.datetime.now()
 
-        # Common Queries (exclude practice classrooms from statistics)
         total_classes = ClassEvent.objects.filter(
             students=student, classroom_type="scheduled"
         ).count()
@@ -190,17 +174,15 @@ def student_statistics(request):
                 "completed_classes": completed_classes,
                 "upcoming_classes": upcoming_classes,
             }
-
         elif page == "assignments":
             stats = {
                 "total_assignments": total_assignments,
-                "total_documents": TeachingResource.objects.filter(
-                    homework_resource__students=student
+                "total_documents": Resource.objects.filter(
+                    assignment_links__assignment__students=student
                 )
                 .distinct()
                 .count(),
             }
-
         else:
             return Response(
                 {"error": "Invalid page parameter"}, status=status.HTTP_400_BAD_REQUEST
@@ -218,11 +200,12 @@ def student_statistics(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def teacher_statistics(request):
+    from apps.resources.models import Resource
+
     try:
         teacher = Teacher.objects.get(pk=request.user.id)
-        current_datetime = datetime.now()
+        current_datetime = datetime.datetime.now()
 
-        # Common Queries (exclude practice classrooms from statistics)
         total_students = teacher.students.count()
         upcoming_classes = ClassEvent.objects.filter(
             teachers=teacher,
@@ -256,8 +239,8 @@ def teacher_statistics(request):
             ),
             "average_students_per_group": average_students_per_group["avg_students"],
             "total_assignments": total_assignments,
-            "total_documents": TeachingResource.objects.filter(
-                homework_resource__teachers=teacher
+            "total_documents": Resource.objects.filter(
+                assignment_links__assignment__teachers=teacher
             )
             .distinct()
             .count(),
@@ -272,85 +255,11 @@ def teacher_statistics(request):
         )
 
 
-@api_view(["POST", "DELETE"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def class_material(request):
-    if request.method == "POST":
-        # Ensure class_id is provided
-        print(request.data)
-        class_id = request.data.get("class_id")
-        if class_id is None:
-            return Response(
-                {"error": "class_id is required"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Extract class event from class_id (assuming it's part of TeachingResourceSerializer)
-        try:
-            class_event = ClassEvent.objects.get(
-                id=class_id
-            )  # Replace with actual model query
-            print(class_event)
-        except ClassEvent.DoesNotExist:
-            return Response(
-                {"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Handle file uploads
-        files = request.FILES.getlist("file")  # getlist to handle multiple files
-        print(files)
-        if not files:
-            return Response(
-                {"error": "No files provided"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Process each file individually
-        for uploaded_file in files:
-            teaching_resource = TeachingResource(
-                name=uploaded_file.name,
-                file=uploaded_file,
-                subject=class_event.subject,
-                class_event=class_event,
-            )
-
-            try:
-                teaching_resource.save()
-            except ValidationError as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(
-            {"message": "Teaching resources created successfully"},
-            status=status.HTTP_201_CREATED,
-        )
-
-    else:
-        # Handle delete request.
-        #
-        # Recover the storage key from the file URL. This must work for both
-        # URL shapes media can take: the Django proxy ("…/media/resources/x")
-        # and direct R2/CDN serving ("https://media.example/resources/x", with
-        # no "/media/" segment). Normalise by taking the path, dropping the
-        # leading slash, and stripping a leading "media/" only if present.
-        file_url = request.data.get("file_url")
-        file_name = None
-        if file_url:
-            path = urlparse(file_url).path.lstrip("/")
-            file_name = path[len("media/") :] if path.startswith("media/") else path
-        resource = TeachingResource.objects.filter(file=file_name).first()
-        if resource:
-            resource.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
 @api_view(["POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def class_report(request):
-    class_id = request.data.get(
-        "classID"
-    )  # Assuming the class ID is passed as a query parameter
+    class_id = request.data.get("classID")
     if class_id is None:
         return Response(
             {"error": "classID is required"}, status=status.HTTP_400_BAD_REQUEST
@@ -362,16 +271,10 @@ def class_report(request):
             {"error": "Class event not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    # Extract necessary information
     student_name = class_event.students.first()
     time_of_class = class_event.start_time
     subject = class_event.subject.name
     duration = class_event.duration
-
-    # Prepare the context for the LLM
-    class_summary = request.data.get("lesson_summary")
-
-    # Prepare the context for the LLM
     class_summary = request.data.get("lesson_summary", "No summary provided")
 
     context = f"""
@@ -388,43 +291,36 @@ def class_report(request):
     Teacher's summary: {class_summary}
     """
 
-    # Initialize OpenAI client and request a completion
     client = OpenAI()
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo", messages=[{"role": "system", "content": context}]
     )
-    # Split the text into summary and homework sections
     summary_start = completion.choices[0].message.content.find("Summary:")
     homework_start = completion.choices[0].message.content.find("Homework:")
-
     summary = (
         completion.choices[0]
-        .message.content[summary_start + len("Summary:") : homework_start]
+        .message.content[summary_start + len("Summary:"): homework_start]
         .strip()
     )
     homework = (
         completion.choices[0]
-        .message.content[homework_start + len("Homework:") :]
+        .message.content[homework_start + len("Homework:"):]
         .strip()
     )
 
-    # Create a new document
+    from docx import Document
+
     document = Document()
     document.add_heading(f"{student_name}'s Class Report", 0)
-
     table = document.add_table(rows=5, cols=1)
     table.rows[0].cells[0].text = f"Course: {subject}"
     table.rows[1].cells[0].text = f"Date: {time_of_class}"
     table.rows[2].cells[0].text = f"Duration: {duration} minutes"
     table.rows[3].cells[0].text = f"Class Summary: {summary}"
     table.rows[4].cells[0].text = f"Homework: {homework}"
-
-    # Save the document
     document.save("demo.docx")
 
-    # Extract the message content correctly
-    message_content = completion.choices[0].message.content
-    return JsonResponse({"message": message_content})
+    return JsonResponse({"message": completion.choices[0].message.content})
 
 
 class SessionFeedbackViewSet(viewsets.ViewSet):
@@ -526,13 +422,19 @@ class SessionFeedbackViewSet(viewsets.ViewSet):
         }
         comments = list(
             feedbacks.exclude(comment="").values(
-                "student__first_name", "student__last_name", "comment", "rating", "created_at"
+                "student__first_name",
+                "student__last_name",
+                "comment",
+                "rating",
+                "created_at",
             )
         )
         return Response(
             {
                 "class_event_id": pk,
-                "average_rating": round(agg["average_rating"], 2) if agg["average_rating"] else None,
+                "average_rating": (
+                    round(agg["average_rating"], 2) if agg["average_rating"] else None
+                ),
                 "total_responses": agg["total_responses"],
                 "rating_distribution": rating_distribution,
                 "comments": comments,
@@ -544,32 +446,22 @@ class SessionFeedbackViewSet(viewsets.ViewSet):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def validate_classroom_access(request, access_token):
-    """
-    Validates if the authenticated user has access to a classroom
-    Returns classroom details if access is granted
-    """
     try:
         classroom = ClassEvent.objects.get(access_token=access_token, is_active=True)
 
-        # Check if classroom has expired
         if classroom.is_expired():
             return Response(
                 {"error": "This classroom has expired", "expired": True},
                 status=status.HTTP_410_GONE,
             )
 
-        # Check if user has access
         user = request.user.get_real_instance()
         if not classroom.can_access(user):
             return Response(
-                {
-                    "error": "You do not have permission to access this classroom",
-                    "forbidden": True,
-                },
+                {"error": "You do not have permission to access this classroom"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Return classroom details
         serializer = ClassEventSerializer(classroom)
         user_id = user.id if hasattr(user, "id") else user.pk
         is_teacher = classroom.teachers.filter(id=user_id).exists()
@@ -578,13 +470,12 @@ def validate_classroom_access(request, access_token):
                 "access_granted": True,
                 "classroom": serializer.data,
                 "user_role": "teacher" if is_teacher else "student",
-            },
-            status=status.HTTP_200_OK,
+            }
         )
 
     except ClassEvent.DoesNotExist:
         return Response(
-            {"error": "Invalid classroom access token", "not_found": True},
+            {"error": "Invalid classroom access token"},
             status=status.HTTP_404_NOT_FOUND,
         )
 
@@ -593,22 +484,15 @@ def validate_classroom_access(request, access_token):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def create_practice_classroom(request):
-    """
-    Creates a practice/demo classroom for teachers to experiment with
-    Practice classrooms expire after 2 hours
-    """
     user = request.user.get_real_instance()
 
-    # Only teachers can create practice classrooms
     if not isinstance(user, Teacher):
         return Response(
             {"error": "Only teachers can create practice classrooms"},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Get a default subject for the teacher
     try:
-        # Try to get the teacher's most used subject
         from apps.subjects.models import Subject
 
         subject = (
@@ -617,8 +501,6 @@ def create_practice_classroom(request):
             .order_by("-usage_count")
             .first()
         )
-
-        # If no subject found, get any subject or create a default one
         if not subject:
             subject = Subject.objects.first()
             if not subject:
@@ -629,16 +511,13 @@ def create_practice_classroom(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    # Create practice classroom with 2-hour duration
     practice_classroom = ClassEvent.objects.create(
         name=f"Practice Classroom - {user.first_name}",
         start_time=timezone.now(),
-        duration=120,  # 2 hours
+        duration=120,
         subject=subject,
         classroom_type="practice",
     )
-
-    # Add teacher to the classroom
     practice_classroom.teachers.add(user)
 
     serializer = ClassEventSerializer(practice_classroom)
@@ -656,26 +535,16 @@ def create_practice_classroom(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def cleanup_expired_classrooms(request):
-    """
-    Manual trigger to cleanup expired classrooms
-    Should be called by a scheduled task (cron job or celery beat)
-    """
     user = request.user.get_real_instance()
 
-    # Only allow staff/admin users to trigger cleanup
     if not (user.is_staff or user.is_superuser):
         return Response(
             {"error": "Only administrators can trigger classroom cleanup"},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    current_time = timezone.now()
     deleted_count = 0
-
-    # Find all classrooms that should be deleted
-    classrooms = ClassEvent.objects.filter(is_active=True)
-
-    for classroom in classrooms:
+    for classroom in ClassEvent.objects.filter(is_active=True):
         if classroom.is_expired():
             classroom.is_active = False
             classroom.save()
@@ -685,6 +554,5 @@ def cleanup_expired_classrooms(request):
         {
             "message": f"Successfully deactivated {deleted_count} expired classrooms",
             "deactivated_count": deleted_count,
-        },
-        status=status.HTTP_200_OK,
+        }
     )

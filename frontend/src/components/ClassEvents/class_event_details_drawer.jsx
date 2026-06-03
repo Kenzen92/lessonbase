@@ -12,7 +12,7 @@ import {
   Divider,
 } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
-import ClassResources from "../Resources/class_resources";
+import ResourcePicker from "../Resources/ResourcePicker";
 import ClassFeedbackSummary from "./class_feedback_summary";
 import { getSubjectIcon } from "../../utils/icons";
 import { PrimaryButton, WarningButton } from "../../styles/buttons";
@@ -280,10 +280,11 @@ export default function ClassEventDetailsDrawer({
                     <FaBook color="#2196F3" />
                     Class Resources
                   </Typography>
-                  <ClassResources
-                    classId={currentClassEvent?.id}
-                    existing_resources={currentClassEvent?.resources}
-                    handleReloadData={handleReloadData}
+                  <ResourcePicker
+                    context={{ type: "class-event", id: currentClassEvent?.id }}
+                    mode={auth.userType === "teacher" ? "teacher" : "student"}
+                    value={currentClassEvent?.resources ?? []}
+                    onChange={handleReloadData}
                   />
                 </CardContent>
               </Card>

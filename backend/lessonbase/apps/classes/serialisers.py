@@ -7,24 +7,27 @@ from apps.user_accounts.serializers import (
 )
 from rest_framework import serializers
 from apps.subjects.models import Subject
-from apps.classes.models import ClassEvent, TeachingResource, SessionFeedback
+from apps.classes.models import ClassEvent, SessionFeedback
 from apps.subjects.serializers import SubjectSerializer
 
 
-# Define a serializer for the TeachingResource model
-class TeachingResourceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TeachingResource
-        fields = ["file", "class_event", "name"]
+class ResourceSummarySerializer(serializers.Serializer):
+    """Lightweight read-only serializer for resources nested inside class-event responses."""
+
+    id = serializers.IntegerField(source="resource.id")
+    title = serializers.CharField(source="resource.title")
+    kind = serializers.CharField(source="resource.kind")
+    file = serializers.FileField(source="resource.file", use_url=True)
+    url = serializers.URLField(source="resource.url")
+    original_name = serializers.CharField(source="resource.original_name")
+    mime_type = serializers.CharField(source="resource.mime_type")
+    added_by = serializers.PrimaryKeyRelatedField(read_only=True)
 
 
 class ClassEventCreateSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = serializers.PrimaryKeyRelatedField(
-        queryset=Subject.objects.all()
-    )  # Allow passing subject as an ID
-    resources = TeachingResourceSerializer(many=True, read_only=True)
+    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
     class_group = serializers.PrimaryKeyRelatedField(
         queryset=ClassGroup.objects.all(), allow_null=True, required=False
     )
@@ -38,7 +41,6 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
             "subject",
             "students",
             "teachers",
-            "resources",
             "class_group",
             "name",
         ]
@@ -46,26 +48,19 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
 
 
 class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
-    """
-    Returns a list of ClassEvents grouped into their starting date, order by start time.
-    Appends each event with a previous field representing if the event was past or future.
-    """
-
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = SubjectSerializer(many=False, read_only=True)
-    resources = TeachingResourceSerializer(many=True, read_only=True)
+    resources = serializers.SerializerMethodField()
     class_group = ClassGroupUserSerializer(read_only=True)
     previous = serializers.SerializerMethodField()
 
     def get_previous(self, obj):
-        """
-        Returns a boolean indicating whether the event is past or future.
-        """
-        if obj.start_time < datetime.now(timezone.utc):
-            return True
-        else:
-            return False
+        return obj.start_time < datetime.now(timezone.utc)
+
+    def get_resources(self, obj):
+        links = obj.resource_links.select_related("resource").all()
+        return ResourceSummarySerializer(links, many=True).data
 
     class Meta:
         model = ClassEvent
@@ -97,7 +92,11 @@ class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
     subject = SubjectSerializer(read_only=True)
-    resources = TeachingResourceSerializer(many=True, read_only=True)
+    resources = serializers.SerializerMethodField()
+
+    def get_resources(self, obj):
+        links = obj.resource_links.select_related("resource").all()
+        return ResourceSummarySerializer(links, many=True).data
 
     class Meta:
         model = ClassEvent

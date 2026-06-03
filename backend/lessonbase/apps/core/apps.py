@@ -12,7 +12,7 @@ def create_required_objects(sender, **kwargs):
     from apps.classes.models import ClassEvent
     from apps.assignments.models import (
         Assignment,
-        AssignmentAttempt,
+        Submission,
         Feedback,
     )
     from apps.user_accounts.models import ClassGroup
@@ -169,23 +169,26 @@ def create_required_objects(sender, **kwargs):
         assignment.students.add(*selected_students)
         assignment.save()
 
-        # Create assignment attempts for selected students
+        # Create submissions for selected students
         for student in selected_students:
-            attempt, created = AssignmentAttempt.objects.get_or_create(
+            submission, created = Submission.objects.get_or_create(
                 assignment=assignment,
                 student=student,
                 defaults={
                     "answer_text": f"My answer to Homework {i + 1}",
+                    "status": "submitted",
                 },
             )
 
-            # Provide feedback
-            Feedback.objects.create(
-                assignmentAttempt=attempt,
-                teacher=teacher,
-                text=f"Well done, {student.first_name}!",
-                score=random.randint(70, 100),
-            )
+            # Provide feedback (only if not already exists due to OneToOne)
+            if not hasattr(submission, "feedback") or not Feedback.objects.filter(submission=submission).exists():
+                Feedback.objects.create(
+                    submission=submission,
+                    teacher=teacher,
+                    text=f"Well done, {student.first_name}!",
+                    score=random.randint(70, 100),
+                    accepted=True,
+                )
 
     # Create a superuser
     if not CustomAccount.objects.filter(username="admin").exists():

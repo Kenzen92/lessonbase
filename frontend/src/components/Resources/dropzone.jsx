@@ -2,6 +2,22 @@ import React, { useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
 
+const DEFAULT_ACCEPT = {
+  "image/jpeg": [],
+  "image/png": [],
+  "image/gif": [],
+  "image/svg+xml": [],
+  "image/bmp": [],
+  "application/pdf": [],
+  "application/msword": [],
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [],
+  "application/vnd.ms-excel": [],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [],
+  "application/vnd.ms-powerpoint": [],
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": [],
+  "text/plain": [],
+};
+
 const baseStyle = {
   flex: 1,
   display: "flex",
@@ -18,46 +34,21 @@ const baseStyle = {
   transition: "border .24s ease-in-out",
 };
 
-const focusedStyle = {
-  borderColor: "#2196f3",
-};
+const focusedStyle = { borderColor: "#2196f3" };
+const acceptStyle = { borderColor: "#00e676" };
+const rejectStyle = { borderColor: "#ff1744" };
 
-const acceptStyle = {
-  borderColor: "#00e676",
-};
-
-const rejectStyle = {
-  borderColor: "#ff1744",
-};
-
-const Dropzone = ({ onDrop }) => {
+const Dropzone = ({ onDrop, accept, disabled }) => {
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
-      accept: {
-        "image/jpeg": [],
-        "image/png": [],
-        "image/gif": [],
-        "image/svg+xml": [],
-        "image/bmp": [],
-        "application/pdf": [],
-        "application/msword": [], // .doc
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-          [], // .docx
-        "application/vnd.ms-excel": [], // .xls
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [], // .xlsx
-        "application/vnd.ms-powerpoint": [], // .ppt
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-          [], // .pptx
-        "text/plain": [], // .txt
-      },
-      maxSize: 50 * 1024 * 1024, // 50MB
+      accept: accept || DEFAULT_ACCEPT,
+      maxSize: 50 * 1024 * 1024,
+      disabled,
       onDropAccepted: (files) => {
         onDrop(files);
       },
-      onDropRejected: (files) => {
-        toast.error(
-          "File rejected. Ensure it is under 50MB and of correct type."
-        );
+      onDropRejected: () => {
+        toast.error("File rejected. Ensure it is under 50 MB and of the correct type.");
       },
     });
 
@@ -67,15 +58,16 @@ const Dropzone = ({ onDrop }) => {
       ...(isFocused ? focusedStyle : {}),
       ...(isDragAccept ? acceptStyle : {}),
       ...(isDragReject ? rejectStyle : {}),
+      ...(disabled ? { opacity: 0.5, cursor: "not-allowed" } : {}),
     }),
-    [isFocused, isDragAccept, isDragReject]
+    [isFocused, isDragAccept, isDragReject, disabled]
   );
 
   return (
     <div className="container">
       <div {...getRootProps({ style })}>
         <input {...getInputProps()} />
-        <p>Drag and drop some files, or click to select files</p>
+        <p>Drag and drop files here, or click to select</p>
       </div>
     </div>
   );
