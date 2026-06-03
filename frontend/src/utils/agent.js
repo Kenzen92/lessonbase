@@ -162,44 +162,42 @@ export const handleDeleteStudent = async (id, navigate) => {
   return await apiRequest(`${BASE_URL}/student/${id}/`, "DELETE", null, navigate);
 };
 
-export const fetchAssignmentAttempt = async (assignmentID, studentID, navigate) => {
+export const fetchSubmission = async (assignmentID, studentID, navigate) => {
   return await apiRequest(
-    `${BASE_URL}/assignment-attempt/${assignmentID}/students/${studentID}/attempt/`, "GET", null, navigate);
+    `${BASE_URL}/submission/by-assignment/${assignmentID}/student/${studentID}/`,
+    "GET",
+    null,
+    navigate
+  );
 };
 
-export const submitAssignmentAttempt = async(data, navigate) => {
-  return await apiRequest(`${BASE_URL}/assignment-attempt/`, "POST", data, navigate)
-}
+export const fetchAssignmentSubmissions = async (assignmentID, navigate) => {
+  return await apiRequest(
+    `${BASE_URL}/assignment/${assignmentID}/submissions/`,
+    "GET",
+    null,
+    navigate
+  );
+};
 
-export const handleDeleteClassFile = async(deleteBody, navigate) => {
-  return await apiRequest(`${BASE_URL}/class_material/`, "DELETE", deleteBody, navigate)
-}
+export const fetchFeedback = async (submissionID, navigate) => {
+  return await apiRequest(
+    `${BASE_URL}/submission/${submissionID}/feedback/`,
+    "GET",
+    null,
+    navigate
+  );
+};
 
-export const handleDeleteAssignmentFile = async(deleteBody, navigate) => {
-  return await apiRequest(`${BASE_URL}/assignment_material`, "DELETE", deleteBody, navigate)
-}
+export const fetchCurrentUser = async () => {
+  return await apiRequest(`${BASE_URL}/auth/user/`, "GET");
+};
 
-export const handleSubmitAssignmentFiles = async(imageFiles, navigate) => {
-  return await apiRequest(`${BASE_URL}/assignment_material`, "POST", imageFiles, navigate)
-}
+export const fetchResources = async (params = {}, navigate) => {
+  const query = new URLSearchParams(params).toString();
+  return await apiRequest(`${BASE_URL}/resources/${query ? "?" + query : ""}`, "GET", null, navigate);
+};
 
-export const fetchCurrentUser = async() => {
-  const response = await apiRequest(`${BASE_URL}/auth/user/`, "GET")
-  return response
-}
-
-export const handleSubmitAssignmentFeedback = async(feedbackData, navigate) => {
-  try {
-    const response = await apiRequest(`${BASE_URL}/feedback/`, "POST", feedbackData, navigate);
-    return response;
-  } catch (error) {
-    console.error("Error submitting feedback:", error);
-    return {
-      success: false,
-      message: error.message || "Failed to submit feedback"
-    };
-  }
-}
-export const fetchFeedback = async (assignment_attempt_id) => {
-  return await apiRequest(`${BASE_URL}/feedback/?assignment_attempt_id=${assignment_attempt_id}`)
-}
+export const fetchSharedResources = async (navigate) => {
+  return await apiRequest(`${BASE_URL}/resources/shared/`, "GET", null, navigate);
+};

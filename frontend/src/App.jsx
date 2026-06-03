@@ -24,6 +24,7 @@ import "@fontsource/roboto/700.css";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Assignments from "./screens/assignments";
+import Resources from "./screens/resources";
 import { useAuth } from "./contexts/auth_context";
 import InteractiveClassroom from "./components/InteractiveClassroom/InteractiveClassroom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
@@ -75,6 +76,7 @@ function App() {
                 <Route path="/students/:id?" element={<Students />} />
                 <Route path="/class-groups/:id?" element={<Classes />} />
                 <Route path="/assignments/:id?" element={<Assignments />} />
+                <Route path="/resources" element={<Resources />} />
                 <Route
                   path="/interactive-classroom/:accessToken"
                   element={<InteractiveClassroom />}

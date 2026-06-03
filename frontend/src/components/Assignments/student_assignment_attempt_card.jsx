@@ -1,15 +1,12 @@
-// This component renders the details for an instance of a students assignment attempt.
-// It will show if this student has submitted any attempt, or not.
-// If an attempt exists, there will be a colour coded status representing 3 possible states:
+// This component renders the details for an instance of a student's submission.
+// It will show if this student has submitted anything, or not.
+// If a submission exists, there will be a colour coded status representing states:
 // - submitted but not reviewed
-// - reviewed but not accepted (changes requested) (optional score / grade)
-// - reviewed and accepted (optional score / grade)
-// There is a button to open the review assignment attempt modal (TODO)
+// - graded / returned (marked)
+// There is a button to open the review modal.
 import { Box, Typography } from "@mui/material";
 import { PrimaryButton } from "../../styles/buttons";
 import { useEffect, useState } from "react";
-import { fetchAssignmentAttempt } from "../../utils/agent";
-import { Navigate, useNavigate } from "react-router-dom";
 
 const StudentAssignmentAttemptCard = ({
   assignment,
@@ -17,48 +14,20 @@ const StudentAssignmentAttemptCard = ({
   setCurrentAssignmentAttempt,
   setFeedbackModalOpen,
   onAttemptFetched,
-  attemptData, // Pre-fetched attempt data
+  attemptData, // Pre-fetched attempt data (null = no submission, undefined = not yet loaded)
 }) => {
   const [assignmentAttempt, setAssignmentAttempt] = useState(
-    attemptData || null
+    attemptData ?? null
   );
-  const navigate = useNavigate();
 
-  // Update local state when attemptData prop changes
+  // Sync local state whenever the parent refreshes the prop
   useEffect(() => {
-    if (attemptData !== undefined) {
-      setAssignmentAttempt(attemptData);
-    }
+    setAssignmentAttempt(attemptData ?? null);
   }, [attemptData]);
 
-  useEffect(() => {
-    // Only fetch if attemptData is not provided
-    if (attemptData !== undefined) return;
-
-    if (assignment?.id && student?.id) {
-      const handleFetchAssignmentAttempt = async () => {
-        try {
-          const assignmentAttemptDetails = await fetchAssignmentAttempt(
-            assignment.id,
-            student.id,
-            navigate
-          );
-          setAssignmentAttempt(assignmentAttemptDetails);
-          // Pass the attempt back to parent for grouping
-          if (onAttemptFetched) {
-            onAttemptFetched(assignmentAttemptDetails);
-          }
-        } catch (error) {
-          console.error("Error fetching assignment details:", error);
-          // Pass null if no attempt exists
-          if (onAttemptFetched) {
-            onAttemptFetched(null);
-          }
-        }
-      };
-      handleFetchAssignmentAttempt();
-    }
-  }, [assignment, student, attemptData, onAttemptFetched, navigate]); // Re-run when assignment or student changes
+  const isMarked =
+    assignmentAttempt &&
+    ["graded", "returned"].includes(assignmentAttempt.status);
 
   return assignmentAttempt ? (
     <Box>
@@ -72,12 +41,12 @@ const StudentAssignmentAttemptCard = ({
         <Box sx={{ flex: 1 }}>
           <Typography
             sx={{
-              color: assignmentAttempt.graded ? "#4CAF50" : "#FF9800",
+              color: isMarked ? "#4CAF50" : "#FF9800",
               fontWeight: 600,
               fontSize: "0.9rem",
             }}
           >
-            {assignmentAttempt.graded ? "✓ Marked" : "⚠ Not marked"}
+            {isMarked ? "✓ Marked" : "⚠ Not marked"}
           </Typography>
           <Typography
             sx={{ color: "rgba(255, 255, 255, 0.6)" }}

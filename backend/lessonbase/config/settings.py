@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "apps.classes",
     "apps.storage",
     "apps.assignments",
+    "apps.resources",
     "apps.core.apps.CoreConfig",
     # Allauth
     "allauth",

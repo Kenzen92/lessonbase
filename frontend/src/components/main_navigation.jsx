@@ -65,6 +65,7 @@ const Navigation = () => {
     { label: "Students", path: "/students" },
     { label: "Classes", path: "/class-groups" },
     { label: "Assignments", path: "/assignments" },
+    { label: "Resources", path: "/resources" },
     { label: "Settings", path: "/profile" },
     { label: "Logout", path: "/", action: () => setOpenLogoutDialog(true) },
   ];
