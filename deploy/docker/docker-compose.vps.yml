@@ -66,6 +66,10 @@ services:
       R2_ACCESS_SECRET: ${R2_ACCESS_SECRET}
       R2_S3_API: ${R2_S3_API}
       R2_BUCKET_NAME: ${R2_BUCKET_NAME:-lessonbase}
+      # Public CDN domain for serving media direct from R2 (e.g.
+      # https://media.jkenny.tech). Empty by default → media falls back to the
+      # Django /media/ proxy until the Cloudflare custom domain is live.
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL:-}
     depends_on:
       db:
         condition: service_healthy

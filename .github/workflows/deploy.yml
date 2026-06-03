@@ -138,6 +138,7 @@ jobs:
             update_env R2_ACCESS_SECRET     "${{ secrets.R2_ACCESS_SECRET }}"
             update_env R2_S3_API            "${{ secrets.R2_S3_API }}"
             update_env R2_BUCKET_NAME       "${{ secrets.R2_BUCKET_NAME }}"
+            update_env R2_PUBLIC_BASE_URL   "${{ secrets.R2_PUBLIC_BASE_URL }}"
             # Path on the host where other services drop nginx vhosts.
             update_env NGINX_EXTRAS_DIR     "/opt/nginx-extras"
             echo "✅ .env updated"

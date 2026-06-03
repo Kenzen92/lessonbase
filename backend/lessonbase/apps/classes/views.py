@@ -324,11 +324,18 @@ def class_material(request):
         )
 
     else:
-        # Handle delete request
+        # Handle delete request.
+        #
+        # Recover the storage key from the file URL. This must work for both
+        # URL shapes media can take: the Django proxy ("…/media/resources/x")
+        # and direct R2/CDN serving ("https://media.example/resources/x", with
+        # no "/media/" segment). Normalise by taking the path, dropping the
+        # leading slash, and stripping a leading "media/" only if present.
         file_url = request.data.get("file_url")
-        file_name = (
-            urlparse(file_url).path.removeprefix("/media/") if file_url else None
-        )
+        file_name = None
+        if file_url:
+            path = urlparse(file_url).path.lstrip("/")
+            file_name = path[len("media/") :] if path.startswith("media/") else path
         resource = TeachingResource.objects.filter(file=file_name).first()
         if resource:
             resource.delete()
