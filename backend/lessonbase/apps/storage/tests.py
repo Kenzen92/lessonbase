@@ -99,7 +99,7 @@ class StorageTests(TestCase):
     def test_teaching_resource_upload_and_readback(self):
         file_content = b"lessonbase storage test resource\n"
         response = self.client.post(
-            "/class_material",
+            "/class_material/",
             {
                 "class_id": str(self.class_event.id),
                 "file": self._text_upload("lesson-plan.txt", file_content),

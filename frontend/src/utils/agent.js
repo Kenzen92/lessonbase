@@ -61,19 +61,19 @@ export const fetchStudents = async (navigate) => {
 };
 
 export const fetchSubjects = async (navigate) => {
-  return await apiRequest(getFullUrl('/subjects'), "GET", null, navigate);
+  return await apiRequest(getFullUrl('/subjects/'), "GET", null, navigate);
 };
 
 export const fetchAllSubjects = async (navigate) => {
-  return await apiRequest(getFullUrl('/subjects/all'), "GET", null, navigate);
+  return await apiRequest(getFullUrl('/subjects/all/'), "GET", null, navigate);
 };
 
 export const fetchAllAssignments = async (navigate) => {
-  return await apiRequest(getFullUrl('/assignment'), "GET", null, navigate);
+  return await apiRequest(getFullUrl('/assignment/'), "GET", null, navigate);
 };
 
 export const fetchAssignment = async (assignment_id, navigate) => {
-    return await apiRequest(getFullUrl(`/assignment/${assignment_id}`), "GET", null, navigate);
+    return await apiRequest(getFullUrl(`/assignment/${assignment_id}/`), "GET", null, navigate);
 }
 
 export const handleCreateAssignment = async (formData, navigate) => {
@@ -81,11 +81,11 @@ export const handleCreateAssignment = async (formData, navigate) => {
 };
 
 export const fetchClassEvents = async (navigate) => {
-  return await apiRequest(getFullUrl('/class-event'), "GET", null, navigate);
+  return await apiRequest(getFullUrl('/class-event/'), "GET", null, navigate);
 }
 
 export const fetchClassEventsForStudent = async (studentID, navigate) => {
-  return await apiRequest(getFullUrl(`/class-event/student/${studentID}`), "GET", null, navigate);
+  return await apiRequest(getFullUrl(`/class-event/student/${studentID}/`), "GET", null, navigate);
 };
 
 export const handleCreateClassGroup = async (classGroupData, navigate) => {
@@ -97,11 +97,11 @@ export const handleUpdateClassGroup = async (classGroupData, currentClassId, nav
 };
 
 export const fetchTeacherStatistics = async (navigate) => {
-  return await apiRequest(getFullUrl(`/teacher-statistics`), "GET", null, navigate);
+  return await apiRequest(getFullUrl(`/teacher-statistics/`), "GET", null, navigate);
 };
 
 export const fetchStudentStatistics = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/student-statistics`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/student-statistics/`, "GET", null, navigate);
 };
 
 export const cancelClassEvent = async (eventID, navigate) => {
@@ -117,7 +117,7 @@ export const fetchChats = async (navigate) => {
 };
 
 export const fetchClassGroups = async (navigate) => {
-  return await apiRequest(`${BASE_URL}/class-group`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-group/`, "GET", null, navigate);
 };
 
 export const editClassGroup = async (id, groupData, navigate) => {
@@ -125,7 +125,7 @@ export const editClassGroup = async (id, groupData, navigate) => {
 };
 
 export const fetchClassGroup = async (groupId, navigate) => {
-  return await apiRequest(`${BASE_URL}/class-group/${groupId}`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/class-group/${groupId}/`, "GET", null, navigate);
 }
 
 export const editTeacherProfile = async (id, profileData, navigate) => {
@@ -155,7 +155,7 @@ export const fetchSessionFeedbackAggregate = async (classEventId, navigate) => {
 };
 
 export const fetchStudentProfile = async (id, navigate) => {
-  return await apiRequest(`${BASE_URL}/student/${id}`, "GET", null, navigate);
+  return await apiRequest(`${BASE_URL}/student/${id}/`, "GET", null, navigate);
 };
 
 export const handleDeleteStudent = async (id, navigate) => {
@@ -164,7 +164,7 @@ export const handleDeleteStudent = async (id, navigate) => {
 
 export const fetchAssignmentAttempt = async (assignmentID, studentID, navigate) => {
   return await apiRequest(
-    `${BASE_URL}/assignment-attempt/${assignmentID}/students/${studentID}/attempt`, "GET", null, navigate);
+    `${BASE_URL}/assignment-attempt/${assignmentID}/students/${studentID}/attempt/`, "GET", null, navigate);
 };
 
 export const submitAssignmentAttempt = async(data, navigate) => {
@@ -172,7 +172,7 @@ export const submitAssignmentAttempt = async(data, navigate) => {
 }
 
 export const handleDeleteClassFile = async(deleteBody, navigate) => {
-  return await apiRequest(`${BASE_URL}/class_material`, "DELETE", deleteBody, navigate)
+  return await apiRequest(`${BASE_URL}/class_material/`, "DELETE", deleteBody, navigate)
 }
 
 export const handleDeleteAssignmentFile = async(deleteBody, navigate) => {
@@ -184,7 +184,7 @@ export const handleSubmitAssignmentFiles = async(imageFiles, navigate) => {
 }
 
 export const fetchCurrentUser = async() => {
-  const response = await apiRequest(`${BASE_URL}/auth/user`, "GET")
+  const response = await apiRequest(`${BASE_URL}/auth/user/`, "GET")
   return response
 }
 
@@ -201,5 +201,5 @@ export const handleSubmitAssignmentFeedback = async(feedbackData, navigate) => {
   }
 }
 export const fetchFeedback = async (assignment_attempt_id) => {
-  return await apiRequest(`${BASE_URL}/feedback?assignment_attempt_id=${assignment_attempt_id}`)
+  return await apiRequest(`${BASE_URL}/feedback/?assignment_attempt_id=${assignment_attempt_id}`)
 }

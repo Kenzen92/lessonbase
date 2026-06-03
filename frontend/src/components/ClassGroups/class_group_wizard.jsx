@@ -65,7 +65,6 @@ const ClassWizard = ({
     if (currentClass) {
       setValue("name", currentClass.name);
       setValue("description", currentClass.description);
-      console.log("setting value", currentClass.subjects);
       setValue(
         "subjects",
         currentClass.subjects.map((subject) => subject.id)

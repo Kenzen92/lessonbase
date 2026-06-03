@@ -1,4 +1,11 @@
-import { createContext, useContext, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import useAuthQuery from "../hooks/useAuthQuery.jsx";
 import { fetchProfileData } from "../utils/agent";
@@ -8,6 +15,11 @@ export const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
   const queryClient = useQueryClient();
+
+  // Lazy gate: stay disabled until a component consumes this context (via
+  // useUser), so routes that never read the profile don't fetch it.
+  const [active, setActive] = useState(false);
+  const activate = useCallback(() => setActive(true), []);
 
   // Fetch user profile via React Query (gated by auth token)
   const {
@@ -19,6 +31,7 @@ export function UserProvider({ children }) {
   } = useAuthQuery(["user"], fetchProfileData, {
     staleTime: 1000 * 60 * 5, // Cache valid for 5 minutes
     retry: 1, // Retry once on failure
+    enabled: active,
   });
 
   // Manual setter — allows updating the cached user data locally
@@ -34,10 +47,14 @@ export function UserProvider({ children }) {
   const value = useMemo(() => {
     return {
       user,
-      isLoading,
+      // While inactive the query is disabled and react-query reports
+      // isLoading=false with no data; surface it as loading so consumers that
+      // gate rendering on isLoading don't read undefined data before activation.
+      isLoading: !active || isLoading,
       isError,
       error,
       refetch,
+      activate,
       setUser,
       // for convenience: expose individual fields with null defaults
       userId: user?.id ?? null,
@@ -49,7 +66,7 @@ export function UserProvider({ children }) {
       classGroups: user?.class_groups ?? [],
       subjects: user?.subjects ?? [],
     };
-  }, [user, isLoading, isError, error, refetch]);
+  }, [user, isLoading, isError, error, refetch, activate, active]);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
@@ -58,5 +75,12 @@ export function UserProvider({ children }) {
 export const useUser = () => {
   const ctx = useContext(UserContext);
   if (!ctx) throw new Error("useUser must be used within a UserProvider");
+
+  // Activating on mount is what makes the underlying query fire.
+  const { activate } = ctx;
+  useEffect(() => {
+    activate();
+  }, [activate]);
+
   return ctx;
 };

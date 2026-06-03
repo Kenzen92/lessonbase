@@ -62,7 +62,6 @@ class WhiteboardSocketService {
 
   // Send drawing events to the server
   emitDrawingEvent(eventType, data) {
-    console.log("Emitting drawing event:", eventType, data);
     if (this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({
         type: eventType,

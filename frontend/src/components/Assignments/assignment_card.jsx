@@ -15,7 +15,6 @@ const AssignmentCard = ({
   if (!assignment || !assignment.subject) {
     return null; // Or render a placeholder/error state
   }
-  console.log("assignment", assignment);
 
   // Use a fallback icon if the subject's icon is not found
   const IconComponent =

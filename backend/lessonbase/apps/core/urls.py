@@ -76,12 +76,12 @@ urlpatterns = [
     path("auth/google/", google_login, name="auth_google"),
     path("auth/user/", current_user, name="auth_current_user"),
     # Legacy endpoints (keeping for backward compatibility, but consider deprecating)
-    path("login", login, name="legacy_login"),
+    path("login/", login, name="legacy_login"),
     path("logout/", logout, name="legacy_logout"),
     # Other endpoints
     path("profile/", profile),
     path("class-event/student/<int:student_id>/", class_events_for_student),
-    path("subjects/all", all_subjects),
+    path("subjects/all/", all_subjects),
     path("subjects/", subjects),
     path("confirm-account/", confirm_account, name="confirm_account"),
     path("chats/", views.ChatListCreateView.as_view(), name="chat-list-create"),
@@ -90,11 +90,11 @@ urlpatterns = [
         views.MessageListCreateView.as_view(),
         name="message-list-create",
     ),
-    path("class_report", class_report, name="open-api"),
-    path("class_material", class_material, name="open-api"),
+    path("class_report/", class_report, name="open-api"),
+    path("class_material/", class_material, name="open-api"),
     path("media/<path:file_path>", serve_media_file, name="serve_media_file"),
-    path("teacher-statistics", teacher_statistics, name="teacher_statistics"),
-    path("student-statistics", student_statistics, name="student_statistics"),
+    path("teacher-statistics/", teacher_statistics, name="teacher_statistics"),
+    path("student-statistics/", student_statistics, name="student_statistics"),
     # Classroom access and security endpoints
     path(
         "classroom/validate/<str:access_token>/",

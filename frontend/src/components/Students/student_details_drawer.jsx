@@ -59,8 +59,6 @@ export default function StudentDetailsDrawer({
   // Added error state for potential API call issues
   const [error, setError] = useState(null);
 
-  console.log(student);
-
   useEffect(() => {
     if (student) {
       const chat = chats.find((chat) => chat.participants.includes(student.id));

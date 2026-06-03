@@ -241,7 +241,6 @@ function Profile() {
   // and to revoke old preview URLs when a new file is selected.
   useEffect(() => {
     const handleStorageChange = () => {
-      console.log("Storage event detected, reloading user data");
       // Re-fetch or update state based on storage if necessary
       // For this form context, the initial fetch on mount is usually sufficient,
       // and the submit updates storage which is then handled by the submit success logic.
