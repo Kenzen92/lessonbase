@@ -194,6 +194,11 @@ R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY") or os.environ.get(
 R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "lessonbase")
 R2_ENDPOINT_URL = os.environ.get("R2_S3_API")
 
+# Public base URL for serving media straight from R2 / a CDN custom domain
+# (e.g. "https://media.teach.jkenny.tech"), bypassing the Django /media/ proxy.
+# When unset, R2MediaStorage falls back to proxying media through Django.
+MEDIA_PUBLIC_BASE_URL = os.environ.get("R2_PUBLIC_BASE_URL", "")
+
 AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
 AWS_STORAGE_BUCKET_NAME = R2_BUCKET_NAME

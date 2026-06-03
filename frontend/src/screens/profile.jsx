@@ -25,6 +25,7 @@ import inputStyle from "../styles/input";
 import { useUser } from "../contexts/user_context";
 import { useSubjects } from "../contexts/subjects_context";
 import { getToken, setUser as cacheUser } from "../utils/tokenStorage";
+import { resolveMediaUrl } from "../utils/media";
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 // Styled components for modern look (optional, can use sx prop too)
@@ -373,7 +374,7 @@ function Profile() {
         >
           <ProfileAvatar
             alt={userName || "Profile Picture"}
-            src={profilePicturePreviewUrl || user?.profile_picture} // Use preview URL if available, otherwise user's profile picture
+            src={profilePicturePreviewUrl || resolveMediaUrl(user?.profile_picture)} // Local preview (blob) if available, otherwise the stored media URL
           >
             {/* Fallback: first letter of username */}
             {userName ? userName[0] : <CloudUploadIcon />}{" "}

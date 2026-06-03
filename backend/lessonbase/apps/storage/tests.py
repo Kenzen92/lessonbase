@@ -166,5 +166,13 @@ class R2StorageIntegrationTests(TestCase):
             self.assertEqual(saved_file.read(), content)
 
         object_url = default_storage.url(stored_key)
-        self.assertIn("/media/", object_url)
         self.assertTrue(object_url.endswith(stored_key))
+        if getattr(settings, "MEDIA_PUBLIC_BASE_URL", ""):
+            # Direct-from-R2 serving: URL points at the public CDN domain.
+            self.assertTrue(
+                object_url.startswith(settings.MEDIA_PUBLIC_BASE_URL.rstrip("/"))
+            )
+            self.assertNotIn("/media/", object_url)
+        else:
+            # Fallback: bytes proxied through Django's /media/ view.
+            self.assertIn("/media/", object_url)
