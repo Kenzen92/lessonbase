@@ -142,11 +142,7 @@ function Assignments() {
           <Grid container spacing={2} sx={{ height: "100%" }}>
             {columns.map((column, index) => (
               <Grid
-                item
-                xs={12}
-                sm={6}
-                lg={3}
-                xl={2.4}
+                size={{ xs: 12, sm: 6, lg: 3, xl: 2.4 }}
                 key={index}
                 sx={{
                   flex: 1,

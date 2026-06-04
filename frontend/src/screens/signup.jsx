@@ -127,9 +127,7 @@ function Signup({ defaultUserType = null }) {
     <Grid container sx={{ minHeight: "100vh", width: "100%" }}>
       {/* Left side - Branding */}
       <Grid
-        item
-        xs={12}
-        md={6}
+        size={{ xs: 12, md: 6 }}
         sx={{
           display: "flex",
           justifyContent: "center",
@@ -156,9 +154,7 @@ function Signup({ defaultUserType = null }) {
 
       {/* Right side - Signup Form */}
       <Grid
-        item
-        xs={12}
-        md={6}
+        size={{ xs: 12, md: 6 }}
         sx={{
           display: "flex",
           justifyContent: "center",
@@ -240,7 +236,7 @@ function Signup({ defaultUserType = null }) {
             {/* Email/Password Form */}
             <form onSubmit={handleRegister}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="First Name"
@@ -250,7 +246,7 @@ function Signup({ defaultUserType = null }) {
                     disabled={isLoading}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     label="Last Name"

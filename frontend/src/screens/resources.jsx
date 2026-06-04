@@ -294,7 +294,7 @@ export default function ResourcesPage() {
         ) : (
           <Grid container spacing={2}>
             {resources.map((r) => (
-              <Grid item key={r.id} xs={12} sm={6} md={4} lg={3}>
+              <Grid key={r.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <ResourceCard
                   resource={r}
                   onDelete={handleDelete}

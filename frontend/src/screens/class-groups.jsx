@@ -86,7 +86,7 @@ function Classes() {
         >
           <Grid container spacing={2} className="cards-section">
             {classes?.map((data) => (
-              <Grid item xs={12} sm={8} key={data.id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={data.id}>
                 <ClassGroupCard
                   data={data}
                   onClick={() => handleOpenDrawer(data.id)}
