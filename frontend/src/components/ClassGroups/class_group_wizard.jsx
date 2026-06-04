@@ -1,24 +1,31 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  MenuItem,
-  FormControl,
-  Select,
-  InputLabel,
-} from "@mui/material";
+import { useState } from "react";
+import { Box, MenuItem } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import StudentSearch from "../Students/student_search";
-import inputStyle from "../../styles/input";
+import { toast } from "react-toastify";
+import { WizardShell } from "../wizard";
+import { FieldText, FieldSelect } from "../fields";
+import StudentPicker from "../Students/StudentPicker";
 import {
   handleCreateClassGroup,
   handleUpdateClassGroup,
 } from "../../utils/agent";
-import { toast } from "react-toastify";
+
+// Data-driven palette replaces the previous ~120 lines of duplicated MenuItem
+// swatch markup (B10). Mirrors the backend ClassGroup.COLOR_CHOICES.
+const GROUP_COLORS = [
+  { value: "#1976D2", label: "Blue" },
+  { value: "#388E3C", label: "Green" },
+  { value: "#7B1FA2", label: "Purple" },
+  { value: "#D32F2F", label: "Red" },
+  { value: "#F57C00", label: "Orange" },
+  { value: "#0097A7", label: "Cyan" },
+  { value: "#C2185B", label: "Pink" },
+  { value: "#5D4037", label: "Brown" },
+  { value: "#455A64", label: "Blue Grey" },
+  { value: "#FBC02D", label: "Yellow" },
+];
 
 const validationSchema = yup.object().shape({
   name: yup.string().required("Class name is required"),
@@ -28,426 +35,192 @@ const validationSchema = yup.object().shape({
   color: yup.string().optional(),
 });
 
+const DETAIL_FIELDS = ["name", "subjects", "class_code"];
+
+const toStudentIds = (value) =>
+  (value || []).map((s) => (typeof s === "object" ? s.id : s));
+
 const ClassWizard = ({
+  open,
+  onClose,
+  onSaved,
+  currentClassId,
   allSubjects,
   allStudents,
   classes,
-  handleClose,
-  fetchData,
-  step,
-  setStep,
-  currentClassId,
 }) => {
-  const [selectedStudents, setSelectedStudents] = useState([]);
-
-  // Find current class data if editing
   const currentClass = currentClassId
-    ? classes.find((cls) => cls.id === currentClassId)
+    ? classes?.find((cls) => cls.id === currentClassId)
     : null;
+
   const {
     handleSubmit,
     control,
-    setValue,
-    formState: { errors },
+    trigger,
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
       name: currentClass?.name || "",
       description: currentClass?.description || "",
-      subjects: currentClass?.subjects.map((subject) => subject.id) || [],
+      subjects: currentClass?.subjects?.map((s) => s.id) || [],
       class_code: currentClass?.class_code || "",
       color: currentClass?.color || "#1976D2",
     },
   });
 
-  // Populate form when currentClassId changes
-  useEffect(() => {
-    if (currentClass) {
-      setValue("name", currentClass.name);
-      setValue("description", currentClass.description);
-      setValue(
-        "subjects",
-        currentClass.subjects.map((subject) => subject.id)
-      );
-      setValue("class_code", currentClass.class_code);
-      setValue("color", currentClass.color || "#1976D2");
-      setSelectedStudents(currentClass.students || []);
-    }
-  }, [currentClass, setValue]);
+  const [selectedStudents, setSelectedStudents] = useState(
+    toStudentIds(currentClass?.students)
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleNext = (data) => {
-    setStep(2);
-  };
+  const subjectNameById = new Map((allSubjects || []).map((s) => [s.id, s.name]));
 
-  const handleBack = () => {
-    setStep(1);
-  };
-
-  const onSubmit = async (data) => {
-    data["students"] = selectedStudents;
+  const handleFinalSubmit = async (data) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    const payload = { ...data, students: selectedStudents };
     try {
       const result = currentClassId
-        ? await handleUpdateClassGroup(data, currentClassId)
-        : await handleCreateClassGroup(data);
+        ? await handleUpdateClassGroup(payload, currentClassId)
+        : await handleCreateClassGroup(payload);
       if (result.ok) {
         toast.success(
           currentClassId
             ? "Class group updated successfully!"
             : "Class group created successfully!"
         );
-        handleClose();
-        fetchData();
+        onSaved?.();
+        onClose?.();
       } else {
         toast.error(result.error || "Failed to save class group. Please try again.");
       }
     } catch (error) {
       console.error(error);
       toast.error("Failed to save class group. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <Box sx={{ p: 3 }}>
-      {step === 1 && (
-        <form onSubmit={handleSubmit(handleNext)}>
+  const steps = [
+    {
+      label: "Details",
+      content: (
+        <Box>
           <Controller
             name="name"
             control={control}
-            render={({ field }) => (
-              <TextField
+            render={({ field, fieldState }) => (
+              <FieldText
                 {...field}
-                fullWidth
-                label="Class Name"
-                variant="outlined"
-                error={!!errors.name}
-                helperText={errors.name?.message}
-                sx={{ mb: 2, ...inputStyle }}
+                label="Class name"
+                required
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
               />
             )}
           />
-
           <Controller
             name="description"
             control={control}
-            render={({ field }) => (
-              <TextField
+            render={({ field, fieldState }) => (
+              <FieldText
                 {...field}
-                fullWidth
-                label="Class Description"
-                variant="outlined"
-                sx={{ mb: 2, ...inputStyle }}
+                label="Description"
+                multiline
+                minRows={2}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
               />
             )}
           />
-
           <Controller
             name="subjects"
             control={control}
-            render={({ field }) => (
-              <FormControl fullWidth>
-                <InputLabel id="subjects-select-label" sx={{ color: "#fff" }}>
-                  Subjects
-                </InputLabel>
-                <Select
-                  {...field}
-                  id="subjects"
-                  labelId="subjects-select-label"
-                  multiple
-                  displayEmpty
-                  label="Subjects"
-                  sx={{
-                    mb: 2,
-                    color: "white",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#fff",
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#fff",
-                    },
-                    "& .MuiSelect-icon": { color: "#fff" },
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        bgcolor: "#333",
-                        color: "#fff",
-                      },
-                    },
-                  }}
-                >
-                  {allSubjects.map((subject) => (
-                    <MenuItem key={subject.id} value={subject.id}>
-                      {subject.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.subjects && (
-                  <Typography color="error" variant="body2">
-                    {errors.subjects.message}
-                  </Typography>
-                )}
-              </FormControl>
-            )}
-          />
-
-          <Controller
-            name="class_code"
-            control={control}
-            render={({ field }) => (
-              <TextField
+            render={({ field, fieldState }) => (
+              <FieldSelect
                 {...field}
-                fullWidth
-                label="Code"
-                variant="outlined"
-                error={!!errors.class_code}
-                helperText={errors.class_code?.message}
-                sx={{ mb: 2, ...inputStyle }}
+                label="Subjects"
+                required
+                options={(allSubjects || []).map((s) => ({ value: s.id, label: s.name }))}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+                SelectProps={{
+                  multiple: true,
+                  renderValue: (selected) =>
+                    selected.map((id) => subjectNameById.get(id) || id).join(", "),
+                }}
               />
             )}
           />
-
+          <Controller
+            name="class_code"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldText
+                {...field}
+                label="Code"
+                required
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
           <Controller
             name="color"
             control={control}
-            render={({ field }) => (
-              <FormControl fullWidth>
-                <InputLabel id="color-select-label" sx={{ color: "#fff" }}>
-                  Group Color
-                </InputLabel>
-                <Select
-                  {...field}
-                  id="color"
-                  labelId="color-select-label"
-                  label="Group Color"
-                  sx={{
-                    mb: 2,
-                    color: "white",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#fff",
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#fff",
-                    },
-                    "& .MuiSelect-icon": { color: "#fff" },
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        bgcolor: "#333",
-                        color: "#fff",
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem value="#1976D2">
+            render={({ field, fieldState }) => (
+              <FieldSelect
+                {...field}
+                label="Group colour"
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              >
+                {GROUP_COLORS.map((c) => (
+                  <MenuItem key={c.value} value={c.value}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Box
                         sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#1976D2",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
+                          width: 18,
+                          height: 18,
+                          borderRadius: 0.5,
+                          backgroundColor: c.value,
                         }}
                       />
-                      Blue
+                      {c.label}
                     </Box>
                   </MenuItem>
-                  <MenuItem value="#388E3C">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#388E3C",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Green
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#7B1FA2">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#7B1FA2",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Purple
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#D32F2F">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#D32F2F",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Red
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#F57C00">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#F57C00",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Orange
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#0097A7">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#0097A7",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Cyan
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#C2185B">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#C2185B",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Pink
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#5D4037">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#5D4037",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Brown
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#455A64">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#455A64",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Blue Grey
-                    </Box>
-                  </MenuItem>
-                  <MenuItem value="#FBC02D">
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          bgcolor: "#FBC02D",
-                          borderRadius: 1,
-                          border: "1px solid #fff",
-                        }}
-                      />
-                      Yellow
-                    </Box>
-                  </MenuItem>
-                </Select>
-              </FormControl>
+                ))}
+              </FieldSelect>
             )}
           />
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 2,
-              mt: 2,
-            }}
-          >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleClose}
-              sx={{ width: "100%" }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              sx={{ width: "100%" }}
-            >
-              Next
-            </Button>
-          </Box>
-        </form>
-      )}
-
-      {step === 2 && (
-        <Box>
-          <StudentSearch
-            students={allStudents}
-            classGroups={classes}
-            selectedStudents={selectedStudents}
-            setSelectedStudents={setSelectedStudents}
-          />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mt: 2,
-              gap: 2,
-            }}
-          >
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleBack}
-              sx={{ width: "100%" }}
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit(onSubmit)}
-              sx={{ width: "100%" }}
-            >
-              {currentClassId ? "Update" : "Submit"}
-            </Button>
-          </Box>
         </Box>
-      )}
-    </Box>
+      ),
+    },
+    {
+      label: "Students",
+      content: (
+        <StudentPicker
+          students={allStudents || []}
+          classGroups={classes || []}
+          selectedStudents={selectedStudents}
+          setSelectedStudents={setSelectedStudents}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <WizardShell
+      open={open}
+      onClose={onClose}
+      title={currentClassId ? "Edit class group" : "Create class group"}
+      steps={steps}
+      submitting={isSubmitting}
+      submitLabel={currentClassId ? "Save changes" : "Create group"}
+      onNext={(step) => (step === 0 ? trigger(DETAIL_FIELDS) : true)}
+      onSubmit={handleSubmit(handleFinalSubmit)}
+    />
   );
 };
 

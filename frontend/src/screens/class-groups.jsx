@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navigation from "../components/main_navigation.jsx";
 import ClassGroupCard from "../components/ClassGroups/class_group_card.jsx";
 import { useNavigate } from "react-router-dom";
-import { Container, Box, Button, Grid, Modal } from "@mui/material";
+import { Container, Box, Grid } from "@mui/material";
 import ClassWizard from "../components/ClassGroups/class_group_wizard.jsx";
 import ClassDetailsDrawer from "../components/ClassGroups/class_group_details_drawer.jsx";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
@@ -15,7 +15,6 @@ function Classes() {
   const [showClassForm, setshowClassForm] = useState(false);
   const [currentClassId, setCurrentClassId] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [step, setStep] = useState(1);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -25,7 +24,6 @@ function Classes() {
   const { data: classes, refetch: refetchClassGroups } = useClassGroups();
 
   const handleOpenStudentSearch = () => {
-    setStep(1);
     setshowClassForm(true);
   };
 
@@ -99,40 +97,16 @@ function Classes() {
         </Box>
       </Container>
 
-      <Modal
+      <ClassWizard
+        key={currentClassId ?? "new"}
         open={showClassForm}
         onClose={() => setshowClassForm(false)}
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Box
-          sx={{
-            backgroundColor: "#333",
-            padding: 4,
-            borderRadius: 2,
-            boxShadow: 24,
-            width: "900px",
-            maxWidth: "90%",
-            color: "white",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ClassWizard
-            currentClassId={currentClassId}
-            allStudents={allStudents}
-            allSubjects={allSubjects}
-            classes={classes}
-            handleClose={() => setshowClassForm(false)}
-            fetchData={handleReloadData}
-            step={step}
-            setStep={setStep}
-          />
-        </Box>
-      </Modal>
+        onSaved={handleReloadData}
+        currentClassId={currentClassId}
+        allStudents={allStudents}
+        allSubjects={allSubjects}
+        classes={classes}
+      />
     </>
   );
 }

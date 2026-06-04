@@ -1,327 +1,210 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  MenuItem,
-  FormControl,
-  Select,
-  InputLabel,
-} from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { useState } from "react";
+import { Box } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import StudentSearch from "../Students/student_search";
-import dayjs from "dayjs"; // Import Dayjs for date manipulation
+import dayjs from "dayjs";
 import { toast } from "react-toastify";
-import inputStyle from "../../styles/input";
+import { WizardShell } from "../wizard";
+import { FieldText, FieldSelect, FieldDate, FieldTime, FieldNumber } from "../fields";
+import StudentPicker from "../Students/StudentPicker";
 import {
   handleCreateClassEvent,
   handleUpdateClassEvent,
 } from "../../utils/agent";
 
-// Define your validation schema *outside* the component for better performance
 const validationSchema = yup.object().shape({
+  name: yup.string().optional(),
   start_date: yup
     .date()
     .typeError("Invalid date format")
     .required("Start date is required"),
-  start_time: yup.string().required("Start time is required"), // Keep as string for TimePicker
+  start_time: yup.string().required("Start time is required"),
   duration: yup
     .number()
+    .typeError("Duration is required")
     .required("Duration is required")
-    .min(10, "Must be more than 10")
-    .max(180, "Must be less than 180"),
+    .min(10, "Must be at least 10 minutes")
+    .max(180, "Must be 180 minutes or less"),
   subject: yup.string().required("Subject is required"),
-  name: yup.string().optional(),
 });
 
+const DETAIL_FIELDS = ["name", "start_date", "start_time", "duration", "subject"];
+
+const toStudentIds = (value) =>
+  (value || []).map((s) => (typeof s === "object" ? s.id : s));
+
 const ClassEventWizard = ({
+  open,
+  onClose,
+  onSaved,
+  classData,
   subjects,
   students,
-  classData,
-  handleClose,
-  step,
-  setStep,
   classGroups,
-  handleReloadData,
 }) => {
-  const [selectedStudents, setSelectedStudents] = useState([]);
   const {
     handleSubmit,
     control,
-    setValue,
-    formState: { errors },
+    trigger,
+    reset,
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      start_date: classData?.start_date ? dayjs(classData.start_date) : dayjs(), // Use Dayjs
-      start_time: classData?.start_time || dayjs().format("HH:mm"), // Format as HH:mm for TimePicker
-      subject: classData?.subject.id || null,
-      duration: classData?.duration || "60",
       name: classData?.name || "",
+      start_date: classData?.start_time ? dayjs(classData.start_time) : dayjs(),
+      start_time: classData?.start_time
+        ? dayjs(classData.start_time).format("HH:mm")
+        : dayjs().format("HH:mm"),
+      duration: classData?.duration || 60,
+      subject: classData?.subject?.id ?? classData?.subject ?? "",
     },
   });
 
-  // Populate form when classDataId changes
-  useEffect(() => {
-    if (classData) {
-      setValue("subject", classData.subject.id);
-      setValue("class_code", classData.class_code);
-      setValue("start_date", dayjs(classData.start_date)); // Use Dayjs
-      setValue("start_time", classData.start_time);
-      setValue("duration", classData.duration);
-      setValue("name", classData.name);
-      setSelectedStudents(classData.students || []);
-    }
-  }, [classData, setValue]);
+  const [selectedStudents, setSelectedStudents] = useState(
+    toStudentIds(classData?.students)
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleNext = (data) => {
-    setStep(2);
-  };
+  const handleFinalSubmit = async (data) => {
+    if (isSubmitting) return;
 
-  const handleBack = () => {
-    setStep(1);
-  };
-
-  const onSubmit = async (data) => {
-    // Ensure subject is selected correctly
-    const selectedSubjectObj = subjects.find(
-      (subject) => subject.id === parseInt(data.subject)
-    );
-
-    if (!data.start_date || !data.start_time) {
-      toast.error("Start date and time are required.");
-      return;
-    }
-
-    // Parse date and time safely
     const datePart = dayjs(data.start_date);
     const timePart = dayjs(data.start_time, "HH:mm");
-
     if (!datePart.isValid() || !timePart.isValid()) {
       toast.error("Invalid date or time selected.");
       return;
     }
+    const combined = datePart.hour(timePart.hour()).minute(timePart.minute());
 
-    // Combine date and time
-    const combinedDateTime = datePart
-      .hour(timePart.hour())
-      .minute(timePart.minute());
-
-    const newClass = {
-      start_time: combinedDateTime.toISOString(), // Convert to ISO format
+    const payload = {
+      start_time: combined.toISOString(),
       duration: data.duration,
       students: selectedStudents,
-      subject: selectedSubjectObj ? selectedSubjectObj.id : null, // Ensure valid subject ID
+      subject: data.subject || null,
       name: data.name,
     };
 
+    setIsSubmitting(true);
     try {
       const result = classData
-        ? await handleUpdateClassEvent(classData.id, newClass)
-        : await handleCreateClassEvent(newClass);
-
+        ? await handleUpdateClassEvent(classData.id, payload)
+        : await handleCreateClassEvent(payload);
       if (result.ok) {
         toast.success("The class event was scheduled successfully");
-        handleReloadData();
-        handleClose();
+        onSaved?.();
+        reset();
+        onClose?.();
       } else {
         toast.error(result.error || "Failed to schedule class.");
       }
     } catch (error) {
       console.error("Error:", error.message);
       toast.error("Failed to schedule class.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const steps = [
+    {
+      label: "Details",
+      content: (
+        <Box>
+          <Controller
+            name="name"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldText
+                {...field}
+                label="Class name"
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="start_date"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldDate
+                {...field}
+                label="Date"
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="start_time"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldTime
+                label="Time"
+                value={field.value ? dayjs(field.value, "HH:mm") : null}
+                onChange={(v) => field.onChange(v ? v.format("HH:mm") : null)}
+                inputRef={field.ref}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="duration"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldNumber
+                {...field}
+                label="Duration (minutes)"
+                min={10}
+                max={180}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="subject"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldSelect
+                {...field}
+                label="Subject"
+                required
+                placeholder="Select a subject"
+                options={(subjects || []).map((s) => ({ value: s.id, label: s.name }))}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+        </Box>
+      ),
+    },
+    {
+      label: "Students",
+      content: (
+        <StudentPicker
+          students={students || []}
+          classGroups={classGroups || []}
+          selectedStudents={selectedStudents}
+          setSelectedStudents={setSelectedStudents}
+        />
+      ),
+    },
+  ];
+
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
-        {step === 1 && (
-          <form onSubmit={handleSubmit(handleNext)}>
-            <Controller
-              name="name"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="Class Name"
-                  sx={{ ...inputStyle, width: "100%", mb: 2 }}
-                />
-              )}
-            />
-            <Controller
-              name="start_date"
-              control={control}
-              render={(
-                { field, fieldState: { error } } // Access error here
-              ) => (
-                <DatePicker
-                  label="Date"
-                  value={field.value} // Important: Bind the value
-                  onChange={field.onChange} // Important: Bind the onChange
-                  fullWidth
-                  sx={{ ...inputStyle, width: "100%", mb: 2 }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      error={!!error}
-                      helperText={error?.message}
-                    />
-                  )} // Show error
-                />
-              )}
-            />
-
-            <Controller
-              name="start_time"
-              control={control}
-              render={({ field, fieldState: { error } }) => (
-                <TimePicker
-                  label="Time"
-                  value={dayjs(field.value, "HH:mm")}
-                  onChange={(newValue) =>
-                    field.onChange(newValue ? newValue.format("HH:mm") : null)
-                  }
-                  fullWidth
-                  sx={{ ...inputStyle, width: "100%", mb: 2 }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      error={!!error}
-                      helperText={error?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-
-            <Controller
-              name="duration"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="Duration"
-                  variant="outlined"
-                  type="number"
-                  error={!!errors.class_code}
-                  helperText={errors.class_code?.message}
-                  sx={{ mb: 2, ...inputStyle }}
-                />
-              )}
-            />
-
-            <Controller
-              name="subject"
-              control={control}
-              rules={{ required: "Subject is required" }} // Add required rule here if not in yup
-              render={(
-                { field, fieldState: { error } } // Access error from fieldState
-              ) => (
-                <FormControl fullWidth error={!!error}>
-                  {" "}
-                  {/* Set error on FormControl */}
-                  <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
-                    Subject
-                  </InputLabel>
-                  <Select
-                    {...field} // Spread the field properties onto the Select
-                    labelId="subject-select-label"
-                    id="subject"
-                    label="Subject"
-                    displayEmpty // To show placeholder if no subject is selected
-                    sx={{ ...inputStyle }}
-                    error={!!error} // Set error on the Select component for styling
-                  >
-                    {subjects?.map((subject) => (
-                      <MenuItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {error && ( // Conditionally render error message
-                    <Typography color="error" variant="body2">
-                      {error.message}
-                    </Typography>
-                  )}
-                </FormControl>
-              )}
-            />
-
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 2,
-                mt: 2,
-              }}
-            >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleClose}
-                sx={{ width: "100%" }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit" // Important: Keep the type="submit"
-                variant="contained"
-                color="primary"
-                sx={{ width: "100%" }}
-              >
-                Next
-              </Button>
-            </Box>
-          </form>
-        )}
-
-        {step === 2 && (
-          <Box>
-            <StudentSearch
-              students={students}
-              classGroups={classGroups}
-              selectedStudents={selectedStudents}
-              setSelectedStudents={setSelectedStudents}
-            />
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                mt: 2,
-                gap: 2,
-              }}
-            >
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleBack}
-                sx={{ width: "100%" }}
-              >
-                Back
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit(onSubmit)}
-                sx={{ width: "100%" }}
-              >
-                {classData ? "Update" : "Submit"}
-              </Button>
-            </Box>
-          </Box>
-        )}
-      </Box>
-    </LocalizationProvider>
+    <WizardShell
+      open={open}
+      onClose={onClose}
+      title={classData ? "Edit class" : "Schedule a class"}
+      steps={steps}
+      submitting={isSubmitting}
+      submitLabel={classData ? "Save changes" : "Schedule class"}
+      onNext={(step) => (step === 0 ? trigger(DETAIL_FIELDS) : true)}
+      onSubmit={handleSubmit(handleFinalSubmit)}
+    />
   );
 };
 

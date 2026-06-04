@@ -1,20 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Typography, Box, FormControl, FormHelperText, Chip } from "@mui/material";
-import { FormInput } from "../../styles/components/FormInput";
-import { ModalButton, CancelButton, NextButton, SubmitButton } from "../../styles/components/ModalButtons";
-import { TextField, Select, MenuItem, InputLabel } from "@mui/material";
-import { FormSection, modalStyles } from "../../styles/components/ModalStyles";
+import { Box, Typography, Chip } from "@mui/material";
 import * as yup from "yup";
-import dayjs from "dayjs"; // Import Dayjs for date manipulation
-import inputStyle from "../../styles/input";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import StudentSearch from "../Students/student_search";
-import Dropzone from "../Resources/dropzone";
+import dayjs from "dayjs";
 import { toast } from "react-toastify";
+import { WizardShell } from "../wizard";
+import { FieldText, FieldSelect, FieldDate, FieldNumber } from "../fields";
+import StudentPicker from "../Students/StudentPicker";
+import Dropzone from "../Resources/dropzone";
 import { handleCreateAssignment } from "../../utils/agent";
-// Define your validation schema *outside* the component for better performance
+
 const validationSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
   description: yup.string(),
@@ -24,43 +20,37 @@ const validationSchema = yup.object().shape({
     .typeError("Invalid date format")
     .required("Due date is required")
     .min(yup.ref("set_date"), "Due date must be later than start date"),
-
   set_date: yup
     .date()
     .typeError("Invalid date format")
     .required("Start date is required"),
-
   subject: yup
     .number("Subject must be a number")
-    .transform((value, originalValue) => {
-      return originalValue === "" ? null : value;
-    })
+    .transform((value, originalValue) => (originalValue === "" ? null : value))
     .nullable()
     .required("Subject is required")
     .positive("Subject must be positive"),
 });
 
+const DETAIL_FIELDS = ["title", "subject", "description", "set_date", "due_date", "max_score"];
+
 const AddAssignmentWizard = ({
+  open,
+  onClose,
+  onCreated,
   students,
   subjects,
   classGroups,
-  handleClose,
-  step,
-  setStep,
-  setIsOpen,
-  onCreated,
 }) => {
   const {
     handleSubmit,
     control,
-    setValue,
+    trigger,
     reset,
-    formState: { errors },
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      // due date 7 days from now by default
-      due_date: dayjs(new Date()).add(7, "day"),
+      due_date: dayjs().add(7, "day"),
       set_date: dayjs(),
       subject: "",
       title: "",
@@ -72,72 +62,40 @@ const AddAssignmentWizard = ({
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const setDateValue = useWatch({
-    control, // Pass the control object from useForm
-    name: "set_date",
-  });
+  const setDateValue = useWatch({ control, name: "set_date" });
 
-  const handleFileDrop = (files) => {
-    setSelectedFiles((prevFiles) => [...prevFiles, ...files]);
+  const handleFileDrop = (files) =>
+    setSelectedFiles((prev) => [...prev, ...files]);
+  const handleRemoveFile = (file) =>
+    setSelectedFiles((prev) => prev.filter((f) => f !== file));
+
+  const resetAll = () => {
+    reset();
+    setSelectedStudents([]);
+    setSelectedFiles([]);
   };
 
-  const handleRemoveFile = (fileToRemove) => {
-    setSelectedFiles(selectedFiles.filter((file) => file !== fileToRemove));
-  };
-
-  const handleNext = () => {
-    setStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setStep((prev) => prev - 1);
-  };
-
-  // This function will now receive the validated form data from handleSubmit
   const handleFinalSubmit = async (data) => {
-    // Format the due_date using dayjs to 'YYYY-MM-DD'
-    const formattedDueDate = data.due_date
-      ? dayjs(data.due_date).format("YYYY-MM-DD")
-      : null;
-
-    const formattedSetDate = data.set_date
-      ? dayjs(data.set_date).format("YYYY-MM-DD")
-      : null;
-
-    // Combine form data with other state data
-    const assignmentData = {
-      title: data.title,
-      description: data.description,
-      // Format the date as needed by your backend API
-      set_date: formattedSetDate,
-      due_date: formattedDueDate,
-      subject: data.subject,
-      max_score: data.max_score,
-      students: selectedStudents.map((student_id) => student_id), // Assuming you need student IDs
-      files: selectedFiles, // You'll likely need to handle file uploads separately or in handleCreateAssignment
-    };
-
-    // Guard against a double-click firing a second request.
     if (isSubmitting) return;
     setIsSubmitting(true);
-
     try {
+      const assignmentData = {
+        title: data.title,
+        description: data.description,
+        set_date: data.set_date ? dayjs(data.set_date).format("YYYY-MM-DD") : null,
+        due_date: data.due_date ? dayjs(data.due_date).format("YYYY-MM-DD") : null,
+        subject: data.subject,
+        max_score: data.max_score,
+        students: selectedStudents,
+        files: selectedFiles,
+      };
       const result = await handleCreateAssignment(assignmentData);
       if (result.ok) {
         toast.success("Assignment created successfully!");
-
-        // Refresh the board so the new card appears without a manual reload.
         onCreated?.();
-
-        setIsOpen(false); // Close modal on success
-
-        // Reset the form and state variables
-        reset(); // Use react-hook-form's reset
-        setStep(1);
-        setSelectedStudents([]);
-        setSelectedFiles([]);
+        resetAll();
+        onClose?.();
       } else {
-        // Keep the modal open with entered data and surface the server error.
         toast.error(result.error || "Failed to create assignment.");
       }
     } catch (error) {
@@ -148,281 +106,139 @@ const AddAssignmentWizard = ({
     }
   };
 
-  return (
-    <Box sx={{ p: 2 }}>
-      {step === 1 && (
-        <FormSection>
-          <form onSubmit={handleSubmit(handleNext)}>
-            <Controller
-              name="title"
-              control={control}
-              render={({ field }) => (
-                <FormControl fullWidth error={!!errors.title} sx={{ mb: 3 }}>
-                  <FormInput
-                    {...field}
-                    label="Title"
-                    error={!!errors.title}
-                  />
-                  <FormHelperText>{errors.title?.message}</FormHelperText>
-                </FormControl>
-              )}
-            />
-
-            <Controller
-              name="subject"
-              control={control}
-              render={(
-                { field, fieldState: { error } } // Access error from fieldState
-              ) => (
-                <FormControl fullWidth error={!!error}>
-                  <InputLabel id="subject-select-label" sx={{ color: "#fff" }}>
-                    Subject
-                  </InputLabel>
-                  <Select
-                    {...field} // Spread the field properties onto the Select
-                    labelId="subject-select-label"
-                    id="subject"
-                    label="Subject" // Keep the label prop for correct a11y and notch behavior
-                    displayEmpty // To show placeholder if no subject is selected
-                    sx={{ ...inputStyle }} // Remove margin-bottom from the Select itself
-                    error={!!error} // Set error on the Select component for styling
-                  >
-                    {subjects?.map((subject) => (
-                      <MenuItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  <FormHelperText
-                    sx={{
-                      minHeight: 2,
-                      visibility: error ? "visible" : "hidden",
-                      color: error ? "error.main" : "transparent",
-                      mb: 2,
-                    }}
-                  >
-                    {error ? error.message : " "}
-                  </FormHelperText>
-                </FormControl>
-              )}
-            />
-
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label="Task Description"
-                  variant="outlined"
-                  type="text"
-                  error={!!errors.description}
-                  helperText={errors.description?.message}
-                  sx={{ mb: 4, ...inputStyle }}
-                />
-              )}
-            />
-
-            <Controller
-              name="set_date"
-              control={control}
-              render={(
-                { field, fieldState: { error } } // Access error here
-              ) => (
-                <DatePicker
-                  label="Start Date"
-                  value={field.value} // Important: Bind the value
-                  onChange={field.onChange} // Important: Bind the onChange
-                  fullWidth
-                  sx={{ ...inputStyle, width: "100%", mb: 4 }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      error={!!error}
-                      helperText={error?.message}
-                    />
-                  )} // Show error
-                />
-              )}
-            />
-
-            <Controller
-              name="due_date"
-              control={control}
-              render={(
-                { field, fieldState: { error } } // Access error here
-              ) => (
-                <DatePicker
-                  label="Due Date"
-                  value={field.value} // Important: Bind the value
-                  onChange={field.onChange} // Important: Bind the onChange
-                  fullWidth
-                  minDate={setDateValue || dayjs()}
-                  sx={{ ...inputStyle, width: "100%", mb: 4 }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      error={!!error}
-                      helperText={error?.message}
-                    />
-                  )} // Show error
-                />
-              )}
-            />
-
-            <Controller
-              name="max_score"
-              control={control}
-              render={(
-                { field, fieldState: { error } } // Access error here
-              ) => (
-                <TextField
-                  type="number"
-                  label="Max Score"
-                  value={field.value} // Important: Bind the value
-                  onChange={field.onChange} // Important: Bind the onChange
-                  fullWidth
-                  sx={{ ...inputStyle, width: "100%", mb: 4 }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      error={!!error}
-                      helperText={error?.message}
-                    />
-                  )} // Show error
-                />
-              )}
-            />
-
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 2,
-                mt: 2,
-              }}
-            >
-              <ModalButton
-                variant="outlined"
-                color="primary"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
-                sx={{ width: "100%" }}
-              >
-                Cancel
-              </ModalButton>
-              <ModalButton
-                type="submit" // Important: Keep the type="submit"
-                variant="contained"
-                color="primary"
-                sx={{ width: "100%" }}
-              >
-                Next
-              </ModalButton>
-            </Box>
-          </form>
-        </FormSection>
-      )}
-      {step === 2 && (
+  const steps = [
+    {
+      label: "Details",
+      content: (
         <Box>
-          <Typography>Step 2</Typography>
-          <StudentSearch
-            students={students}
-            classGroups={classGroups}
-            selectedStudents={selectedStudents}
-            setSelectedStudents={setSelectedStudents}
+          <Controller
+            name="title"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldText
+                {...field}
+                label="Title"
+                required
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
           />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              mt: 2,
-              gap: 2,
-            }}
-          >
-            <ModalButton
-              variant="outlined"
-              color="primary"
-              onClick={handleBack}
-              sx={{ width: "100%" }}
-            >
-              Back
-            </ModalButton>
-            <ModalButton
-              variant="contained"
-              color="primary"
-              onClick={handleNext}
-              sx={{ width: "100%" }}
-            >
-              Next
-            </ModalButton>
+          <Controller
+            name="subject"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldSelect
+                {...field}
+                label="Subject"
+                required
+                placeholder="Select a subject"
+                options={(subjects || []).map((s) => ({ value: s.id, label: s.name }))}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="description"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldText
+                {...field}
+                label="Task description"
+                multiline
+                minRows={2}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="set_date"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldDate
+                {...field}
+                label="Start date"
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="due_date"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldDate
+                {...field}
+                label="Due date"
+                minDate={setDateValue || dayjs()}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+          <Controller
+            name="max_score"
+            control={control}
+            render={({ field, fieldState }) => (
+              <FieldNumber
+                {...field}
+                label="Max score"
+                min={1}
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
+            )}
+          />
+        </Box>
+      ),
+    },
+    {
+      label: "Students",
+      content: (
+        <StudentPicker
+          students={students || []}
+          classGroups={classGroups || []}
+          selectedStudents={selectedStudents}
+          setSelectedStudents={setSelectedStudents}
+        />
+      ),
+    },
+    {
+      label: "Files",
+      content: (
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            Add files (optional)
+          </Typography>
+          <Dropzone onDrop={handleFileDrop} />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mt: 2 }}>
+            {selectedFiles.map((file, index) => (
+              <Chip
+                key={index}
+                label={file.name}
+                onDelete={() => handleRemoveFile(file)}
+                sx={{ justifyContent: "space-between" }}
+              />
+            ))}
           </Box>
         </Box>
-      )}
-      {step === 3 && (
-        <Box>
-          <form onSubmit={handleSubmit(handleFinalSubmit)}>
-            <Typography variant="h6" gutterBottom>
-              Add Files (Optional)
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                mt: 2,
-                gap: 2,
-              }}
-            >
-              <Dropzone onDrop={handleFileDrop} />
-              {selectedFiles.map((file, index) => (
-                <Chip
-                  key={index}
-                  label={file.name}
-                  onDelete={() => handleRemoveFile(file)}
-                  color="secondary"
-                  sx={{
-                    margin: "0.5rem",
-                    width: "100%",
-                    justifyContent: "space-between",
-                    color: "secondary",
-                  }}
-                />
-              ))}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 2,
-                  mt: 2,
-                }}
-              >
-                <ModalButton
-                  variant="outlined"
-                  color="primary"
-                  onClick={handleBack}
-                  sx={{ width: "100%" }}
-                >
-                  Back
-                </ModalButton>
-                <ModalButton
-                  type="submit" // This ModalButton triggers the final form submission
-                  variant="contained"
-                  color="primary"
-                  disabled={isSubmitting}
-                  sx={{ width: "100%" }}
-                >
-                  {isSubmitting ? "Submitting…" : "Submit Assignment"}
-                </ModalButton>
-              </Box>
-            </Box>
-          </form>
-        </Box>
-      )}
-    </Box>
+      ),
+    },
+  ];
+
+  return (
+    <WizardShell
+      open={open}
+      onClose={onClose}
+      title="Create new assignment"
+      steps={steps}
+      submitting={isSubmitting}
+      submitLabel="Create assignment"
+      onNext={(step) => (step === 0 ? trigger(DETAIL_FIELDS) : true)}
+      onSubmit={handleSubmit(handleFinalSubmit)}
+    />
   );
 };
 
