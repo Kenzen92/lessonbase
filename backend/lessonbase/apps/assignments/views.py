@@ -40,7 +40,6 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         return (
             Assignment.objects.filter(Q(teachers=user) | Q(students=user))
             .distinct()
-            .select_related("subject")
             .prefetch_related("teachers", "material_links__resource")
         )
 

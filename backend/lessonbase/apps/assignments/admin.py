@@ -4,9 +4,9 @@ from apps.assignments.models import Assignment, Submission, Feedback
 
 @admin.register(Assignment)
 class AssignmentAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "subject", "max_score", "due_date", "marked")
-    search_fields = ("title", "subject__name")
-    list_filter = ("subject", "marked", "due_date")
+    list_display = ("id", "title", "max_score", "due_date", "marked")
+    search_fields = ("title",)
+    list_filter = ("marked", "due_date")
     ordering = ("due_date",)
     filter_horizontal = ("teachers", "students")
 

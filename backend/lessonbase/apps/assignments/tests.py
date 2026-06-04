@@ -17,12 +17,14 @@ class AssignmentTestMixin:
     """Adds a helper to create a test Assignment with teacher + student enrolled."""
 
     def create_assignment(self):
+        from apps.tags.utils import add_tag
+
         assignment = Assignment.objects.create(
             title="Test Assignment",
-            subject=self.subjects[0],
             max_score=100,
             due_date=datetime.date.today() + datetime.timedelta(days=7),
         )
+        add_tag(assignment, self.subjects[0].name, kind="subject")
         assignment.teachers.add(self.teacher)
         assignment.students.add(self.student)
         return assignment

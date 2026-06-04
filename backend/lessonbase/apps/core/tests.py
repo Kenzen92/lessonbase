@@ -68,14 +68,15 @@ class UserFixtureMixin:
 
     def create_lessons(self):
         from apps.classes.models import ClassEvent
+        from apps.tags.utils import add_tag
 
         lessons = []
         for index in range(3):
             lesson = ClassEvent.objects.create(
                 start_time="2024-01-01T10:00:00Z",
                 duration=60,
-                subject=self.subjects[index],
             )
+            add_tag(lesson, self.subjects[index].name, kind="subject")
             lesson.students.add(self.student)
             lesson.teachers.add(self.teacher)
             lessons.append(lesson)
@@ -265,7 +266,6 @@ class ClassroomChatSecurityAndLogicTests(BaseTransactionTestCase):
             name="Live Class",
             start_time="2099-01-01T10:00:00Z",
             duration=60,
-            subject=self.subjects[0],
         )
         self.classroom.teachers.add(self.teacher)
         self.classroom.students.add(self.student)

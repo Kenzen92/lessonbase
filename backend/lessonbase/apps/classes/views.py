@@ -47,14 +47,12 @@ class ClassEventViewSet(viewsets.ViewSet):
             class_events = (
                 ClassEvent.objects.filter(teachers=user, classroom_type="scheduled")
                 .distinct()
-                .select_related("subject")
                 .prefetch_related("students")
             )
         else:
             class_events = (
                 ClassEvent.objects.filter(students=user, classroom_type="scheduled")
                 .distinct()
-                .select_related("subject")
                 .prefetch_related("teachers")
             )
         serializer_class = self.get_serializer_class()
@@ -273,7 +271,12 @@ def class_report(request):
 
     student_name = class_event.students.first()
     time_of_class = class_event.start_time
-    subject = class_event.subject.name
+    # Subject is now a tag; use the first subject-kind tag, falling back to the
+    # class name so the report still has a sensible heading.
+    subject_tag = class_event.tags.filter(tag__kind="subject").first()
+    subject = (
+        subject_tag.tag.name if subject_tag else (class_event.name or "General")
+    )
     duration = class_event.duration
     class_summary = request.data.get("lesson_summary", "No summary provided")
 
@@ -492,30 +495,10 @@ def create_practice_classroom(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    try:
-        from apps.subjects.models import Subject
-
-        subject = (
-            Subject.objects.filter(classevent__teachers=user)
-            .annotate(usage_count=Count("classevent"))
-            .order_by("-usage_count")
-            .first()
-        )
-        if not subject:
-            subject = Subject.objects.first()
-            if not subject:
-                subject = Subject.objects.create(name="Practice Subject")
-    except Exception as e:
-        return Response(
-            {"error": f"Error creating practice classroom: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
     practice_classroom = ClassEvent.objects.create(
         name=f"Practice Classroom - {user.first_name}",
         start_time=timezone.now(),
         duration=120,
-        subject=subject,
         classroom_type="practice",
     )
     practice_classroom.teachers.add(user)

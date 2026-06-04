@@ -16,6 +16,7 @@ def create_required_objects(sender, **kwargs):
         Feedback,
     )
     from apps.user_accounts.models import ClassGroup
+    from apps.tags.utils import add_tag
 
     # Loop now unpacks name, code, and color
     for name, code, color in Subject.reserved_names:
@@ -141,13 +142,13 @@ def create_required_objects(sender, **kwargs):
             class_event = ClassEvent.objects.create(
                 start_time=start_time,
                 duration=duration,
-                subject=subject,
                 class_group=random.choice(class_groups),
                 name=f"Class Event {subject.name} {i + 1}",
             )
             class_event.students.add(*selected_students)
             class_event.teachers.add(teacher)
             class_event.save()
+            add_tag(class_event, subject.name, color=subject.color, kind="subject")
 
     # Create some assignments
     for i in range(5):
@@ -159,9 +160,9 @@ def create_required_objects(sender, **kwargs):
                 "max_score": 100,
                 "set_date": timezone.now().date() + timedelta(days=i),
                 "due_date": timezone.now().date() + timedelta(days=7),
-                "subject": subject,
             },
         )
+        add_tag(assignment, subject.name, color=subject.color, kind="subject")
         assignment.teachers.add(teacher)
         # Randomly assign some students to each assignment
         num_students = random.randint(5, 15)

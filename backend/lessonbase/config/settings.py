@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "channels",
     "apps.subjects",
+    "apps.tags",
     "apps.user_accounts",
     "apps.classes",
     "apps.storage",

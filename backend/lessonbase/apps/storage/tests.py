@@ -69,8 +69,10 @@ class StorageTests(TestCase):
         self.class_event = ClassEvent.objects.create(
             start_time=timezone.now(),
             duration=60,
-            subject=self.subject,
         )
+        from apps.tags.utils import add_tag
+
+        add_tag(self.class_event, self.subject.name, kind="subject")
         self.class_event.teachers.add(self.teacher)
 
     def test_profile_picture_upload_and_readback(self):

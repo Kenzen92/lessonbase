@@ -6,9 +6,9 @@ from apps.user_accounts.serializers import (
     ClassGroupUserSerializer,
 )
 from rest_framework import serializers
-from apps.subjects.models import Subject
 from apps.classes.models import ClassEvent, SessionFeedback
-from apps.subjects.serializers import SubjectSerializer
+from apps.tags.serializers import TagSerializer
+from apps.tags.utils import set_tags, tags_for
 
 
 class ResourceSummarySerializer(serializers.Serializer):
@@ -27,7 +27,7 @@ class ResourceSummarySerializer(serializers.Serializer):
 class ClassEventCreateSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+    tags = serializers.ListField(required=False, default=list)
     class_group = serializers.PrimaryKeyRelatedField(
         queryset=ClassGroup.objects.all(), allow_null=True, required=False
     )
@@ -38,7 +38,7 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
             "id",
             "start_time",
             "duration",
-            "subject",
+            "tags",
             "students",
             "teachers",
             "class_group",
@@ -46,17 +46,33 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id"]
 
+    def create(self, validated_data):
+        tags = validated_data.pop("tags", [])
+        event = super().create(validated_data)
+        set_tags(event, tags)
+        return event
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop("tags", None)
+        event = super().update(instance, validated_data)
+        if tags is not None:
+            set_tags(event, tags)
+        return event
+
 
 class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = SubjectSerializer(many=False, read_only=True)
+    tags = serializers.SerializerMethodField()
     resources = serializers.SerializerMethodField()
     class_group = ClassGroupUserSerializer(read_only=True)
     previous = serializers.SerializerMethodField()
 
     def get_previous(self, obj):
         return obj.start_time < datetime.now(timezone.utc)
+
+    def get_tags(self, obj):
+        return TagSerializer(tags_for(obj), many=True).data
 
     def get_resources(self, obj):
         links = obj.resource_links.select_related("resource").all()
@@ -68,7 +84,7 @@ class ClassEventDateOrderedSerializer(serializers.ModelSerializer):
             "id",
             "start_time",
             "duration",
-            "subject",
+            "tags",
             "students",
             "teachers",
             "resources",
@@ -91,8 +107,11 @@ class SessionFeedbackSerializer(serializers.ModelSerializer):
 class ClassEventSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    subject = SubjectSerializer(read_only=True)
+    tags = serializers.SerializerMethodField()
     resources = serializers.SerializerMethodField()
+
+    def get_tags(self, obj):
+        return TagSerializer(tags_for(obj), many=True).data
 
     def get_resources(self, obj):
         links = obj.resource_links.select_related("resource").all()
@@ -104,7 +123,7 @@ class ClassEventSerializer(serializers.ModelSerializer):
             "id",
             "start_time",
             "duration",
-            "subject",
+            "tags",
             "students",
             "teachers",
             "resources",

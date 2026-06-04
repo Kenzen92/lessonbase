@@ -1,7 +1,7 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
-from apps.subjects.models import Subject
 from apps.user_accounts.models import ClassGroup, CustomUser, Student
 
 
@@ -12,7 +12,7 @@ class Assignment(models.Model):
 
     title = models.CharField(null=False, max_length=200)
     description = models.TextField(max_length=1000, null=True, blank=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    tags = GenericRelation("tags.TaggedItem")
     teachers = models.ManyToManyField(CustomUser, related_name="assignments_as_teacher")
     students = models.ManyToManyField(Student, related_name="assignments_as_student")
     class_groups = models.ManyToManyField(
@@ -28,7 +28,7 @@ class Assignment(models.Model):
     marked = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.title} - {self.subject.name}"
+        return self.title
 
     @property
     def get_progress(self):

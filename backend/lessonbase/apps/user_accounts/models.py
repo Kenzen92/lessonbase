@@ -2,6 +2,7 @@ from polymorphic.models import PolymorphicModel
 from polymorphic.managers import PolymorphicManager
 import uuid
 from django.contrib.auth.models import AbstractUser
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from apps.subjects.models import Subject
@@ -51,6 +52,7 @@ class CustomAccount(PolymorphicModel, CustomUser):
         upload_to="profile_pictures/", null=True, blank=True
     )
     subjects = models.ManyToManyField(Subject)
+    tags = GenericRelation("tags.TaggedItem")
 
     def __str__(self):
         return f"{self.username} is a {self.polymorphic_ctype.name}"
@@ -91,7 +93,8 @@ class ClassGroup(models.Model):
     description = models.TextField(null=True, blank=True)
     subjects = models.ManyToManyField(Subject, related_name="class_groups")
     location = models.CharField(max_length=255, null=True, blank=True)
-    class_code = models.CharField(max_length=50, unique=True)
+    class_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    tags = GenericRelation("tags.TaggedItem")
     max_students = models.PositiveIntegerField(null=True, blank=True)
     symbol = models.ImageField(upload_to="profile_pictures/", null=True, blank=True)
     STATUS_CHOICES = [

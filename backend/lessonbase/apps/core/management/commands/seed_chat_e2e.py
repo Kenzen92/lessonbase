@@ -4,6 +4,8 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.tags.utils import add_tag
+
 
 class Command(BaseCommand):
     help = "Seed deterministic users, direct chat, and classroom chat for browser E2E tests."
@@ -73,10 +75,10 @@ class Command(BaseCommand):
             name=self.classroom_name,
             start_time=timezone.now() + timedelta(hours=1),
             duration=60,
-            subject=subject,
             access_token=self.classroom_access_token,
             is_active=True,
         )
+        add_tag(classroom, subject.name, color=subject.color, kind="subject")
         classroom.teachers.add(teacher)
         classroom.students.add(student)
 
@@ -86,10 +88,10 @@ class Command(BaseCommand):
             name="Playwright Past Classroom",
             start_time=timezone.now() - timedelta(hours=2),
             duration=60,
-            subject=subject,
             access_token="playwright-past-classroom",
             is_active=True,
         )
+        add_tag(past_classroom, subject.name, color=subject.color, kind="subject")
         past_classroom.teachers.add(teacher)
         past_classroom.students.add(student)
 
