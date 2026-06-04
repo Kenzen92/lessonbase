@@ -3,10 +3,10 @@ from datetime import timezone as dt_timezone
 
 from django.utils import timezone
 from rest_framework import serializers
-from apps.subjects.models import Subject
 from apps.user_accounts.models import Teacher, Student
 from apps.user_accounts.serializers import StudentSerializer
-from apps.subjects.serializers import SubjectSerializer
+from apps.tags.serializers import TagSerializer
+from apps.tags.utils import set_tags, tags_for
 from apps.assignments.models import Assignment, Submission, Feedback
 from apps.resources.models import Resource, ALLOWED_MIME_TYPES, MAX_FILE_SIZE
 
@@ -29,7 +29,7 @@ class ResourceAttachmentSerializer(serializers.Serializer):
 
 
 class AssignmentListSerializer(serializers.ModelSerializer):
-    subject = SubjectSerializer()
+    tags = serializers.SerializerMethodField()
     teachers = serializers.PrimaryKeyRelatedField(
         queryset=Teacher.objects.all(), many=True
     )
@@ -44,7 +44,7 @@ class AssignmentListSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "description",
-            "subject",
+            "tags",
             "teachers",
             "max_score",
             "created_at",
@@ -54,6 +54,9 @@ class AssignmentListSerializer(serializers.ModelSerializer):
             "progress",
         ]
 
+    def get_tags(self, obj):
+        return TagSerializer(tags_for(obj), many=True).data
+
     def get_progress(self, obj):
         return obj.get_progress
 
@@ -61,7 +64,7 @@ class AssignmentListSerializer(serializers.ModelSerializer):
 class AssignmentCreateSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
     description = serializers.CharField(required=False, allow_blank=True)
-    subject = serializers.PrimaryKeyRelatedField(queryset=Subject.objects.all())
+    tags = serializers.ListField(required=False, default=list)
     max_score = serializers.IntegerField()
     due_date = serializers.DateField()
     set_date = serializers.DateField(default=datetime.now(dt_timezone.utc).date())
@@ -74,7 +77,7 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         fields = [
             "title",
             "description",
-            "subject",
+            "tags",
             "max_score",
             "set_date",
             "due_date",
@@ -83,15 +86,17 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         students = validated_data.pop("students", [])
+        tags = validated_data.pop("tags", [])
         teacher = self.context["request"].user.get_real_instance()
         assignment = Assignment.objects.create(**validated_data)
         assignment.teachers.set([teacher])
         assignment.students.set(students)
+        set_tags(assignment, tags)
         return assignment
 
 
 class AssignmentDetailsSerializer(serializers.ModelSerializer):
-    subject = SubjectSerializer(many=False)
+    tags = serializers.SerializerMethodField()
     teachers = serializers.PrimaryKeyRelatedField(
         queryset=Teacher.objects.all(), many=True
     )
@@ -105,7 +110,7 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "description",
-            "subject",
+            "tags",
             "teachers",
             "max_score",
             "created_at",
@@ -115,6 +120,9 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
             "progress",
             "materials",
         ]
+
+    def get_tags(self, obj):
+        return TagSerializer(tags_for(obj), many=True).data
 
     def get_progress(self, obj):
         return obj.get_progress

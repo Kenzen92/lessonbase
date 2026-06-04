@@ -23,6 +23,7 @@ from apps.user_accounts.views import (
 )
 from apps.subjects.views import all_subjects, subjects
 from apps.assignments.views import AssignmentViewSet, SubmissionViewSet
+from apps.tags.views import TagListCreateView
 from apps.resources.views import ResourceViewSet, ResourceTagViewSet, ClassEventResourcesViewSet
 from . import views
 from .auth_views import (
@@ -51,6 +52,8 @@ router.register(r"resources", ResourceViewSet, basename="resources")
 router.register(r"resource-tags", ResourceTagViewSet, basename="resource-tags")
 
 urlpatterns = [
+    # Tags
+    path("tags/", TagListCreateView.as_view(), name="tags"),
     # Authentication
     path("auth/register/", register, name="auth_register"),
     path("auth/login/", login_view, name="auth_login"),

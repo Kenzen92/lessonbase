@@ -1,8 +1,8 @@
 from datetime import date
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
-from apps.subjects.models import Subject
 from apps.user_accounts.models import ClassGroup, CustomUser
 import secrets
 
@@ -35,7 +35,7 @@ class ClassEvent(Event):
     teachers = models.ManyToManyField(
         CustomUser, related_name="class_events_as_teacher", blank=True
     )
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    tags = GenericRelation("tags.TaggedItem")
     created_at = models.DateTimeField(auto_created=True, auto_now=True)
 
     classroom_type = models.CharField(
@@ -74,7 +74,7 @@ class ClassEvent(Event):
         )
 
     def __str__(self):
-        return f"{self.subject} - {self.start_time} - {self.duration}"
+        return f"{self.name or 'Class'} - {self.start_time} - {self.duration}"
 
 
 class SessionFeedback(models.Model):
