@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "../components/main_navigation";
 import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
-import AddAssignmentModal from "../components/Assignments/add_assignment_modal.jsx";
+import AddAssignmentWizard from "../components/Assignments/add_assignment_wizard.jsx";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
 import AssignmentDetailsDrawer from "../components/Assignments/assignment_details_drawer.jsx";
 import AssignmentFeedbackModal from "../components/Assignments/assignment_feedback_modal.jsx";
@@ -92,9 +92,9 @@ function Assignments() {
           actionText="Create Assignment"
         />
 
-        <AddAssignmentModal
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
+        <AddAssignmentWizard
+          open={isOpen}
+          onClose={() => setIsOpen(false)}
           students={allStudents}
           subjects={allSubjects}
           classGroups={classGroups}

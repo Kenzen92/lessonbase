@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Typography, Box, Container, Modal, Paper } from "@mui/material";
+import { Typography, Box, Container, Paper } from "@mui/material";
 
 import Navigation from "../main_navigation.jsx";
 import DashboardHeader from "./dashboard_header.jsx";
@@ -27,7 +27,6 @@ const ClassEventDashboard = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentClassEvent, setCurrentClassEvent] = useState(null);
-  const [step, setStep] = useState(1);
   const [filteredClassEvents, setFilteredClassEvents] = useState([]);
 
   // Consume contexts
@@ -250,47 +249,16 @@ const ClassEventDashboard = () => {
           </Box>
         )}
 
-        <Modal
+        <ClassEventWizard
+          key={currentClassEvent?.id ?? "new"}
           open={modalOpen}
           onClose={handleClose}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              maxWidth: "1200px",
-              width: { xs: "90%", sm: "85%", md: "80%", lg: "75%" },
-              backgroundColor: "#333",
-              padding: 4,
-              borderRadius: 2,
-              boxShadow: 24,
-              color: "white",
-              outline: "none",
-              maxHeight: "90vh",
-              overflowY: "auto",
-            }}
-          >
-            <ClassEventWizard
-              handleReloadData={handleReloadData}
-              classData={currentClassEvent}
-              modalOpen={modalOpen}
-              handleClose={handleClose}
-              setModalOpen={setModalOpen}
-              subjects={subjects}
-              students={students}
-              step={step}
-              setStep={setStep}
-              classGroups={classGroups}
-            />
-          </Box>
-        </Modal>
+          onSaved={handleReloadData}
+          classData={currentClassEvent}
+          subjects={subjects}
+          students={students}
+          classGroups={classGroups}
+        />
       </Container>
     </>
   );
