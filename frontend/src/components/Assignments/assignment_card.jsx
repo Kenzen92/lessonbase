@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Chip, Typography, Button, LinearProgress } from "@mui/material";
 import subjectIconMap from "../../utils/icons";
+import { primaryTag, tagList } from "../../utils/tags";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import { FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -11,14 +12,14 @@ const AssignmentCard = ({
   setCurrentAssignment,
 }) => {
   const navigate = useNavigate();
-  // Add null checks for assignment and its properties for safety
-  if (!assignment || !assignment.subject) {
-    return null; // Or render a placeholder/error state
+  if (!assignment) {
+    return null;
   }
 
-  // Use a fallback icon if the subject's icon is not found
-  const IconComponent =
-    subjectIconMap[assignment.subject.name] || FaUserGraduate;
+  const tags = tagList(assignment);
+  const primary = primaryTag(assignment);
+  // Use a fallback icon if the primary tag has no matching icon.
+  const IconComponent = subjectIconMap[primary?.name] || FaUserGraduate;
 
   const date_today = new Date();
   const dueDateObj = new Date(assignment.due_date);
@@ -86,17 +87,24 @@ const AssignmentCard = ({
           flexWrap: "wrap", // Allow chips to wrap if space is limited
         }}
       >
-        {/* Subject Chip */}
-        <Chip
-          icon={<IconComponent style={{ color: "#fff" }} size={14} />}
-          label={assignment.subject.code}
-          size="small" // Ensure consistent small size
-          sx={{
-            ...chipLabelTruncateStyles, // Apply truncation styles
-            color: "#fff", // Keep text color white
-            backgroundColor: assignment.subject.color,
-          }}
-        />
+        {/* Tag chips (subject is now a tag) */}
+        {tags.map((tag, index) => (
+          <Chip
+            key={tag.id ?? `${tag.name}-${index}`}
+            icon={
+              index === 0 ? (
+                <IconComponent style={{ color: "#fff" }} size={14} />
+              ) : undefined
+            }
+            label={tag.name}
+            size="small"
+            sx={{
+              ...chipLabelTruncateStyles,
+              color: "#fff",
+              backgroundColor: tag.color || "#333",
+            }}
+          />
+        ))}
 
         {/* Status Chip (Late or Today) */}
         {isLate || dueToday ? (

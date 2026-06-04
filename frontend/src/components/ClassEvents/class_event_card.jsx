@@ -20,6 +20,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import subjectIconMap from "../../utils/icons";
+import { primaryTag } from "../../utils/tags";
 
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const navigate = useNavigate();
@@ -65,7 +66,8 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
     return () => clearInterval(interval);
   }, [isOngoing, endTime]);
 
-  const IconComponent = subjectIconMap[eventData.subject.name];
+  const primary = primaryTag(eventData);
+  const IconComponent = subjectIconMap[primary?.name] || FaClock;
   const formattedTime = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -103,9 +105,9 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
         >
           <Chip
             icon={<IconComponent color="#fff" size={18} />}
-            label={eventData.subject.code}
+            label={primary?.name || eventData.name || "Class"}
             sx={{
-              backgroundColor: eventData.subject.color,
+              backgroundColor: primary?.color || "#455A64",
               color: "#fff",
               fontWeight: 600,
               px: 1.5,

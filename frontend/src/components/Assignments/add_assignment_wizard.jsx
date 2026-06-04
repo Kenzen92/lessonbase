@@ -6,7 +6,7 @@ import * as yup from "yup";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { WizardShell } from "../wizard";
-import { FieldText, FieldSelect, FieldDate, FieldNumber } from "../fields";
+import { FieldText, FieldDate, FieldNumber, TagField } from "../fields";
 import StudentPicker from "../Students/StudentPicker";
 import Dropzone from "../Resources/dropzone";
 import { handleCreateAssignment } from "../../utils/agent";
@@ -24,22 +24,15 @@ const validationSchema = yup.object().shape({
     .date()
     .typeError("Invalid date format")
     .required("Start date is required"),
-  subject: yup
-    .number("Subject must be a number")
-    .transform((value, originalValue) => (originalValue === "" ? null : value))
-    .nullable()
-    .required("Subject is required")
-    .positive("Subject must be positive"),
 });
 
-const DETAIL_FIELDS = ["title", "subject", "description", "set_date", "due_date", "max_score"];
+const DETAIL_FIELDS = ["title", "description", "set_date", "due_date", "max_score"];
 
 const AddAssignmentWizard = ({
   open,
   onClose,
   onCreated,
   students,
-  subjects,
   classGroups,
 }) => {
   const {
@@ -52,7 +45,7 @@ const AddAssignmentWizard = ({
     defaultValues: {
       due_date: dayjs().add(7, "day"),
       set_date: dayjs(),
-      subject: "",
+      tags: [],
       title: "",
       max_score: 100,
       description: "",
@@ -84,7 +77,7 @@ const AddAssignmentWizard = ({
         description: data.description,
         set_date: data.set_date ? dayjs(data.set_date).format("YYYY-MM-DD") : null,
         due_date: data.due_date ? dayjs(data.due_date).format("YYYY-MM-DD") : null,
-        subject: data.subject,
+        tags: data.tags,
         max_score: data.max_score,
         students: selectedStudents,
         files: selectedFiles,
@@ -125,17 +118,14 @@ const AddAssignmentWizard = ({
             )}
           />
           <Controller
-            name="subject"
+            name="tags"
             control={control}
-            render={({ field, fieldState }) => (
-              <FieldSelect
-                {...field}
-                label="Subject"
-                required
-                placeholder="Select a subject"
-                options={(subjects || []).map((s) => ({ value: s.id, label: s.name }))}
-                error={!!fieldState.error}
-                helperText={fieldState.error?.message}
+            render={({ field }) => (
+              <TagField
+                label="Tags (subject, topic…)"
+                value={field.value}
+                onChange={field.onChange}
+                hint="Optional — type to create a new tag or pick an existing one"
               />
             )}
           />

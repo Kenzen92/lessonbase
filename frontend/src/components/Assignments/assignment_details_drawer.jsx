@@ -26,6 +26,7 @@ import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
 import { fetchAssignment, fetchAssignmentSubmissions } from "../../utils/agent";
 import { getSubjectIcon } from "../../utils/icons";
+import { primaryTag } from "../../utils/tags";
 import { getToken } from "../../utils/tokenStorage";
 import { useAuth } from "../../contexts/auth_context";
 import StudentAssignmentAttemptForm from "./student_assignment_attempt_form";
@@ -102,10 +103,9 @@ export default function AssignmentDetailsDrawer({
     }
   };
 
-  // Ensure assignmentDetails is available before trying to get the icon
-  const IconComponent =
-    assignmentDetails?.subject?.name &&
-    getSubjectIcon(assignmentDetails.subject.name);
+  // Subject is now a tag; use the primary tag for the icon/chip.
+  const primary = primaryTag(assignmentDetails);
+  const IconComponent = primary?.name && getSubjectIcon(primary.name);
 
   // Format dates
   const formatDate = (dateString) => {
@@ -180,22 +180,24 @@ export default function AssignmentDetailsDrawer({
                 </Box>
 
                 <Box sx={{ mb: 2 }}>
-                  <Chip
-                    icon={
-                      IconComponent && <IconComponent color="#fff" size={20} />
-                    }
-                    label={assignmentDetails.subject.name}
-                    sx={{
-                      color: "#fff",
-                      fontSize: "1rem",
-                      height: "2.5rem",
-                      minWidth: "12rem",
-                      backgroundColor: assignmentDetails.subject.color,
-                      fontWeight: 600,
-                      mb: 2,
-                      border: "2px solid rgba(255, 255, 255, 0.2)",
-                    }}
-                  />
+                  {primary && (
+                    <Chip
+                      icon={
+                        IconComponent && <IconComponent color="#fff" size={20} />
+                      }
+                      label={primary.name}
+                      sx={{
+                        color: "#fff",
+                        fontSize: "1rem",
+                        height: "2.5rem",
+                        minWidth: "12rem",
+                        backgroundColor: primary.color || "#333",
+                        fontWeight: 600,
+                        mb: 2,
+                        border: "2px solid rgba(255, 255, 255, 0.2)",
+                      }}
+                    />
+                  )}
                   <Typography
                     variant="h4"
                     sx={{

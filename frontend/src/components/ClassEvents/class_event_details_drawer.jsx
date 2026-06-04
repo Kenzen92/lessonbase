@@ -15,6 +15,7 @@ import StudentListCard from "../Students/student_list_card";
 import ResourcePicker from "../Resources/ResourcePicker";
 import ClassFeedbackSummary from "./class_feedback_summary";
 import { getSubjectIcon } from "../../utils/icons";
+import { primaryTag } from "../../utils/tags";
 import { PrimaryButton, WarningButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context";
 import {
@@ -49,10 +50,9 @@ export default function ClassEventDetailsDrawer({
     hour12: true,
   });
 
-  // Ensure assignmentDetails is available before trying to get the icon
-  const IconComponent =
-    currentClassEvent?.subject?.name &&
-    getSubjectIcon(currentClassEvent.subject.name);
+  // Subject is now a tag; use the primary tag for the icon/chip.
+  const primary = primaryTag(currentClassEvent);
+  const IconComponent = primary?.name && getSubjectIcon(primary.name);
 
   return (
     <Drawer
@@ -105,22 +105,24 @@ export default function ClassEventDetailsDrawer({
               </Box>
 
               <Box sx={{ mb: 2 }}>
-                <Chip
-                  icon={
-                    IconComponent && <IconComponent color="#fff" size={20} />
-                  }
-                  label={currentClassEvent.subject.name}
-                  sx={{
-                    color: "#fff",
-                    fontSize: "1rem",
-                    height: "2.5rem",
-                    minWidth: "12rem",
-                    backgroundColor: currentClassEvent.subject.color,
-                    fontWeight: 600,
-                    mb: 2,
-                    border: "2px solid rgba(255, 255, 255, 0.2)",
-                  }}
-                />
+                {primary && (
+                  <Chip
+                    icon={
+                      IconComponent && <IconComponent color="#fff" size={20} />
+                    }
+                    label={primary.name}
+                    sx={{
+                      color: "#fff",
+                      fontSize: "1rem",
+                      height: "2.5rem",
+                      minWidth: "12rem",
+                      backgroundColor: primary.color || "#333",
+                      fontWeight: 600,
+                      mb: 2,
+                      border: "2px solid rgba(255, 255, 255, 0.2)",
+                    }}
+                  />
+                )}
                 <Typography
                   variant="h4"
                   sx={{

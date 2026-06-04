@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Box, MenuItem } from "@mui/material";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { toast } from "react-toastify";
 import { WizardShell } from "../wizard";
-import { FieldText, FieldSelect } from "../fields";
+import { FieldText, FieldSelect, TagField } from "../fields";
 import StudentPicker from "../Students/StudentPicker";
 import {
   handleCreateClassGroup,
@@ -29,13 +29,22 @@ const GROUP_COLORS = [
 
 const validationSchema = yup.object().shape({
   name: yup.string().required("Class name is required"),
-  subjects: yup.array().min(1, "At least one subject is required"),
-  class_code: yup.string().required("Class code is required"),
+  subjects: yup.array(),
+  class_code: yup.string().optional(),
   description: yup.string().optional(),
   color: yup.string().optional(),
 });
 
-const DETAIL_FIELDS = ["name", "subjects", "class_code"];
+const DETAIL_FIELDS = ["name"];
+
+// Suggest a class code from the group name (e.g. "GCSE Biology" -> "GCSE-BIOLOGY").
+const slugifyCode = (name) =>
+  (name || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
 
 const toStudentIds = (value) =>
   (value || []).map((s) => (typeof s === "object" ? s.id : s));
@@ -57,6 +66,7 @@ const ClassWizard = ({
     handleSubmit,
     control,
     trigger,
+    setValue,
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
@@ -65,8 +75,18 @@ const ClassWizard = ({
       subjects: currentClass?.subjects?.map((s) => s.id) || [],
       class_code: currentClass?.class_code || "",
       color: currentClass?.color || "#1976D2",
+      tags: currentClass?.tags || [],
     },
   });
+
+  // Auto-suggest the class code from the name until the user edits it manually.
+  const nameValue = useWatch({ control, name: "name" });
+  const codeEdited = useRef(Boolean(currentClass?.class_code));
+  useEffect(() => {
+    if (!codeEdited.current) {
+      setValue("class_code", slugifyCode(nameValue));
+    }
+  }, [nameValue, setValue]);
 
   const [selectedStudents, setSelectedStudents] = useState(
     toStudentIds(currentClass?.students)
@@ -160,7 +180,11 @@ const ClassWizard = ({
               <FieldText
                 {...field}
                 label="Code"
-                required
+                hint="Auto-suggested from the name; edit to override"
+                onChange={(e) => {
+                  codeEdited.current = true;
+                  field.onChange(e);
+                }}
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
               />
@@ -192,6 +216,18 @@ const ClassWizard = ({
                   </MenuItem>
                 ))}
               </FieldSelect>
+            )}
+          />
+          <Controller
+            name="tags"
+            control={control}
+            render={({ field }) => (
+              <TagField
+                label="Tags"
+                value={field.value}
+                onChange={field.onChange}
+                hint="Optional — type to create a new tag or pick an existing one"
+              />
             )}
           />
         </Box>

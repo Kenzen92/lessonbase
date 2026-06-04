@@ -8,6 +8,8 @@ from apps.user_accounts.models import (
 from rest_framework import serializers
 from apps.subjects.models import Subject
 from apps.subjects.serializers import SubjectSerializer
+from apps.tags.serializers import TagSerializer
+from apps.tags.utils import set_tags, tags_for
 from django.contrib.auth.models import AbstractUser
 
 userModel = CustomAccount()
@@ -155,6 +157,11 @@ class ClassGroupCreateSerializer(serializers.ModelSerializer):
     students = serializers.PrimaryKeyRelatedField(
         queryset=Student.objects.all(), many=True, required=False, allow_empty=True
     )
+    subjects = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(), many=True, required=False, allow_empty=True
+    )
+    class_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    tags = serializers.ListField(required=False, default=list)
 
     class Meta:
         model = ClassGroup
@@ -167,13 +174,28 @@ class ClassGroupCreateSerializer(serializers.ModelSerializer):
             "teachers",
             "subjects",
             "color",
+            "tags",
         ]
         read_only_fields = ["id"]
+
+    def create(self, validated_data):
+        tags = validated_data.pop("tags", [])
+        group = super().create(validated_data)
+        set_tags(group, tags)
+        return group
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop("tags", None)
+        group = super().update(instance, validated_data)
+        if tags is not None:
+            set_tags(group, tags)
+        return group
 
 
 class ClassGroupDetailsSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     students = StudentSerializer(many=True, read_only=True)
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = ClassGroup
@@ -186,13 +208,18 @@ class ClassGroupDetailsSerializer(serializers.ModelSerializer):
             "teachers",
             "subjects",
             "color",
+            "tags",
         ]
         read_only_fields = ["id"]
+
+    def get_tags(self, obj):
+        return TagSerializer(tags_for(obj), many=True).data
 
 
 class ClassGroupListSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     students = StudentSerializer(many=True, read_only=True)
+    tags = serializers.SerializerMethodField()
 
     class Meta:
         model = ClassGroup
@@ -204,5 +231,9 @@ class ClassGroupListSerializer(serializers.ModelSerializer):
             "students",
             "subjects",
             "color",
+            "tags",
         ]
+
+    def get_tags(self, obj):
+        return TagSerializer(tags_for(obj), many=True).data
         read_only_fields = ["id"]
