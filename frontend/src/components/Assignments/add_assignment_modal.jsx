@@ -9,6 +9,7 @@ const AddAssignmentModal = ({
   students,
   classGroups,
   subjects,
+  onCreated,
 }) => {
   const [step, setStep] = useState(1);
 
@@ -26,6 +27,7 @@ const AddAssignmentModal = ({
           students={students}
           classGroups={classGroups}
           subjects={subjects}
+          onCreated={onCreated}
         />
       </WizardLayout>
     </FormModal>
