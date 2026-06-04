@@ -123,7 +123,16 @@ export const AssignmentsProvider = ({ children }) => {
 
   // Create assignment mutation
   const createAssignmentMutation = useMutation({
-    mutationFn: handleCreateAssignment,
+    // handleCreateAssignment resolves to an { ok, status, data, error } envelope
+    // and never throws, so translate a non-ok result into a thrown error here to
+    // drive React Query's onError path.
+    mutationFn: async (data) => {
+      const result = await handleCreateAssignment(data);
+      if (!result.ok) {
+        throw new Error(result.error || "Failed to create assignment");
+      }
+      return result.data;
+    },
     onSuccess: (result, variables) => {
       // Refetch to get the updated data from the server
       refetch();

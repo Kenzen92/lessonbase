@@ -27,7 +27,7 @@ function Assignments() {
   const is_teacher = auth.userType == "teacher";
 
   // Use contexts instead of local state
-  const { data: assignments } = useAssignments();
+  const { data: assignments, refetch: refetchAssignments } = useAssignments();
   const { data: classGroups } = useClassGroups();
   const { data: allStudents } = useStudents();
   const { data: allSubjects } = useSubjects();
@@ -98,6 +98,7 @@ function Assignments() {
           students={allStudents}
           subjects={allSubjects}
           classGroups={classGroups}
+          onCreated={refetchAssignments}
         />
         <AssignmentFeedbackModal
           feedbackModelOpen={feedbackModelOpen}

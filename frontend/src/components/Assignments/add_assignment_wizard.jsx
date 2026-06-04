@@ -48,6 +48,7 @@ const AddAssignmentWizard = ({
   step,
   setStep,
   setIsOpen,
+  onCreated,
 }) => {
   const {
     handleSubmit,
@@ -70,6 +71,7 @@ const AddAssignmentWizard = ({
 
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const setDateValue = useWatch({
     control, // Pass the control object from useForm
     name: "set_date",
@@ -115,17 +117,17 @@ const AddAssignmentWizard = ({
       files: selectedFiles, // You'll likely need to handle file uploads separately or in handleCreateAssignment
     };
 
-    try {
-      // Ensure handleCreateAssignment is available
-      if (typeof handleCreateAssignment !== "function") {
-        console.error("handleCreateAssignment function is not provided.");
-        // Handle this error appropriately, e.g., show a user message
-        return;
-      }
+    // Guard against a double-click firing a second request.
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
+    try {
       const result = await handleCreateAssignment(assignmentData);
-      if (result.status == 201) {
-        toast.success(result.message || "Assignment created successfully!");
+      if (result.ok) {
+        toast.success("Assignment created successfully!");
+
+        // Refresh the board so the new card appears without a manual reload.
+        onCreated?.();
 
         setIsOpen(false); // Close modal on success
 
@@ -135,23 +137,14 @@ const AddAssignmentWizard = ({
         setSelectedStudents([]);
         setSelectedFiles([]);
       } else {
-        if (toast.error) {
-          toast.error(result ? result.message : "Failed to create assignment.");
-        } else {
-          console.error(
-            "Failed to create assignment:",
-            result ? result.message : "Unknown error"
-          );
-        }
+        // Keep the modal open with entered data and surface the server error.
+        toast.error(result.error || "Failed to create assignment.");
       }
     } catch (error) {
       console.error("Error submitting assignment:", error);
-      // Assuming toast is available
-      if (typeof toast !== "undefined" && toast.error) {
-        toast.error("An error occurred while creating the assignment.");
-      } else {
-        alert("An error occurred while creating the assignment."); // Fallback
-      }
+      toast.error("An error occurred while creating the assignment.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -419,9 +412,10 @@ const AddAssignmentWizard = ({
                   type="submit" // This ModalButton triggers the final form submission
                   variant="contained"
                   color="primary"
+                  disabled={isSubmitting}
                   sx={{ width: "100%" }}
                 >
-                  Submit Assignment
+                  {isSubmitting ? "Submitting…" : "Submit Assignment"}
                 </ModalButton>
               </Box>
             </Box>

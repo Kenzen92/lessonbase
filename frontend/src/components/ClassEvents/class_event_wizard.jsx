@@ -18,10 +18,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import StudentSearch from "../Students/student_search";
 import dayjs from "dayjs"; // Import Dayjs for date manipulation
-import { getToken } from "../../utils/tokenStorage";
 import { toast } from "react-toastify";
 import inputStyle from "../../styles/input";
-const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+import {
+  handleCreateClassEvent,
+  handleUpdateClassEvent,
+} from "../../utils/agent";
 
 // Define your validation schema *outside* the component for better performance
 const validationSchema = yup.object().shape({
@@ -121,23 +123,17 @@ const ClassEventWizard = ({
     };
 
     try {
-      const auth = getToken();
-      const response = await fetch(`${BASE_URL}/class-event/`, {
-        method: classData ? "PUT" : "POST", // Use PUT for updates, POST for new entries
-        headers: {
-          Authorization: `Token ${auth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newClass),
-      });
+      const result = classData
+        ? await handleUpdateClassEvent(classData.id, newClass)
+        : await handleCreateClassEvent(newClass);
 
-      if (!response.ok) {
-        throw new Error("Failed to save class event");
+      if (result.ok) {
+        toast.success("The class event was scheduled successfully");
+        handleReloadData();
+        handleClose();
+      } else {
+        toast.error(result.error || "Failed to schedule class.");
       }
-
-      toast.success("The class event was scheduled successfully");
-      handleReloadData();
-      handleClose();
     } catch (error) {
       console.error("Error:", error.message);
       toast.error("Failed to schedule class.");

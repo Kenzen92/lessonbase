@@ -86,16 +86,20 @@ const ClassWizard = ({
   const onSubmit = async (data) => {
     data["students"] = selectedStudents;
     try {
-      const response = currentClassId
+      const result = currentClassId
         ? await handleUpdateClassGroup(data, currentClassId)
         : await handleCreateClassGroup(data);
-      toast.success(
-        currentClassId
-          ? "Class group updated successfully!"
-          : "Class group created successfully!"
-      );
-      handleClose();
-      fetchData();
+      if (result.ok) {
+        toast.success(
+          currentClassId
+            ? "Class group updated successfully!"
+            : "Class group created successfully!"
+        );
+        handleClose();
+        fetchData();
+      } else {
+        toast.error(result.error || "Failed to save class group. Please try again.");
+      }
     } catch (error) {
       console.error(error);
       toast.error("Failed to save class group. Please try again.");
