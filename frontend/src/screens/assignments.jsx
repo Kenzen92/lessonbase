@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "../components/main_navigation";
-import { Grid, Box, Typography, Container, Tooltip } from "@mui/material";
+import { Grid, Box, Typography, Container, Tooltip, Chip } from "@mui/material";
 import AssignmentCard from "../components/Assignments/assignment_card.jsx";
 import AddAssignmentWizard from "../components/Assignments/add_assignment_wizard.jsx";
 import ActionStatisticsBar from "../components/Dashboard/action_statistics_bar.jsx";
@@ -22,12 +22,39 @@ function Assignments() {
   const [currentAssignmentAttempt, setCurrentAssignmentAttempt] =
     useState(null);
   const [feedbackModelOpen, setFeedbackModalOpen] = useState(false);
+  const [selectedTags, setSelectedTags] = useState([]);
   const navigate = useNavigate();
   const { id } = useParams();
   const is_teacher = auth.userType == "teacher";
 
   // Use contexts instead of local state
   const { data: assignments, refetch: refetchAssignments } = useAssignments();
+
+  // Unique tags across every column, powering the board's tag filter (AC-TAG4).
+  const allTags = useMemo(() => {
+    const byName = new Map();
+    Object.values(assignments || {}).forEach((list) =>
+      (list || []).forEach((a) =>
+        (a.tags || []).forEach((t) => {
+          if (!byName.has(t.name)) byName.set(t.name, t);
+        })
+      )
+    );
+    return [...byName.values()];
+  }, [assignments]);
+
+  const toggleTag = (name) =>
+    setSelectedTags((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+
+  // Show an assignment if it carries any of the selected tags (OR).
+  const filterByTags = (list) => {
+    if (selectedTags.length === 0) return list || [];
+    return (list || []).filter((a) =>
+      (a.tags || []).some((t) => selectedTags.includes(t.name))
+    );
+  };
   const { data: classGroups } = useClassGroups();
   const { data: allStudents } = useStudents();
   const { data: allSubjects } = useSubjects();
@@ -130,6 +157,48 @@ function Assignments() {
           }}
         />
 
+        {allTags.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              mt: 2,
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "text.secondary", mr: 1 }}>
+              Filter by tag:
+            </Typography>
+            {allTags.map((tag) => {
+              const active = selectedTags.includes(tag.name);
+              return (
+                <Chip
+                  key={tag.name}
+                  label={tag.name}
+                  clickable
+                  size="small"
+                  onClick={() => toggleTag(tag.name)}
+                  variant={active ? "filled" : "outlined"}
+                  sx={
+                    active && tag.color
+                      ? { backgroundColor: tag.color, color: "#fff" }
+                      : undefined
+                  }
+                />
+              );
+            })}
+            {selectedTags.length > 0 && (
+              <Chip
+                label="Clear"
+                size="small"
+                variant="outlined"
+                onClick={() => setSelectedTags([])}
+              />
+            )}
+          </Box>
+        )}
+
         <Box
           className="assignment-dashboard"
           sx={{
@@ -173,15 +242,17 @@ function Assignments() {
                   }}
                 >
                   {assignments && assignments[column.name] ? (
-                    assignments[column.name].map((assignment, index) => (
-                      <Box sx={{ m: 0.2 }} key={index}>
-                        <AssignmentCard
-                          assignment={assignment}
-                          setDrawerOpen={setDrawerOpen}
-                          setCurrentAssignment={setCurrentAssignment}
-                        />
-                      </Box>
-                    ))
+                    filterByTags(assignments[column.name]).map(
+                      (assignment, index) => (
+                        <Box sx={{ m: 0.2 }} key={index}>
+                          <AssignmentCard
+                            assignment={assignment}
+                            setDrawerOpen={setDrawerOpen}
+                            setCurrentAssignment={setCurrentAssignment}
+                          />
+                        </Box>
+                      )
+                    )
                   ) : (
                     <Typography>No homeworks available</Typography>
                   )}
