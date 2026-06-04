@@ -94,7 +94,7 @@ const ClassEventDashboard = () => {
         <ActionStatisticsBar
           page="dashboard"
           actionFunction={setModalOpen}
-          actionText="Add New Class"
+          actionText="Schedule a class"
         />
         <ClassEventDetailsDrawer
           open={drawerOpen}
