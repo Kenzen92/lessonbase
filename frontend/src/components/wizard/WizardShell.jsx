@@ -134,6 +134,9 @@ const WizardShell = ({
           ref={bodyRef}
           sx={{
             px: { xs: 2, sm: 4 },
+            // Top padding so the first field's floating label isn't clipped by
+            // the scroll container when focused/filled.
+            pt: 1,
             flex: "1 1 auto",
             overflowY: "auto",
             minHeight: 0,

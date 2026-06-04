@@ -313,3 +313,44 @@ class AssignmentMaterialTest(AssignmentTestMixin, BaseTestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(self.assignment.material_links.count(), 0)
         self.assertEqual(Resource.objects.count(), 1)  # Resource not deleted
+
+
+class AssignmentCreateEditApiTest(AssignmentTestMixin, BaseTestCase):
+    """Covers creating with only a title and editing via the wizard's PATCH path."""
+
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        self.teacher_token, _ = Token.objects.get_or_create(user=self.teacher)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.teacher_token.key}")
+
+    def test_create_with_only_a_title(self):
+        response = self.client.post(
+            "/assignment/",
+            {
+                "title": "Minimal",
+                "max_score": 100,
+                "due_date": "2099-01-01",
+                "students": [],
+                "tags": [],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertTrue(Assignment.objects.filter(title="Minimal").exists())
+
+    def test_edit_assignment_updates_title_and_tags(self):
+        assignment = self.create_assignment()
+        response = self.client.patch(
+            f"/assignment/{assignment.id}/",
+            {"title": "Renamed", "tags": [{"name": "Revision"}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        assignment.refresh_from_db()
+        self.assertEqual(assignment.title, "Renamed")
+
+        from apps.tags.utils import tags_for
+
+        names = set(tags_for(assignment).values_list("name", flat=True))
+        self.assertIn("Revision", names)

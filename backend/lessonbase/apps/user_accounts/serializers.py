@@ -161,7 +161,7 @@ class ClassGroupCreateSerializer(serializers.ModelSerializer):
         queryset=Subject.objects.all(), many=True, required=False, allow_empty=True
     )
     class_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    tags = serializers.ListField(required=False, default=list)
+    tags = serializers.ListField(required=False, default=list, write_only=True)
 
     class Meta:
         model = ClassGroup

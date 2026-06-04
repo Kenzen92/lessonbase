@@ -11,7 +11,6 @@ import { useAuth } from "../contexts/auth_context.jsx";
 import { useAssignments } from "../contexts/assignments_context.jsx";
 import { useClassGroups } from "../contexts/class_groups_context.jsx";
 import { useStudents } from "../contexts/students_context.jsx";
-import { useSubjects } from "../contexts/subjects_context.jsx";
 
 function Assignments() {
   const { auth } = useAuth();
@@ -23,6 +22,7 @@ function Assignments() {
     useState(null);
   const [feedbackModelOpen, setFeedbackModalOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [editingAssignment, setEditingAssignment] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
   const is_teacher = auth.userType == "teacher";
@@ -57,7 +57,6 @@ function Assignments() {
   };
   const { data: classGroups } = useClassGroups();
   const { data: allStudents } = useStudents();
-  const { data: allSubjects } = useSubjects();
 
   const columns = [
     {
@@ -120,11 +119,15 @@ function Assignments() {
         />
 
         <AddAssignmentWizard
+          key={editingAssignment?.id ?? "new"}
           open={isOpen}
-          onClose={() => setIsOpen(false)}
+          onClose={() => {
+            setIsOpen(false);
+            setEditingAssignment(null);
+          }}
           students={allStudents}
-          subjects={allSubjects}
           classGroups={classGroups}
+          assignment={editingAssignment}
           onCreated={refetchAssignments}
         />
         <AssignmentFeedbackModal
@@ -149,6 +152,11 @@ function Assignments() {
           assignment={currentAssignment}
           setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
           setFeedbackModalOpen={setFeedbackModalOpen}
+          onEdit={() => {
+            setEditingAssignment(currentAssignment);
+            setDrawerOpen(false);
+            setIsOpen(true);
+          }}
           onFeedbackSubmitted={() => {
             // Refresh assignment data when feedback is submitted
             if (currentAssignment) {

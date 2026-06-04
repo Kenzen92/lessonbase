@@ -9,7 +9,7 @@ import { WizardShell } from "../wizard";
 import { FieldText, FieldDate, FieldNumber, TagField } from "../fields";
 import StudentPicker from "../Students/StudentPicker";
 import Dropzone from "../Resources/dropzone";
-import { handleCreateAssignment } from "../../utils/agent";
+import { handleCreateAssignment, handleUpdateAssignment } from "../../utils/agent";
 
 const validationSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -28,13 +28,18 @@ const validationSchema = yup.object().shape({
 
 const DETAIL_FIELDS = ["title", "description", "set_date", "due_date", "max_score"];
 
+const toStudentIds = (value) =>
+  (value || []).map((s) => (typeof s === "object" ? s.id : s));
+
 const AddAssignmentWizard = ({
   open,
   onClose,
   onCreated,
   students,
   classGroups,
+  assignment,
 }) => {
+  const isEditing = Boolean(assignment);
   const {
     handleSubmit,
     control,
@@ -43,16 +48,20 @@ const AddAssignmentWizard = ({
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      due_date: dayjs().add(7, "day"),
-      set_date: dayjs(),
-      tags: [],
-      title: "",
-      max_score: 100,
-      description: "",
+      due_date: assignment?.due_date
+        ? dayjs(assignment.due_date)
+        : dayjs().add(7, "day"),
+      set_date: assignment?.set_date ? dayjs(assignment.set_date) : dayjs(),
+      tags: assignment?.tags || [],
+      title: assignment?.title || "",
+      max_score: assignment?.max_score ?? 100,
+      description: assignment?.description || "",
     },
   });
 
-  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState(
+    toStudentIds(assignment?.students)
+  );
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const setDateValue = useWatch({ control, name: "set_date" });
@@ -82,18 +91,29 @@ const AddAssignmentWizard = ({
         students: selectedStudents,
         files: selectedFiles,
       };
-      const result = await handleCreateAssignment(assignmentData);
+      const result = isEditing
+        ? await handleUpdateAssignment(assignment.id, assignmentData)
+        : await handleCreateAssignment(assignmentData);
       if (result.ok) {
-        toast.success("Assignment created successfully!");
+        toast.success(
+          isEditing
+            ? "Assignment updated successfully!"
+            : "Assignment created successfully!"
+        );
         onCreated?.();
         resetAll();
         onClose?.();
       } else {
-        toast.error(result.error || "Failed to create assignment.");
+        toast.error(
+          result.error ||
+            (isEditing
+              ? "Failed to update assignment."
+              : "Failed to create assignment.")
+        );
       }
     } catch (error) {
       console.error("Error submitting assignment:", error);
-      toast.error("An error occurred while creating the assignment.");
+      toast.error("An error occurred while saving the assignment.");
     } finally {
       setIsSubmitting(false);
     }
@@ -222,10 +242,10 @@ const AddAssignmentWizard = ({
     <WizardShell
       open={open}
       onClose={onClose}
-      title="Create new assignment"
+      title={isEditing ? "Edit assignment" : "Create new assignment"}
       steps={steps}
       submitting={isSubmitting}
-      submitLabel="Create assignment"
+      submitLabel={isEditing ? "Save changes" : "Create assignment"}
       onNext={(step) => (step === 0 ? trigger(DETAIL_FIELDS) : true)}
       onSubmit={handleSubmit(handleFinalSubmit)}
     />

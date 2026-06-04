@@ -140,3 +140,84 @@ test.describe("wizard create flow", () => {
     await context.close();
   });
 });
+
+test.describe("wizard edit flow", () => {
+  test("a class group can be created then edited without error", async ({
+    browser,
+    baseURL,
+  }) => {
+    const { context, page } = await loginAsTeacher(browser, baseURL);
+    const errors = [];
+    page.on("console", (m) => {
+      if (m.type() === "error") errors.push(m.text());
+    });
+
+    await page.goto(`${baseURL}/class-groups`);
+    await page.getByRole("button", { name: "Create class group" }).click();
+
+    const name = `E2E Group ${Date.now()}`;
+    await page.getByLabel("Class name").fill(name);
+    await page.getByRole("button", { name: "Next" }).click(); // -> students
+    await page.getByRole("button", { name: "Create group" }).click();
+
+    // New card appears on the board.
+    const card = page
+      .locator("div")
+      .filter({ has: page.getByRole("heading", { name, level: 6 }) })
+      .filter({ has: page.getByRole("button", { name: "Details" }) })
+      .last();
+    await expect(card).toBeVisible({ timeout: 15000 });
+
+    // Open details -> edit -> save. This is the path that used to 500.
+    await card.getByRole("button", { name: "Details" }).click();
+    await page.getByRole("button", { name: "Edit Class" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Edit class group" })
+    ).toBeVisible();
+    await page.getByLabel("Description").fill("Edited by e2e");
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Edit class group" })
+    ).toBeHidden({ timeout: 15000 });
+    // No GenericRelatedObjectManager / server error reached the console.
+    expect(errors.join("\n")).not.toMatch(/iterable|500|GenericRelated/i);
+
+    await context.close();
+  });
+
+  test("the edit-assignment button opens the wizard prefilled", async ({
+    browser,
+    baseURL,
+  }) => {
+    const { context, page } = await loginAsTeacher(browser, baseURL);
+
+    // Seed a known assignment via the wizard.
+    await page.goto(`${baseURL}/assignments`);
+    await page.getByRole("button", { name: "Create Assignment" }).click();
+    const title = `E2E Edit ${Date.now()}`;
+    await page.getByLabel(/Title/).fill(title);
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    await page.getByRole("button", { name: "Create assignment" }).click();
+    await expect(page.getByText(title)).toBeVisible({ timeout: 15000 });
+
+    // Open its details and edit.
+    const card = page
+      .locator("div")
+      .filter({ has: page.getByRole("heading", { name: title, level: 6 }) })
+      .filter({ has: page.getByRole("button", { name: "Details" }) })
+      .last();
+    await card.getByRole("button", { name: "Details" }).click();
+    await page.getByRole("button", { name: "Edit Assignment" }).click();
+
+    await expect(
+      page.getByRole("heading", { name: "Edit assignment" })
+    ).toBeVisible();
+    // Prefilled with the existing title.
+    await expect(page.getByLabel(/Title/)).toHaveValue(title);
+
+    await context.close();
+  });
+});
