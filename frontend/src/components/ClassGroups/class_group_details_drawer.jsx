@@ -207,7 +207,7 @@ export default function ClassDetailsDrawer({
                     Class Information
                   </Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Typography
                         variant="caption"
                         sx={{
@@ -225,7 +225,7 @@ export default function ClassDetailsDrawer({
                       </Typography>
                     </Grid>
                     {classGroup.location && (
-                      <Grid item xs={12}>
+                      <Grid size={12}>
                         <Typography
                           variant="caption"
                           sx={{
@@ -244,7 +244,7 @@ export default function ClassDetailsDrawer({
                       </Grid>
                     )}
                     {(classGroup.year || classGroup.term) && (
-                      <Grid item xs={12}>
+                      <Grid size={12}>
                         <Typography
                           variant="caption"
                           sx={{
@@ -266,7 +266,7 @@ export default function ClassDetailsDrawer({
                       </Grid>
                     )}
                     {classGroup.status && (
-                      <Grid item xs={12}>
+                      <Grid size={12}>
                         <Typography
                           variant="caption"
                           sx={{

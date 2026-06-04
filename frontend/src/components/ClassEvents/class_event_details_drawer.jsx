@@ -164,7 +164,7 @@ export default function ClassEventDetailsDrawer({
             <Box sx={{ p: 3 }}>
               {/* Quick Stats */}
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Card
                     sx={{
                       backgroundColor: "rgba(33, 150, 243, 0.1)",
