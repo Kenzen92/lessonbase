@@ -1,5 +1,19 @@
 import { createTheme } from "@mui/material/styles";
 
+// ── Design tokens ────────────────────────────────────────────────────────────
+// Single source of truth for the dark surface palette. Components must read
+// these via the theme (e.g. theme.palette.surface.input) rather than inlining
+// hex, so the look can change in one place and a light mode becomes possible.
+const surface = {
+  modal: "#1E1E1E", // modal / dialog background
+  input: "#2A2A2A", // inputs sit one step lighter than the modal
+  inputHover: "#323232",
+  menu: "#262626", // dropdown menus
+  divider: "rgba(255, 255, 255, 0.1)",
+  border: "rgba(255, 255, 255, 0.15)", // resting input border
+  borderHover: "rgba(255, 255, 255, 0.3)", // hover input border
+};
+
 export const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -26,6 +40,8 @@ export const darkTheme = createTheme({
       primary: "#fff",
       secondary: "rgba(255, 255, 255, 0.7)",
     },
+    // Custom token group consumed across the wizard kit.
+    surface,
   },
   shape: {
     borderRadius: 8,
@@ -57,39 +73,42 @@ export const darkTheme = createTheme({
     },
     MuiTextField: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           "& .MuiOutlinedInput-root": {
-            backgroundColor: "#2A2A2A",
+            backgroundColor: theme.palette.surface.input,
             "& fieldset": {
-              borderColor: "rgba(255, 255, 255, 0.1)",
+              borderColor: theme.palette.surface.border,
             },
             "&:hover fieldset": {
-              borderColor: "rgba(255, 255, 255, 0.2)",
+              borderColor: theme.palette.surface.borderHover,
             },
             "&.Mui-focused fieldset": {
-              borderColor: "#2196F3",
+              borderColor: theme.palette.primary.main,
+            },
+            "&.Mui-error fieldset": {
+              borderColor: theme.palette.error.main,
             },
           },
-        },
+        }),
       },
     },
     MuiSelect: {
       styleOverrides: {
-        root: {
-          backgroundColor: "#2A2A2A",
-        },
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.surface.input,
+        }),
       },
     },
     MuiMenuItem: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           "&:hover": {
-            backgroundColor: "rgba(33, 150, 243, 0.08)",
+            backgroundColor: `${theme.palette.primary.main}14`, // ~8% alpha
           },
           "&.Mui-selected": {
-            backgroundColor: "rgba(33, 150, 243, 0.16)",
+            backgroundColor: `${theme.palette.primary.main}29`, // ~16% alpha
           },
-        },
+        }),
       },
     },
     MuiModal: {
