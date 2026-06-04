@@ -90,6 +90,7 @@ const WizardShell = ({
       }}
     >
       <Box
+        data-testid="wizard-shell"
         sx={(theme) => ({
           position: "absolute",
           top: "50%",
