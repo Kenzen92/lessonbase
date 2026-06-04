@@ -64,7 +64,7 @@ class AssignmentListSerializer(serializers.ModelSerializer):
 class AssignmentCreateSerializer(serializers.ModelSerializer):
     title = serializers.CharField()
     description = serializers.CharField(required=False, allow_blank=True)
-    tags = serializers.ListField(required=False, default=list)
+    tags = serializers.ListField(required=False, default=list, write_only=True)
     max_score = serializers.IntegerField()
     due_date = serializers.DateField()
     set_date = serializers.DateField(default=datetime.now(dt_timezone.utc).date())
@@ -93,6 +93,18 @@ class AssignmentCreateSerializer(serializers.ModelSerializer):
         assignment.students.set(students)
         set_tags(assignment, tags)
         return assignment
+
+    def update(self, instance, validated_data):
+        students = validated_data.pop("students", None)
+        tags = validated_data.pop("tags", None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if students is not None:
+            instance.students.set(students)
+        if tags is not None:
+            set_tags(instance, tags)
+        return instance
 
 
 class AssignmentDetailsSerializer(serializers.ModelSerializer):

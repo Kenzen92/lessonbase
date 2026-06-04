@@ -27,7 +27,7 @@ class ResourceSummarySerializer(serializers.Serializer):
 class ClassEventCreateSerializer(serializers.ModelSerializer):
     students = StudentSerializer(many=True, read_only=True)
     teachers = TeacherClassEventSerializer(many=True, read_only=True)
-    tags = serializers.ListField(required=False, default=list)
+    tags = serializers.ListField(required=False, default=list, write_only=True)
     class_group = serializers.PrimaryKeyRelatedField(
         queryset=ClassGroup.objects.all(), allow_null=True, required=False
     )

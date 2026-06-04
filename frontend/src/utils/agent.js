@@ -121,6 +121,10 @@ export const handleCreateAssignment = async (formData, navigate) => {
   return await apiMutate(getFullUrl('/assignment/'), "POST", formData, navigate);
 };
 
+export const handleUpdateAssignment = async (assignmentId, formData, navigate) => {
+  return await apiMutate(getFullUrl(`/assignment/${assignmentId}/`), "PATCH", formData, navigate);
+};
+
 export const handleCreateClassEvent = async (eventData, navigate) => {
   return await apiMutate(getFullUrl('/class-event/'), "POST", eventData, navigate);
 };
