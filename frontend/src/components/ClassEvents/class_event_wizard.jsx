@@ -6,7 +6,7 @@ import * as yup from "yup";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { WizardShell } from "../wizard";
-import { FieldText, FieldSelect, FieldDate, FieldTime, FieldNumber } from "../fields";
+import { FieldText, FieldDate, FieldTime, FieldNumber, TagField } from "../fields";
 import StudentPicker from "../Students/StudentPicker";
 import {
   handleCreateClassEvent,
@@ -26,10 +26,9 @@ const validationSchema = yup.object().shape({
     .required("Duration is required")
     .min(10, "Must be at least 10 minutes")
     .max(180, "Must be 180 minutes or less"),
-  subject: yup.string().required("Subject is required"),
 });
 
-const DETAIL_FIELDS = ["name", "start_date", "start_time", "duration", "subject"];
+const DETAIL_FIELDS = ["name", "start_date", "start_time", "duration"];
 
 const toStudentIds = (value) =>
   (value || []).map((s) => (typeof s === "object" ? s.id : s));
@@ -39,7 +38,6 @@ const ClassEventWizard = ({
   onClose,
   onSaved,
   classData,
-  subjects,
   students,
   classGroups,
 }) => {
@@ -57,7 +55,7 @@ const ClassEventWizard = ({
         ? dayjs(classData.start_time).format("HH:mm")
         : dayjs().format("HH:mm"),
       duration: classData?.duration || 60,
-      subject: classData?.subject?.id ?? classData?.subject ?? "",
+      tags: classData?.tags || [],
     },
   });
 
@@ -81,7 +79,7 @@ const ClassEventWizard = ({
       start_time: combined.toISOString(),
       duration: data.duration,
       students: selectedStudents,
-      subject: data.subject || null,
+      tags: data.tags,
       name: data.name,
     };
 
@@ -164,17 +162,14 @@ const ClassEventWizard = ({
             )}
           />
           <Controller
-            name="subject"
+            name="tags"
             control={control}
-            render={({ field, fieldState }) => (
-              <FieldSelect
-                {...field}
-                label="Subject"
-                required
-                placeholder="Select a subject"
-                options={(subjects || []).map((s) => ({ value: s.id, label: s.name }))}
-                error={!!fieldState.error}
-                helperText={fieldState.error?.message}
+            render={({ field }) => (
+              <TagField
+                label="Tags (subject, topic…)"
+                value={field.value}
+                onChange={field.onChange}
+                hint="Optional — type to create a new tag or pick an existing one"
               />
             )}
           />

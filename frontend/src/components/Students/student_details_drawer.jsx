@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { primaryTag } from "../../utils/tags";
 import {
   Box,
   List,
@@ -607,7 +608,9 @@ export default function StudentDetailsDrawer({
                                     mb: 0.5,
                                   }}
                                 >
-                                  {previousClass.subject.name}
+                                  {previousClass.name ||
+                                    primaryTag(previousClass)?.name ||
+                                    "Class"}
                                 </Typography>
                                 <Typography
                                   variant="body2"
@@ -680,7 +683,9 @@ export default function StudentDetailsDrawer({
                                     mb: 0.5,
                                   }}
                                 >
-                                  {nextClass.subject.name}
+                                  {nextClass.name ||
+                                    primaryTag(nextClass)?.name ||
+                                    "Class"}
                                 </Typography>
                                 <Typography
                                   variant="body2"

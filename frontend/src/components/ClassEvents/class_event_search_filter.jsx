@@ -46,8 +46,10 @@ function ClassEventSearchAndFilter({
                   student.username?.toLowerCase(),
                 ].some((field) => field.includes(lowerCaseSearch))
               )) ||
-            (event.subject?.name.toLowerCase().includes(lowerCaseSearch) ??
-              false)
+            (event.tags || []).some((tag) =>
+              tag.name?.toLowerCase().includes(lowerCaseSearch)
+            ) ||
+            (event.name?.toLowerCase().includes(lowerCaseSearch) ?? false)
           );
         });
 

@@ -97,6 +97,14 @@ export const fetchSubjects = async (navigate) => {
   return await apiRequest(getFullUrl('/subjects/'), "GET", null, navigate);
 };
 
+export const fetchTags = async (query = "", kind = "", navigate) => {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  if (kind) params.set("kind", kind);
+  const qs = params.toString();
+  return await apiRequest(getFullUrl(`/tags/${qs ? `?${qs}` : ""}`), "GET", null, navigate);
+};
+
 export const fetchAllSubjects = async (navigate) => {
   return await apiRequest(getFullUrl('/subjects/all/'), "GET", null, navigate);
 };
