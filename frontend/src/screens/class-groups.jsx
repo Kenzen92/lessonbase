@@ -61,7 +61,7 @@ function Classes() {
         <ActionStatisticsBar
           page="classes"
           actionFunction={setshowClassForm}
-          actionText="Add New Class"
+          actionText="Create class group"
         />
         <ClassDetailsDrawer
           classGroupId={currentClassId}
