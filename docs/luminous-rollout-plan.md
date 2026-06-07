@@ -223,7 +223,7 @@ Shared overlay shells built first, then applied per overlay (smallest first).
 | Classes: `class_group_wizard` | ⬜ | coordinate with wizard-redesign-plan |
 | Assignments: `assignment_details_drawer` | ⬜ | |
 | Assignments: `add_assignment_wizard` | ⬜ | coordinate with wizard-redesign-plan |
-| Assignments: `assignment_feedback_modal` | ⬜ | |
+| Assignments: `assignment_feedback_modal` | ✅ | on LumiModal; submit in footer; fields use shared fieldSx; existing test still green |
 | Shared: `class_event_details_drawer` | ✅ | on LumiDrawer; actions in footer; surfaces token-swapped (shell + key surfaces depth) |
 | Shared: `class_event_wizard` | ⬜ | used by dashboard; coordinate with wizard-redesign-plan |
 
