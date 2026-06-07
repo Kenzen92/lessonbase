@@ -12,6 +12,9 @@ import SearchInput from "./SearchInput";
 import PrimaryActionButton from "./PrimaryActionButton";
 import AvatarStack from "./AvatarStack";
 import KebabMenu from "./KebabMenu";
+import EmptyState from "./EmptyState";
+import ViewToggle from "./ViewToggle";
+import FilterBar from "./FilterBar";
 import { SubjectChip } from "./shared";
 
 describe("Luminous shared components", () => {
@@ -111,6 +114,41 @@ describe("Luminous shared components", () => {
 
   it("KebabMenu renders nothing with no items", () => {
     const { container } = render(<KebabMenu items={[false, null]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("EmptyState shows its message", () => {
+    render(<EmptyState icon="folder_open" message="No resources yet." />);
+    expect(screen.getByText("No resources yet.")).toBeInTheDocument();
+  });
+
+  it("ViewToggle reports the selected view", async () => {
+    const onChange = vi.fn();
+    render(<ViewToggle value="grid" onChange={onChange} />);
+    await userEvent.click(screen.getByRole("button", { name: /List view/ }));
+    expect(onChange).toHaveBeenCalledWith("list");
+  });
+
+  it("FilterBar toggles chips and shows Clear when active", async () => {
+    const onToggle = vi.fn();
+    const onClear = vi.fn();
+    const chips = [
+      { id: "PDF", label: "PDF" },
+      { id: "IMAGE", label: "Images" },
+    ];
+    const { rerender } = render(
+      <FilterBar chips={chips} selected={[]} onToggle={onToggle} onClear={onClear} />
+    );
+    expect(screen.queryByText("Clear")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "PDF" }));
+    expect(onToggle).toHaveBeenCalledWith("PDF");
+    rerender(<FilterBar chips={chips} selected={["PDF"]} onToggle={onToggle} onClear={onClear} />);
+    await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+    expect(onClear).toHaveBeenCalledTimes(1);
+  });
+
+  it("FilterBar renders nothing without chips", () => {
+    const { container } = render(<FilterBar chips={[]} selected={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
 });
