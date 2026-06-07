@@ -30,14 +30,18 @@ export default function TopBar({
         mb: 4,
       }}
     >
-      <Box sx={{ flex: 1, maxWidth: 520 }}>
-        <SearchInput
-          placeholder={searchPlaceholder}
-          value={searchValue}
-          onChange={onSearchChange}
-          onSubmit={onSearchSubmit}
-        />
-      </Box>
+      {onSearchChange ? (
+        <Box sx={{ flex: 1, maxWidth: 520 }}>
+          <SearchInput
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={onSearchChange}
+            onSubmit={onSearchSubmit}
+          />
+        </Box>
+      ) : (
+        <Box sx={{ flex: 1 }} />
+      )}
 
       <Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2 }}>
         <IconButton
