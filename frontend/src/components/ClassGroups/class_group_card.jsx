@@ -1,96 +1,81 @@
-import React from "react";
-import { Box, Typography, AvatarGroup, Avatar, Button, Chip } from "@mui/material";
-import { getSubjectIcon } from "../../utils/icons";
-import { FaChevronRight } from "react-icons/fa";
+import { Box, Typography, Button } from "@mui/material";
 
-const ClassGroupCard = ({ data, onClick }) => {
+import {
+  lumi,
+  lumiType,
+  tint,
+  LumiIcon,
+  SubjectChip,
+  StripCard,
+  AvatarStack,
+  KebabMenu,
+} from "../luminous";
+
+/**
+ * Luminous class-group card: a StripCard with the group's colour as the top
+ * strip, subject chips, a member AvatarStack, and a Details action. Keeps the
+ * legacy `data` / `onClick` props so the screen wiring is unchanged; an
+ * optional `menuItems` array drives the overflow kebab.
+ */
+const ClassGroupCard = ({ data, onClick, menuItems = [] }) => {
+  const accentHex = data.color || data.subjects?.[0]?.color || lumi.color.primary;
+
   return (
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        boxShadow: 5,
-        border: 2,
-        borderColor: "#333",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      <Typography variant="h6" noWrap sx={{ maxWidth: "100%" }}>
-        {data.name}
-      </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "100%",
-          gap: 1,
-          mt: 2,
-        }}
-      >
+    <StripCard accentHex={accentHex} onClick={onClick} sx={{ height: "100%" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, height: "100%" }}>
+        {/* Title + overflow menu */}
+        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
+          <Typography
+            component="h3"
+            noWrap
+            sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, minWidth: 0 }}
+          >
+            {data.name}
+          </Typography>
+          <Box sx={{ mt: -0.5, mr: -1 }}>
+            <KebabMenu items={menuItems} ariaLabel={`Actions for ${data.name}`} />
+          </Box>
+        </Box>
+
+        {/* Subjects */}
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+          {(data.subjects || []).map((subject) => (
+            <SubjectChip key={subject.name} label={subject.name} color={subject.color} />
+          ))}
+        </Box>
+
+        {/* Footer: members + details */}
         <Box
           sx={{
+            mt: "auto",
+            pt: 2,
+            borderTop: `1px solid ${tint(lumi.color.outlineVariant, 0.5)}`,
             display: "flex",
-            flexWrap: "wrap",
-            gap: 0.5,
-            flex: "1 1 auto",
-            minWidth: 0,
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1,
           }}
         >
-          {data.subjects.map((subject) => {
-            const SubjectIcon = getSubjectIcon(subject.name);
-            return (
-              <Chip
-                key={subject.name}
-                icon={<SubjectIcon color="#fff" size={18} />}
-                label={subject.name}
-                size="small"
-                sx={{
-                  color: "#fff",
-                  maxWidth: "100%",
-                  backgroundColor: subject.color,
-                }}
-              />
-            );
-          })}
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
-          <AvatarGroup max={4}>
-            {data.students.map((student) => (
-              <Avatar
-                key={student.id}
-                src={student.profile_picture || undefined}
-                alt={student.first_name}
-                sx={{ width: 32, height: 32 }}
-              >
-                {student.first_name?.[0]}
-                {student.last_name?.[0]}
-              </Avatar>
-            ))}
-          </AvatarGroup>
-
+          <AvatarStack people={data.students || []} max={4} />
           <Button
-            onClick={onClick}
-            startIcon={<FaChevronRight color="white" />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick?.();
+            }}
+            endIcon={<LumiIcon name="chevron_right" sx={{ fontSize: 18 }} />}
             sx={{
-              color: "#fff",
-              textTransform: "none",
-              fontSize: "0.95rem",
-              "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.1)",
-              },
+              ...lumiType.buttonText,
+              color: lumi.color.primary,
+              minWidth: 0,
+              px: 1,
+              "&:hover": { backgroundColor: tint(lumi.color.primary, 0.08) },
             }}
           >
             Details
           </Button>
         </Box>
       </Box>
-    </Box>
+    </StripCard>
   );
 };
 

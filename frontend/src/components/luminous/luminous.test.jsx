@@ -10,6 +10,8 @@ import StripCard from "./StripCard";
 import StatusPill from "./StatusPill";
 import SearchInput from "./SearchInput";
 import PrimaryActionButton from "./PrimaryActionButton";
+import AvatarStack from "./AvatarStack";
+import KebabMenu from "./KebabMenu";
 import { SubjectChip } from "./shared";
 
 describe("Luminous shared components", () => {
@@ -87,5 +89,28 @@ describe("Luminous shared components", () => {
     render(<PrimaryActionButton label="Create" icon="add" onClick={onClick} />);
     await userEvent.click(screen.getByRole("button", { name: /Create/ }));
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("AvatarStack caps avatars and shows a +N overflow", () => {
+    const people = Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      first_name: `F${i}`,
+      last_name: `L${i}`,
+    }));
+    render(<AvatarStack people={people} max={4} />);
+    expect(screen.getByText("+2")).toBeInTheDocument();
+  });
+
+  it("KebabMenu opens and fires an item action", async () => {
+    const onClick = vi.fn();
+    render(<KebabMenu items={[{ label: "Edit", onClick }]} />);
+    await userEvent.click(screen.getByRole("button", { name: /More actions/ }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("KebabMenu renders nothing with no items", () => {
+    const { container } = render(<KebabMenu items={[false, null]} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
