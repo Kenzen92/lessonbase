@@ -14,6 +14,7 @@ from apps.core.authentication import ExpiringTokenAuthentication as TokenAuthent
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework import status
 from apps.user_accounts.models import ClassGroup, Student, Teacher
 from apps.classes.serialisers import (
@@ -28,6 +29,17 @@ from rest_framework import viewsets
 from django.utils import timezone
 from datetime import timedelta
 from django.db import IntegrityError, transaction
+
+
+class ClassEventPagination(LimitOffsetPagination):
+    """Offset pagination for the dashboard's range-scoped class lists.
+
+    `?range=` opts a request into pagination (15 per page); requests without it
+    keep the legacy flat-array response the original dashboard depends on.
+    """
+
+    default_limit = 15
+    max_limit = 50
 
 
 class ClassEventViewSet(viewsets.ViewSet):
@@ -56,6 +68,28 @@ class ClassEventViewSet(viewsets.ViewSet):
                 .prefetch_related("teachers")
             )
         serializer_class = self.get_serializer_class()
+
+        # Range-scoped + paginated path for the Luminous dashboard. The window is
+        # filtered and ordered server-side (the source of truth), so the client
+        # only maps the rows. Absent `range` we fall back to the full flat array
+        # the original dashboard still consumes.
+        range_param = request.query_params.get("range")
+        if range_param in ("upcoming", "previous"):
+            now = timezone.now()
+            if range_param == "previous":
+                class_events = class_events.filter(start_time__lt=now).order_by(
+                    "-start_time"
+                )
+            else:
+                class_events = class_events.filter(start_time__gte=now).order_by(
+                    "start_time"
+                )
+
+            paginator = ClassEventPagination()
+            page = paginator.paginate_queryset(class_events, request, view=self)
+            serializer = serializer_class(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
         serializer = serializer_class(class_events, many=True)
         return Response(serializer.data)
 
@@ -242,6 +276,9 @@ def teacher_statistics(request):
             )
             .distinct()
             .count(),
+            # All resources the teacher owns (not just those attached to an
+            # assignment) — mirrors what the Resources screen lists.
+            "total_resources": Resource.objects.filter(owner=teacher).count(),
             "total_class_groups": total_class_groups,
         }
 

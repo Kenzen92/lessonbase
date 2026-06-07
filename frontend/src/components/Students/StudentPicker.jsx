@@ -127,14 +127,19 @@ const StudentPicker = ({
       <Box
         sx={(theme) => ({
           position: "sticky",
-          top: 0,
+          // Pin 1px above the top so sub-pixel rounding can't leave a hairline
+          // gap where rows peek through; the extra 1px is absorbed by pt below.
+          top: "-1px",
           zIndex: 2,
           backgroundColor: theme.palette.surface.modal,
-          pt: 1,
+          pt: "calc(8px + 1px)",
           pb: 1.5,
           display: "flex",
           flexDirection: "column",
           gap: 1.5,
+          // Soft shadow so list rows read as scrolling cleanly *under* the bar
+          // rather than clipping against its edge.
+          boxShadow: "0 6px 8px -6px rgba(0, 0, 0, 0.5)",
         })}
       >
         <TextField

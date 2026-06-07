@@ -137,6 +137,23 @@ export const fetchClassEvents = async (navigate) => {
   return await apiRequest(getFullUrl('/class-event/'), "GET", null, navigate);
 }
 
+// Range-scoped, paginated class events for the Luminous dashboard. Resolves to
+// the DRF envelope `{ count, next, previous, results }`.
+export const fetchClassEventsPaged = async ({ range, limit = 15, offset = 0 }, navigate) => {
+  const params = new URLSearchParams({
+    range,
+    limit: String(limit),
+    offset: String(offset),
+  });
+  return await apiRequest(getFullUrl(`/class-event/?${params.toString()}`), "GET", null, navigate);
+};
+
+// A single class event by id — used to resolve dashboard deep-links without
+// loading the full list.
+export const fetchClassEvent = async (eventId, navigate) => {
+  return await apiRequest(getFullUrl(`/class-event/${eventId}/`), "GET", null, navigate);
+};
+
 export const fetchClassEventsForStudent = async (studentID, navigate) => {
   return await apiRequest(getFullUrl(`/class-event/student/${studentID}/`), "GET", null, navigate);
 };

@@ -1,8 +1,11 @@
+from datetime import timedelta
+
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 
 from apps.core.tests import BaseTestCase
-from apps.classes.models import SessionFeedback
+from apps.classes.models import ClassEvent, SessionFeedback
 
 
 class SessionFeedbackAPITest(BaseTestCase):
@@ -157,3 +160,65 @@ class SessionFeedbackAPITest(BaseTestCase):
         self._seed_feedback()
         response = self.client.get(self._aggregate_url(self.lesson.id))
         self.assertEqual(response.status_code, 403)
+
+
+class ClassEventListAPITest(BaseTestCase):
+    """The dashboard list endpoint: legacy flat array without params, and a
+    range-scoped, server-paginated window when `?range=` is supplied."""
+
+    URL = "/class-event/"
+
+    def setUp(self):
+        super().setUp()
+        # BaseTestCase seeds 3 past lessons (dated 2024). Add future events so we
+        # can exercise both ranges.
+        self.client = APIClient()
+        self.teacher_token, _ = Token.objects.get_or_create(user=self.teacher)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.teacher_token.key}")
+
+    def _make_events(self, count, *, future, base_offset_days=1):
+        now = timezone.now()
+        created = []
+        for i in range(count):
+            delta = timedelta(days=base_offset_days + i)
+            start = now + delta if future else now - delta
+            event = ClassEvent.objects.create(start_time=start, duration=60)
+            event.teachers.add(self.teacher)
+            created.append(event)
+        return created
+
+    def test_list_without_range_returns_flat_array(self):
+        # Legacy contract the original dashboard relies on: a bare list, not a
+        # pagination envelope.
+        response = self.client.get(self.URL)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.data, list)
+        self.assertEqual(len(response.data), 3)  # the three seeded past lessons
+
+    def test_upcoming_returns_paginated_future_only_ascending(self):
+        self._make_events(4, future=True)
+        response = self.client.get(self.URL, {"range": "upcoming"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("results", response.data)
+        self.assertEqual(response.data["count"], 4)  # past lessons excluded
+        starts = [row["start_time"] for row in response.data["results"]]
+        self.assertEqual(starts, sorted(starts))  # ascending
+
+    def test_previous_returns_past_only_descending(self):
+        self._make_events(2, future=True)
+        response = self.client.get(self.URL, {"range": "previous"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 3)  # only the seeded past lessons
+        starts = [row["start_time"] for row in response.data["results"]]
+        self.assertEqual(starts, sorted(starts, reverse=True))  # most-recent first
+
+    def test_upcoming_caps_page_at_15_and_paginates(self):
+        self._make_events(20, future=True)
+        first = self.client.get(self.URL, {"range": "upcoming"})
+        self.assertEqual(len(first.data["results"]), 15)
+        self.assertEqual(first.data["count"], 20)
+        self.assertIsNotNone(first.data["next"])
+
+        second = self.client.get(self.URL, {"range": "upcoming", "offset": 15})
+        self.assertEqual(len(second.data["results"]), 5)
+        self.assertIsNone(second.data["next"])

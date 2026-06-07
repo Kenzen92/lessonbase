@@ -129,21 +129,24 @@ const WizardShell = ({
           )}
         </Box>
 
-        {/* Body (the only scroll container) */}
+        {/* Body (the only scroll container). No top padding here: padding on the
+            scroll container itself pins `position: sticky` children below it,
+            leaving a band where content bleeds above sticky headers. The top
+            spacing lives on the inner wrapper instead, so it scrolls away cleanly
+            and sticky headers (e.g. the student picker's search bar) pin flush. */}
         <Box
           ref={bodyRef}
           sx={{
             px: { xs: 2, sm: 4 },
-            // Top padding so the first field's floating label isn't clipped by
-            // the scroll container when focused/filled.
-            pt: 1,
             flex: "1 1 auto",
             overflowY: "auto",
             minHeight: 0,
           }}
         >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            {current?.content}
+            {/* Top padding so the first field's floating label isn't clipped at
+                rest, applied as scrolling content rather than container padding. */}
+            <Box sx={{ pt: 1 }}>{current?.content}</Box>
           </LocalizationProvider>
         </Box>
 
