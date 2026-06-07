@@ -14,3 +14,5 @@ export { default as StatSummary } from "./StatSummary";
 export { default as PrimaryActionButton } from "./PrimaryActionButton";
 export { default as StripCard } from "./StripCard";
 export { default as StatusPill } from "./StatusPill";
+export { default as AvatarStack } from "./AvatarStack";
+export { default as KebabMenu } from "./KebabMenu";

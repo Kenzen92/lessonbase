@@ -187,8 +187,8 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 | `PageHeader` + `StatSummary` | ✅ | |
 | `PrimaryActionButton` | ✅ | |
 | `StripCard` | ✅ | |
-| `AvatarStack` | ⬜ | build with **Classes** (Phase 2) |
-| `KebabMenu` | ⬜ | build with **Classes** (Phase 2) |
+| `AvatarStack` | ✅ | built with **Classes** (Phase 2) |
+| `KebabMenu` | ✅ | built with **Classes** (Phase 2) |
 | `EmptyState` | ⬜ | build with **Resources** (Phase 3) |
 | `ViewToggle` | ⬜ | build with **Resources** (Phase 3) |
 | `KanbanColumn` | ⬜ | build with **Assignments** (Phase 4) |
@@ -200,8 +200,8 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 | Page | Surface (Phases 1–5) | Overlays (Phase 6) | Notes |
 |------|----------------------|--------------------|-------|
 | Dashboard | ✅ shipped (reference) | ⬜ | hero kept; `class_event_*` overlays pending |
-| Students | 🟦 code-complete | ⬜ | `screens/students.jsx` on AppShell; new `student_row.jsx`; TopBar search wired; build+unit green; **visual review pending**. Orphans to delete once confirmed: `student_info_card.jsx`, `student_list_search.jsx`. Drawer + add-student modal still legacy-styled (Phase 6). |
-| Classes | ⬜ | ⬜ | |
+| Students | ✅ surface done | ⬜ | `screens/students.jsx` on AppShell; new `student_row.jsx`; TopBar search wired. Visually confirmed by owner. Legacy `student_info_card.jsx` + `student_list_search.jsx` deleted. Drawer + add-student modal still legacy-styled (Phase 6). |
+| Classes | 🟦 code-complete | ⬜ | `screens/class-groups.jsx` on AppShell; `class_group_card.jsx` rebuilt on StripCard + AvatarStack + KebabMenu (View/Edit); TopBar search filters by name/subject; build+unit green; **visual review pending**. Drawer + wizard still legacy-styled (Phase 6). |
 | Resources | ⬜ | ⬜ | |
 | Assignments | ⬜ | ⬜ | |
 | Settings/Profile | ⬜ | ⬜ | |
