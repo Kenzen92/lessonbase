@@ -218,7 +218,7 @@ Shared overlay shells built first, then applied per overlay (smallest first).
 | Shared `fieldSx` | ✅ | promoted from profile; used by modals + forms |
 | Students: add-student modal | ✅ | on LumiModal |
 | Resources: upload dialog | ✅ | on LumiModal (tabs/fields token-styled) |
-| Students: `student_details_drawer` | ⬜ | ~800 lines, deeply custom; needs LumiDrawer + token pass |
+| Students: `student_details_drawer` | ✅ | on LumiDrawer; stats/progress/info/schedule/groups token-swapped; chat + delete in footer. `student-drawer-chat-action` testid + "Open Chat" text preserved (e2e safe) |
 | Classes: `class_group_details_drawer` | ✅ | on LumiDrawer; stat/info/subject/student sections token-swapped; Edit in footer |
 | Classes: `class_group_wizard` | ⬜ | coordinate with wizard-redesign-plan |
 | Assignments: `assignment_details_drawer` | ⬜ | |
