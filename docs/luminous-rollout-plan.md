@@ -219,7 +219,7 @@ Shared overlay shells built first, then applied per overlay (smallest first).
 | Students: add-student modal | ✅ | on LumiModal |
 | Resources: upload dialog | ✅ | on LumiModal (tabs/fields token-styled) |
 | Students: `student_details_drawer` | ⬜ | ~800 lines, deeply custom; needs LumiDrawer + token pass |
-| Classes: `class_group_details_drawer` | ⬜ | |
+| Classes: `class_group_details_drawer` | ✅ | on LumiDrawer; stat/info/subject/student sections token-swapped; Edit in footer |
 | Classes: `class_group_wizard` | ⬜ | coordinate with wizard-redesign-plan |
 | Assignments: `assignment_details_drawer` | ⬜ | |
 | Assignments: `add_assignment_wizard` | ⬜ | coordinate with wizard-redesign-plan |
