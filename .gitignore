@@ -36,3 +36,5 @@ staticfiles/
 /.vscode/
 *.env
 /.claude/settings.local.*
+# Claude Code background-agent worktrees (nested checkouts of other branches)
+/.claude/worktrees/
