@@ -1,48 +1,60 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  Drawer,
-  List,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  LinearProgress,
-  Card,
-  CardContent,
-  Grid,
-  IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Divider,
-  Badge,
-} from "@mui/material";
+import { Box, Typography, Button, LinearProgress, Grid } from "@mui/material";
+import { toast } from "react-toastify";
+
 import StudentListCard from "../Students/student_list_card";
 import StudentAssignmentAttemptCard from "./student_assignment_attempt_card";
+import StudentAssignmentAttemptForm from "./student_assignment_attempt_form";
 import { fetchAssignment, fetchAssignmentSubmissions } from "../../utils/agent";
-import { getSubjectIcon } from "../../utils/icons";
 import { primaryTag } from "../../utils/tags";
 import { getToken } from "../../utils/tokenStorage";
 import { useAuth } from "../../contexts/auth_context";
-import StudentAssignmentAttemptForm from "./student_assignment_attempt_form";
-import { PrimaryButton, WarningButton } from "../../styles/buttons";
 import {
-  FaTimes,
-  FaCalendarAlt,
-  FaClock,
-  FaUsers,
-  FaCheckCircle,
-  FaExclamationCircle,
-  FaTimesCircle,
-  FaChevronDown,
-  FaBook,
-  FaClipboardCheck,
-} from "react-icons/fa";
+  LumiDrawer,
+  LumiModal,
+  PrimaryActionButton,
+  SubjectChip,
+  LumiIcon,
+  lumi,
+  lumiType,
+  tint,
+} from "../luminous";
+
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+
+const sectionSx = {
+  backgroundColor: lumi.color.surfaceContainer,
+  border: `1px solid ${lumi.color.hairline}`,
+  borderRadius: lumi.radius.card,
+  p: 2.5,
+  mb: 2.5,
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const d = new Date(dateString);
+  return Number.isNaN(d.getTime())
+    ? "N/A"
+    : d.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+};
+
+function StatCard({ icon, value, label, accent }) {
+  return (
+    <Box
+      sx={{
+        textAlign: "center",
+        p: 2,
+        borderRadius: lumi.radius.card,
+        backgroundColor: tint(accent, 0.1),
+        border: `1px solid ${tint(accent, 0.3)}`,
+      }}
+    >
+      <LumiIcon name={icon} sx={{ fontSize: 22, color: accent }} />
+      <Typography sx={{ ...lumiType.headlineLg, fontSize: "22px", color: accent, my: 0.5 }}>{value}</Typography>
+      <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>{label}</Typography>
+    </Box>
+  );
+}
 
 export default function AssignmentDetailsDrawer({
   assignment,
@@ -51,11 +63,9 @@ export default function AssignmentDetailsDrawer({
   onClose,
   onEdit,
   setFeedbackModalOpen,
-  onFeedbackSubmitted, // Callback to refresh data after feedback is submitted
 }) {
   const [assignmentDetails, setAssignmentDetails] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [studentAttempts, setStudentAttempts] = useState({});
   const [expandedSections, setExpandedSections] = useState({
     needsGrading: true,
     graded: false,
@@ -63,332 +73,175 @@ export default function AssignmentDetailsDrawer({
   });
   const { auth } = useAuth();
 
-  const handleDeleteAssignment = async () => {
-    try {
-      const auth = getToken();
-      const response = await fetch(`/assignment/${assignment.id}/`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Token ${auth}`,
-        },
-      });
-
-      if (response.ok) {
-        toast.success("Assignment deleted successfully!");
-        handleReloadData();
-      } else {
-        throw new Error("Failed to delete assignment");
-      }
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setDeleteConfirmOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (assignment?.id) {
-      fetchAssignmentData();
-    }
-  }, [assignment]);
-
   const fetchAssignmentData = async () => {
     if (!assignment?.id) return;
-
     try {
-      const assignmentDetails = await fetchAssignment(assignment.id);
-      setAssignmentDetails(assignmentDetails);
+      setAssignmentDetails(await fetchAssignment(assignment.id));
     } catch (error) {
       console.error("Error fetching assignment details:", error);
     }
   };
 
-  // Subject is now a tag; use the primary tag for the icon/chip.
+  useEffect(() => {
+    if (assignment?.id) fetchAssignmentData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignment]);
+
+  const handleDeleteAssignment = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/assignment/${assignment.id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Token ${getToken()}` },
+      });
+      if (!response.ok) throw new Error("Failed to delete assignment");
+      toast.success("Assignment deleted successfully!");
+      setDeleteConfirmOpen(false);
+      onClose();
+    } catch (error) {
+      toast.error(error.message);
+      setDeleteConfirmOpen(false);
+    }
+  };
+
+  const handleToggleSection = (section) =>
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+
   const primary = primaryTag(assignmentDetails);
-  const IconComponent = primary?.name && getSubjectIcon(primary.name);
+  const isTeacher = auth.userType === "teacher";
 
-  // Format dates
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const handleToggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
+  const footer = assignmentDetails && isTeacher ? (
+    <>
+      <PrimaryActionButton label="Edit Assignment" icon="edit" onClick={onEdit} sx={{ flex: 1 }} />
+      <Button
+        onClick={() => setDeleteConfirmOpen(true)}
+        sx={{
+          flex: 1,
+          ...lumiType.buttonText,
+          borderRadius: lumi.radius.md,
+          color: lumi.color.error,
+          border: `1px solid ${tint(lumi.color.error, 0.4)}`,
+          "&:hover": { backgroundColor: tint(lumi.color.error, 0.1) },
+        }}
+      >
+        Delete
+      </Button>
+    </>
+  ) : null;
 
   return (
     <>
-      <Drawer
-        anchor="right"
+      <LumiDrawer
         open={open}
         onClose={onClose}
-        sx={{
-          backdropFilter: "blur(4px)",
-          "& .MuiDrawer-paper": {
-            background: "linear-gradient(135deg, #10101dff 0%, #0a132bff 100%)",
-          },
-        }}
+        title={assignmentDetails?.title}
+        subtitle={
+          assignmentDetails
+            ? `Set: ${formatDate(assignmentDetails.set_date)} · Due: ${formatDate(assignmentDetails.due_date)}`
+            : undefined
+        }
+        width={540}
+        footer={footer}
       >
-        <Box
-          sx={{
-            width: 540,
-            height: "100%",
-            backgroundColor: "transparent",
-            color: "white",
-            overflowY: "auto",
-          }}
-        >
-          {assignmentDetails ? (
-            <>
-              {/* Header Section with Close Button */}
-              <Box
+        {assignmentDetails ? (
+          <>
+            {primary && (
+              <Box sx={{ mb: 2 }}>
+                <SubjectChip label={primary.name} color={primary.color} />
+              </Box>
+            )}
+
+            {/* Completion progress */}
+            <Box sx={{ mb: 2.5 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+                <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
+                  Completion Progress
+                </Typography>
+                <Typography sx={{ ...lumiType.labelMd, color: lumi.color.tertiary, fontWeight: 700 }}>
+                  {Math.round(assignmentDetails?.progress || 0)}%
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={assignmentDetails?.progress || 0}
                 sx={{
-                  position: "sticky",
-                  top: 0,
-                  background:
-                    "linear-gradient(135deg, #0f3460 0%, #16213e 100%)",
-                  zIndex: 10,
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                  p: 3,
-                  pb: 2,
+                  height: 8,
+                  borderRadius: lumi.radius.pill,
+                  backgroundColor: lumi.color.surfaceVariant,
+                  "& .MuiLinearProgress-bar": { backgroundColor: lumi.color.tertiary, borderRadius: lumi.radius.pill },
                 }}
-              >
-                <Box
-                  sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}
-                >
-                  <IconButton
-                    onClick={onClose}
-                    sx={{
-                      color: "rgba(255, 255, 255, 0.7)",
-                      "&:hover": {
-                        color: "white",
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      },
-                    }}
-                  >
-                    <FaTimes />
-                  </IconButton>
-                </Box>
-
-                <Box sx={{ mb: 2 }}>
-                  {primary && (
-                    <Chip
-                      icon={
-                        IconComponent && <IconComponent color="#fff" size={20} />
-                      }
-                      label={primary.name}
-                      sx={{
-                        color: "#fff",
-                        fontSize: "1rem",
-                        height: "2.5rem",
-                        minWidth: "12rem",
-                        backgroundColor: primary.color || "#333",
-                        fontWeight: 600,
-                        mb: 2,
-                        border: "2px solid rgba(255, 255, 255, 0.2)",
-                      }}
-                    />
-                  )}
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      color: "white",
-                      fontWeight: "bold",
-                      mb: 2,
-                    }}
-                  >
-                    {assignmentDetails.title}
-                  </Typography>
-
-                  {/* Progress Bar */}
-                  <Box sx={{ mb: 2 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-                      >
-                        Completion Progress
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "#4CAF50", fontWeight: "bold" }}
-                      >
-                        {Math.round(assignmentDetails?.progress || 0)}%
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={assignmentDetails?.progress || 0}
-                      sx={{
-                        height: 8,
-                        borderRadius: 4,
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                        "& .MuiLinearProgress-bar": {
-                          backgroundColor: "#4CAF50",
-                          borderRadius: 4,
-                        },
-                      }}
-                    />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 0.5,
-                    }}
-                  >
-                    <FaCalendarAlt size={14} color="rgba(255, 255, 255, 0.6)" />
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "rgba(255, 255, 255, 0.8)" }}
-                    >
-                      Set: {formatDate(assignmentDetails.set_date)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <FaClock size={14} color="rgba(255, 255, 255, 0.6)" />
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "rgba(255, 255, 255, 0.8)" }}
-                    >
-                      Due: {formatDate(assignmentDetails.due_date)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-
-              <Box sx={{ p: 3 }}>
-                {/* Assignment Description */}
-                {assignmentDetails.description && (
-                  <Card
-                    sx={{
-                      backgroundColor: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      mb: 3,
-                    }}
-                  >
-                    <CardContent>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          color: "#fff",
-                          mb: 1,
-                          fontWeight: 600,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <FaBook color="#2196F3" />
-                        Description
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ color: "rgba(255, 255, 255, 0.8)" }}
-                      >
-                        {assignmentDetails.description}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {auth.userType === "teacher" && (
-                  <TeacherStudentView
-                    assignmentDetails={assignmentDetails}
-                    assignment={assignment}
-                    setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
-                    setFeedbackModalOpen={setFeedbackModalOpen}
-                    expandedSections={expandedSections}
-                    handleToggleSection={handleToggleSection}
-                    refreshAssignmentData={fetchAssignmentData}
-                  />
-                )}
-
-                {auth.userType === "student" && (
-                  <StudentAssignmentAttemptForm assignment={assignment} />
-                )}
-
-                {/* Action Buttons */}
-                {auth.userType === "teacher" && (
-                  <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-                    <PrimaryButton fullWidth onClick={onEdit} sx={{ flex: 1 }}>
-                      Edit Assignment
-                    </PrimaryButton>
-                    <WarningButton
-                      fullWidth
-                      onClick={() => setDeleteConfirmOpen(true)}
-                      sx={{ flex: 1 }}
-                    >
-                      Delete
-                    </WarningButton>
-                  </Box>
-                )}
-              </Box>
-            </>
-          ) : (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-              }}
-            >
-              <Typography
-                sx={{ color: "rgba(255, 255, 255, 0.5)", textAlign: "center" }}
-              >
-                No assignment selected
-              </Typography>
+              />
             </Box>
-          )}
-        </Box>
-      </Drawer>
-      <Dialog
+
+            {/* Description */}
+            {assignmentDetails.description && (
+              <Box sx={sectionSx}>
+                <Typography sx={{ ...lumiType.headlineMd, fontSize: "16px", color: lumi.color.onBackground, mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
+                  <LumiIcon name="assignment" sx={{ fontSize: 20, color: lumi.color.primary }} />
+                  Description
+                </Typography>
+                <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }}>
+                  {assignmentDetails.description}
+                </Typography>
+              </Box>
+            )}
+
+            {isTeacher && (
+              <TeacherStudentView
+                assignmentDetails={assignmentDetails}
+                assignment={assignment}
+                setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
+                setFeedbackModalOpen={setFeedbackModalOpen}
+                expandedSections={expandedSections}
+                handleToggleSection={handleToggleSection}
+              />
+            )}
+
+            {auth.userType === "student" && <StudentAssignmentAttemptForm assignment={assignment} />}
+          </>
+        ) : (
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+            <Typography sx={{ color: lumi.color.onSurfaceVariant, textAlign: "center" }}>
+              No assignment selected
+            </Typography>
+          </Box>
+        )}
+      </LumiDrawer>
+
+      <LumiModal
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: "#1e1e2e",
-            color: "white",
-          },
-        }}
+        title="Confirm Deletion"
+        maxWidth="xs"
+        actions={
+          <>
+            <Button onClick={() => setDeleteConfirmOpen(false)} sx={{ color: lumi.color.onSurfaceVariant }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteAssignment}
+              sx={{
+                ...lumiType.buttonText,
+                borderRadius: lumi.radius.md,
+                px: 2,
+                color: lumi.color.onErrorContainer,
+                backgroundColor: lumi.color.errorContainer,
+                "&:hover": { backgroundColor: lumi.color.errorContainer, filter: "brightness(1.1)" },
+              }}
+            >
+              Delete
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-            Are you sure you want to delete this assignment? This action cannot
-            be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-          <Button color="error" onClick={handleDeleteAssignment}>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }}>
+          Are you sure you want to delete this assignment? This action cannot be undone.
+        </Typography>
+      </LumiModal>
     </>
   );
 }
 
-// Separate component for teacher's student view with grouping
+// Teacher view — submission stats + grouped student sections.
 function TeacherStudentView({
   assignmentDetails,
   assignment,
@@ -400,25 +253,16 @@ function TeacherStudentView({
   const [studentAttempts, setStudentAttempts] = useState({});
   const [isLoadingAttempts, setIsLoadingAttempts] = useState(false);
 
-  // Fetch all student submissions in one request when assignment details load
   useEffect(() => {
     const fetchAllAttempts = async () => {
-      if (
-        !assignmentDetails?.students ||
-        assignmentDetails.students.length === 0
-      )
-        return;
-
+      if (!assignmentDetails?.students?.length) return;
       setIsLoadingAttempts(true);
       const attempts = {};
-
       try {
         const submissions = await fetchAssignmentSubmissions(assignment.id);
         if (Array.isArray(submissions)) {
           submissions.forEach((sub) => {
-            if (sub.student?.id) {
-              attempts[sub.student.id] = sub;
-            }
+            if (sub.student?.id) attempts[sub.student.id] = sub;
           });
         }
         setStudentAttempts(attempts);
@@ -428,295 +272,149 @@ function TeacherStudentView({
         setIsLoadingAttempts(false);
       }
     };
-
     fetchAllAttempts();
   }, [assignmentDetails?.students, assignment.id]);
 
-  // Group students by their submission status
   const groupedStudents = React.useMemo(() => {
-    if (!assignmentDetails?.students)
-      return { needsGrading: [], graded: [], notSubmitted: [] };
-
-    const groups = {
-      needsGrading: [],
-      graded: [],
-      notSubmitted: [],
-    };
-
-    assignmentDetails.students.forEach((student) => {
+    const groups = { needsGrading: [], graded: [], notSubmitted: [] };
+    (assignmentDetails?.students || []).forEach((student) => {
       const attempt = studentAttempts[student.id];
-      if (attempt && ["graded", "returned"].includes(attempt.status)) {
-        groups.graded.push(student);
-      } else if (attempt && attempt.status === "submitted") {
-        groups.needsGrading.push(student);
-      } else {
-        // no submission, draft, or not yet loaded
-        groups.notSubmitted.push(student);
-      }
+      if (attempt && ["graded", "returned"].includes(attempt.status)) groups.graded.push(student);
+      else if (attempt && attempt.status === "submitted") groups.needsGrading.push(student);
+      else groups.notSubmitted.push(student);
     });
-
     return groups;
   }, [assignmentDetails?.students, studentAttempts]);
 
+  const sections = [
+    { key: "needsGrading", title: "Needs Grading", icon: "pending", accent: lumi.color.amber },
+    { key: "graded", title: "Graded", icon: "check_circle", accent: lumi.color.tertiary },
+    { key: "notSubmitted", title: "Not Submitted", icon: "close", accent: lumi.color.error },
+  ];
+
   return (
     <>
-      {/* Quick Stats */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={4}>
-          <Card
-            sx={{
-              backgroundColor: "rgba(255, 152, 0, 0.1)",
-              border: "1px solid rgba(255, 152, 0, 0.3)",
-              textAlign: "center",
-            }}
-          >
-            <CardContent sx={{ py: 2, px: 1 }}>
-              <FaExclamationCircle size={24} color="#FF9800" />
-              <Typography
-                variant="h4"
-                sx={{ color: "#FF9800", fontWeight: "bold", my: 1 }}
-              >
-                {groupedStudents.needsGrading.length}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-              >
-                Needs Grading
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={4}>
-          <Card
-            sx={{
-              backgroundColor: "rgba(76, 175, 80, 0.1)",
-              border: "1px solid rgba(76, 175, 80, 0.3)",
-              textAlign: "center",
-            }}
-          >
-            <CardContent sx={{ py: 2, px: 1 }}>
-              <FaCheckCircle size={24} color="#4CAF50" />
-              <Typography
-                variant="h4"
-                sx={{ color: "#4CAF50", fontWeight: "bold", my: 1 }}
-              >
-                {groupedStudents.graded.length}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-              >
-                Graded
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={4}>
-          <Card
-            sx={{
-              backgroundColor: "rgba(244, 67, 54, 0.1)",
-              border: "1px solid rgba(244, 67, 54, 0.3)",
-              textAlign: "center",
-            }}
-          >
-            <CardContent sx={{ py: 2, px: 1 }}>
-              <FaTimesCircle size={24} color="#F44336" />
-              <Typography
-                variant="h4"
-                sx={{ color: "#F44336", fontWeight: "bold", my: 1 }}
-              >
-                {groupedStudents.notSubmitted.length}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-              >
-                Not Submitted
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      <Grid container spacing={2} sx={{ mb: 2.5 }}>
+        {sections.map((s) => (
+          <Grid size={4} key={s.key}>
+            <StatCard icon={s.icon} value={groupedStudents[s.key].length} label={s.title} accent={s.accent} />
+          </Grid>
+        ))}
       </Grid>
 
-      {/* Needs Grading Section */}
-      <StudentGroupSection
-        title="Needs Grading"
-        students={groupedStudents.needsGrading}
-        assignment={assignment}
-        setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
-        setFeedbackModalOpen={setFeedbackModalOpen}
-        icon={<FaExclamationCircle color="#FF9800" />}
-        color="#FF9800"
-        expanded={expandedSections.needsGrading}
-        onToggle={() => handleToggleSection("needsGrading")}
-        studentAttempts={studentAttempts}
-        showEmpty={groupedStudents.needsGrading.length === 0}
-        isLoadingAttempts={isLoadingAttempts}
-      />
-
-      {/* Graded Section */}
-      <StudentGroupSection
-        title="Graded"
-        students={groupedStudents.graded}
-        assignment={assignment}
-        setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
-        setFeedbackModalOpen={setFeedbackModalOpen}
-        icon={<FaCheckCircle color="#4CAF50" />}
-        color="#4CAF50"
-        expanded={expandedSections.graded}
-        onToggle={() => handleToggleSection("graded")}
-        studentAttempts={studentAttempts}
-        showEmpty={groupedStudents.graded.length === 0}
-        isLoadingAttempts={isLoadingAttempts}
-      />
-
-      {/* Not Submitted Section */}
-      <StudentGroupSection
-        title="Not Submitted"
-        students={groupedStudents.notSubmitted}
-        assignment={assignment}
-        setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
-        setFeedbackModalOpen={setFeedbackModalOpen}
-        icon={<FaTimesCircle color="#F44336" />}
-        color="#F44336"
-        expanded={expandedSections.notSubmitted}
-        onToggle={() => handleToggleSection("notSubmitted")}
-        studentAttempts={studentAttempts}
-        showEmpty={groupedStudents.notSubmitted.length === 0}
-        isLoadingAttempts={isLoadingAttempts}
-      />
+      {sections.map((s) => (
+        <StudentGroupSection
+          key={s.key}
+          title={s.title}
+          icon={s.icon}
+          accent={s.accent}
+          students={groupedStudents[s.key]}
+          assignment={assignment}
+          setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
+          setFeedbackModalOpen={setFeedbackModalOpen}
+          expanded={expandedSections[s.key]}
+          onToggle={() => handleToggleSection(s.key)}
+          studentAttempts={studentAttempts}
+          isLoadingAttempts={isLoadingAttempts}
+        />
+      ))}
     </>
   );
 }
 
-// Component for each grouped section
 function StudentGroupSection({
   title,
+  icon,
+  accent,
   students,
   assignment,
   setCurrentAssignmentAttempt,
   setFeedbackModalOpen,
-  icon,
-  color,
   expanded,
   onToggle,
   studentAttempts,
-  showEmpty,
   isLoadingAttempts,
 }) {
   return (
-    <Card
-      sx={{
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
-        mb: 2,
-      }}
-    >
-      <CardContent sx={{ p: 0 }}>
-        <Box
-          onClick={onToggle}
-          sx={{
-            p: 2,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer",
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.03)",
-            },
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            {icon}
-            <Typography
-              variant="h6"
-              sx={{ color: "#fff", fontWeight: 600, mr: 2 }}
-            >
-              {title}
-            </Typography>
-            <Badge
-              badgeContent={students.length}
-              sx={{
-                "& .MuiBadge-badge": {
-                  backgroundColor: color,
-                  color: "white",
-                  fontWeight: "bold",
-                },
-              }}
-            />
-          </Box>
-          <FaChevronDown
-            size={16}
-            color="rgba(255, 255, 255, 0.7)"
-            style={{
-              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-              transition: "transform 0.3s",
+    <Box sx={{ ...sectionSx, p: 0, overflow: "hidden" }}>
+      <Box
+        onClick={onToggle}
+        sx={{
+          p: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          "&:hover": { backgroundColor: lumi.color.surfaceContainerHigh },
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <LumiIcon name={icon} sx={{ fontSize: 20, color: accent }} />
+          <Typography sx={{ ...lumiType.headlineMd, fontSize: "16px", color: lumi.color.onBackground }}>
+            {title}
+          </Typography>
+          <Box
+            component="span"
+            sx={{
+              ...lumiType.labelMd,
+              px: 1,
+              py: 0.25,
+              borderRadius: lumi.radius.pill,
+              backgroundColor: tint(accent, 0.18),
+              color: accent,
             }}
-          />
-        </Box>
-
-        {expanded && (
-          <Box sx={{ px: 2, pb: 2 }}>
-            {isLoadingAttempts ? (
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "rgba(255, 255, 255, 0.5)",
-                  fontStyle: "italic",
-                  textAlign: "center",
-                  py: 2,
-                }}
-              >
-                Loading student submissions...
-              </Typography>
-            ) : students.length > 0 ? (
-              students.map((student, index) => (
-                <Box
-                  key={student.id}
-                  sx={{
-                    backgroundColor: "rgba(255, 255, 255, 0.03)",
-                    borderRadius: 2,
-                    p: 2,
-                    mb: index < students.length - 1 ? 1.5 : 0,
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.06)",
-                      borderColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                  }}
-                >
-                  <StudentListCard student={student} action={"navigate"} />
-                  <Box sx={{ mt: 1 }}>
-                    <StudentAssignmentAttemptCard
-                      assignment={assignment}
-                      student={student}
-                      setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
-                      setFeedbackModalOpen={setFeedbackModalOpen}
-                      attemptData={studentAttempts[student.id]}
-                    />
-                  </Box>
-                </Box>
-              ))
-            ) : showEmpty ? (
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "rgba(255, 255, 255, 0.5)",
-                  fontStyle: "italic",
-                  textAlign: "center",
-                  py: 2,
-                }}
-              >
-                No students in this category
-              </Typography>
-            ) : null}
+          >
+            {students.length}
           </Box>
-        )}
-      </CardContent>
-    </Card>
+        </Box>
+        <LumiIcon
+          name="expand_more"
+          sx={{
+            fontSize: 22,
+            color: lumi.color.onSurfaceVariant,
+            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform .3s",
+          }}
+        />
+      </Box>
+
+      {expanded && (
+        <Box sx={{ px: 2, pb: 2 }}>
+          {isLoadingAttempts ? (
+            <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, fontStyle: "italic", textAlign: "center", py: 2 }}>
+              Loading student submissions…
+            </Typography>
+          ) : students.length > 0 ? (
+            students.map((student, index) => (
+              <Box
+                key={student.id}
+                sx={{
+                  backgroundColor: lumi.color.surfaceContainerLow,
+                  borderRadius: lumi.radius.md,
+                  p: 2,
+                  mb: index < students.length - 1 ? 1.5 : 0,
+                  border: `1px solid ${lumi.color.hairline}`,
+                }}
+              >
+                <StudentListCard student={student} action={"navigate"} />
+                <Box sx={{ mt: 1 }}>
+                  <StudentAssignmentAttemptCard
+                    assignment={assignment}
+                    student={student}
+                    setCurrentAssignmentAttempt={setCurrentAssignmentAttempt}
+                    setFeedbackModalOpen={setFeedbackModalOpen}
+                    attemptData={studentAttempts[student.id]}
+                  />
+                </Box>
+              </Box>
+            ))
+          ) : (
+            <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, fontStyle: "italic", textAlign: "center", py: 2 }}>
+              No students in this category
+            </Typography>
+          )}
+        </Box>
+      )}
+    </Box>
   );
 }

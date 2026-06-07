@@ -30,6 +30,7 @@ import LinkIcon from "@mui/icons-material/Link";
 import RestoreIcon from "@mui/icons-material/Restore";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 import { lumi, tint } from "./tokens";
 
@@ -65,6 +66,7 @@ const ICONS = {
   restore: RestoreIcon,
   close: CloseIcon,
   arrow_back: ArrowBackIcon,
+  check_circle: CheckCircleOutlineIcon,
 };
 
 export const LumiIcon = ({ name, ...props }) => {
