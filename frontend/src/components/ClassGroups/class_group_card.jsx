@@ -26,7 +26,7 @@ const ClassGroupCard = ({ data, onClick, menuItems = [] }) => {
         {/* Title + overflow menu */}
         <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
           <Typography
-            component="h3"
+            component="h6"
             noWrap
             sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, minWidth: 0 }}
           >
