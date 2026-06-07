@@ -1,35 +1,43 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  List,
-  Typography,
-  Drawer,
-  Chip,
-  Card,
-  CardContent,
-  Grid,
-  IconButton,
-  Divider,
-} from "@mui/material";
+import React from "react";
+import { Box, List, Typography, Button } from "@mui/material";
+
 import StudentListCard from "../Students/student_list_card";
 import ResourcePicker from "../Resources/ResourcePicker";
 import ClassFeedbackSummary from "./class_feedback_summary";
-import { getSubjectIcon } from "../../utils/icons";
 import { primaryTag } from "../../utils/tags";
-import { PrimaryButton, WarningButton } from "../../styles/buttons";
 import { useAuth } from "../../contexts/auth_context";
 import {
-  FaTimes,
-  FaCalendarAlt,
-  FaClock,
-  FaUsers,
-  FaBook,
-  FaStar,
-} from "react-icons/fa";
+  LumiDrawer,
+  PrimaryActionButton,
+  SubjectChip,
+  LumiIcon,
+  lumi,
+  lumiType,
+  tint,
+} from "../luminous";
+
+// Token-styled "section card" used throughout the drawer body.
+const sectionSx = {
+  backgroundColor: lumi.color.surfaceContainer,
+  border: `1px solid ${lumi.color.hairline}`,
+  borderRadius: lumi.radius.card,
+  p: 2.5,
+  mb: 2.5,
+};
+
+function SectionTitle({ icon, iconColor, children }) {
+  return (
+    <Typography
+      sx={{ ...lumiType.headlineMd, fontSize: "16px", color: lumi.color.onBackground, mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+    >
+      <LumiIcon name={icon} sx={{ fontSize: 20, color: iconColor || lumi.color.primary }} />
+      {children}
+    </Typography>
+  );
+}
 
 export default function ClassEventDetailsDrawer({
   open,
-  handleClose,
   currentClassEvent,
   onClose,
   handleReloadData,
@@ -37,6 +45,9 @@ export default function ClassEventDetailsDrawer({
   handleCancelClassEvent,
 }) {
   const { auth } = useAuth();
+  const isTeacher = auth.userType === "teacher";
+  const primary = primaryTag(currentClassEvent);
+
   const eventDate = new Date(currentClassEvent?.start_time);
   const formattedDate = eventDate.toLocaleDateString(undefined, {
     weekday: "long",
@@ -50,299 +61,104 @@ export default function ClassEventDetailsDrawer({
     hour12: true,
   });
 
-  // Subject is now a tag; use the primary tag for the icon/chip.
-  const primary = primaryTag(currentClassEvent);
-  const IconComponent = primary?.name && getSubjectIcon(primary.name);
-
-  return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      sx={{
-        backdropFilter: "blur(4px)",
-        "& .MuiDrawer-paper": {
-          background: "linear-gradient(135deg, #10101dff 0%, #0a132bff 100%)",
-        },
-      }}
-    >
-      <Box
+  const footer = isTeacher ? (
+    <>
+      <PrimaryActionButton label="Edit Event" icon="edit" onClick={handleOpenStudentSearch} sx={{ flex: 1 }} />
+      <Button
+        onClick={handleCancelClassEvent}
         sx={{
-          width: 520,
-          height: "100%",
-          backgroundColor: "transparent",
-          color: "white",
-          overflowY: "auto",
+          flex: 1,
+          ...lumiType.buttonText,
+          borderRadius: lumi.radius.md,
+          color: lumi.color.error,
+          border: `1px solid ${tint(lumi.color.error, 0.4)}`,
+          "&:hover": { backgroundColor: tint(lumi.color.error, 0.1) },
         }}
       >
-        {currentClassEvent && (
-          <>
-            {/* Header Section with Close Button */}
-            <Box
-              sx={{
-                position: "sticky",
-                top: 0,
-                background: "linear-gradient(135deg, #0f3460 0%, #16213e 100%)",
-                zIndex: 10,
-                borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-                p: 3,
-                pb: 2,
-              }}
-            >
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-                <IconButton
-                  onClick={onClose}
-                  sx={{
-                    color: "rgba(255, 255, 255, 0.7)",
-                    "&:hover": {
-                      color: "white",
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    },
-                  }}
-                >
-                  <FaTimes />
-                </IconButton>
-              </Box>
+        Cancel Class
+      </Button>
+    </>
+  ) : null;
 
-              <Box sx={{ mb: 2 }}>
-                {primary && (
-                  <Chip
-                    icon={
-                      IconComponent && <IconComponent color="#fff" size={20} />
-                    }
-                    label={primary.name}
-                    sx={{
-                      color: "#fff",
-                      fontSize: "1rem",
-                      height: "2.5rem",
-                      minWidth: "12rem",
-                      backgroundColor: primary.color || "#333",
-                      fontWeight: 600,
-                      mb: 2,
-                      border: "2px solid rgba(255, 255, 255, 0.2)",
-                    }}
-                  />
-                )}
-                <Typography
-                  variant="h4"
-                  sx={{
-                    color: "white",
-                    fontWeight: "bold",
-                    mb: 1,
-                  }}
-                >
-                  {currentClassEvent.name}
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    mb: 0.5,
-                  }}
-                >
-                  <FaCalendarAlt size={14} color="rgba(255, 255, 255, 0.6)" />
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "rgba(255, 255, 255, 0.8)" }}
-                  >
-                    {formattedDate}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <FaClock size={14} color="rgba(255, 255, 255, 0.6)" />
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "rgba(255, 255, 255, 0.8)" }}
-                  >
-                    {formattedTime}
-                  </Typography>
-                </Box>
-              </Box>
+  return (
+    <LumiDrawer
+      open={open}
+      onClose={onClose}
+      title={currentClassEvent?.name}
+      subtitle={currentClassEvent ? `${formattedDate} · ${formattedTime}` : undefined}
+      footer={footer}
+    >
+      {currentClassEvent && (
+        <>
+          {primary && (
+            <Box sx={{ mb: 2.5 }}>
+              <SubjectChip label={primary.name} color={primary.color} />
             </Box>
+          )}
 
-            <Box sx={{ p: 3 }}>
-              {/* Quick Stats */}
-              <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid size={12}>
-                  <Card
-                    sx={{
-                      backgroundColor: "rgba(33, 150, 243, 0.1)",
-                      border: "1px solid rgba(33, 150, 243, 0.3)",
-                      textAlign: "center",
-                    }}
-                  >
-                    <CardContent sx={{ py: 2 }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 2,
-                        }}
-                      >
-                        <FaUsers size={24} color="#2196F3" />
-                        <Box>
-                          <Typography
-                            variant="h4"
-                            sx={{ color: "#2196F3", fontWeight: "bold" }}
-                          >
-                            {currentClassEvent.students?.length || 0}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ color: "rgba(255, 255, 255, 0.7)" }}
-                          >
-                            Students Enrolled
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-
-              {/* Students Section */}
-              <Card
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  mb: 3,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: "#fff",
-                      mb: 2,
-                      fontWeight: 600,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <FaUsers color="#2196F3" />
-                    Students
-                  </Typography>
-                  {currentClassEvent.students &&
-                  currentClassEvent.students.length > 0 ? (
-                    <List sx={{ p: 0 }}>
-                      {currentClassEvent.students.map((student, index) => (
-                        <Box
-                          key={student.id}
-                          sx={{
-                            mb:
-                              index < currentClassEvent.students.length - 1
-                                ? 1
-                                : 0,
-                          }}
-                        >
-                          <StudentListCard
-                            student={student}
-                            action={"navigate"}
-                          />
-                        </Box>
-                      ))}
-                    </List>
-                  ) : (
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "rgba(255, 255, 255, 0.5)",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      No students enrolled
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Class Resources Section */}
-              <Card
-                sx={{
-                  backgroundColor: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.1)",
-                  mb: 3,
-                }}
-              >
-                <CardContent>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: "#fff",
-                      mb: 2,
-                      fontWeight: 600,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <FaBook color="#2196F3" />
-                    Class Resources
-                  </Typography>
-                  <ResourcePicker
-                    context={{ type: "class-event", id: currentClassEvent?.id }}
-                    mode={auth.userType === "teacher" ? "teacher" : "student"}
-                    value={currentClassEvent?.resources ?? []}
-                    onChange={handleReloadData}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Session Feedback — teachers only, past classes */}
-              {auth.userType === "teacher" && currentClassEvent.previous && (
-                <Card
-                  sx={{
-                    backgroundColor: "rgba(255, 255, 255, 0.05)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    mb: 3,
-                  }}
-                >
-                  <CardContent>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#fff",
-                        mb: 2,
-                        fontWeight: 600,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                      }}
-                    >
-                      <FaStar color="#ffc107" />
-                      Session Feedback
-                    </Typography>
-                    <ClassFeedbackSummary classEventId={currentClassEvent.id} />
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Action Buttons */}
-              {auth.userType == "teacher" && (
-                <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
-                  <PrimaryButton
-                    fullWidth
-                    onClick={handleOpenStudentSearch}
-                    sx={{ flex: 1 }}
-                  >
-                    Edit Event
-                  </PrimaryButton>
-                  <WarningButton
-                    fullWidth
-                    onClick={handleCancelClassEvent}
-                    sx={{ flex: 1 }}
-                  >
-                    Cancel Class
-                  </WarningButton>
-                </Box>
-              )}
+          {/* Enrolled count */}
+          <Box
+            sx={{
+              ...sectionSx,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              backgroundColor: tint(lumi.color.primary, 0.1),
+              border: `1px solid ${tint(lumi.color.primary, 0.3)}`,
+            }}
+          >
+            <LumiIcon name="group" sx={{ fontSize: 26, color: lumi.color.primary }} />
+            <Box sx={{ textAlign: "center" }}>
+              <Typography sx={{ ...lumiType.headlineLg, fontSize: "24px", color: lumi.color.primary }}>
+                {currentClassEvent.students?.length || 0}
+              </Typography>
+              <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
+                Students Enrolled
+              </Typography>
             </Box>
-          </>
-        )}
-      </Box>
-    </Drawer>
+          </Box>
+
+          {/* Students */}
+          <Box sx={sectionSx}>
+            <SectionTitle icon="group">Students</SectionTitle>
+            {currentClassEvent.students?.length > 0 ? (
+              <List sx={{ p: 0 }}>
+                {currentClassEvent.students.map((student) => (
+                  <Box key={student.id} sx={{ mb: 1 }}>
+                    <StudentListCard student={student} action={"navigate"} />
+                  </Box>
+                ))}
+              </List>
+            ) : (
+              <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, fontStyle: "italic" }}>
+                No students enrolled
+              </Typography>
+            )}
+          </Box>
+
+          {/* Resources */}
+          <Box sx={sectionSx}>
+            <SectionTitle icon="folder_open">Class Resources</SectionTitle>
+            <ResourcePicker
+              context={{ type: "class-event", id: currentClassEvent?.id }}
+              mode={isTeacher ? "teacher" : "student"}
+              value={currentClassEvent?.resources ?? []}
+              onChange={handleReloadData}
+            />
+          </Box>
+
+          {/* Session feedback — teachers, past classes */}
+          {isTeacher && currentClassEvent.previous && (
+            <Box sx={sectionSx}>
+              <SectionTitle icon="event" iconColor={lumi.color.amber}>
+                Session Feedback
+              </SectionTitle>
+              <ClassFeedbackSummary classEventId={currentClassEvent.id} />
+            </Box>
+          )}
+        </>
+      )}
+    </LumiDrawer>
   );
 }
