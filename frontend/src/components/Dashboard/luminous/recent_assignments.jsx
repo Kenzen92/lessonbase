@@ -1,37 +1,9 @@
 import { Box, Typography, Button, CircularProgress } from "@mui/material";
 
 import { lumi, lumiType } from "./tokens";
-import { SubjectChip, accentColor, tint } from "./shared";
+import { SubjectChip, tint } from "./shared";
+import StatusPill from "../../luminous/StatusPill";
 import { sampleRecentAssignments } from "./sample_data";
-
-// Pills are a tinted background + border with a leading dot, per the design.
-// `label` is shown verbatim (e.g. the server category) and `accent` drives hue.
-function StatusPill({ label, accent }) {
-  const a = accentColor(accent);
-  return (
-    <Box
-      component="span"
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 0.75,
-        px: 1.5,
-        py: 0.5,
-        borderRadius: lumi.radius.pill,
-        fontSize: 12,
-        fontWeight: 600,
-        fontFamily: lumi.font.body,
-        border: `1px solid ${tint(a.solid, 0.3)}`,
-        backgroundColor: tint(a.solid, 0.1),
-        color: a.strong,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <Box component="span" sx={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: a.solid }} />
-      {label}
-    </Box>
-  );
-}
 
 const cellSx = {
   ...lumiType.bodyMd,

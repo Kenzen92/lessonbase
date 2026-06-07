@@ -75,10 +75,6 @@ export const sampleWeeklyMarking = {
   remaining: 6,
 };
 
-export const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: "dashboard", path: "/dashboard" },
-  { id: "students", label: "Students", icon: "group", path: "/students" },
-  { id: "classes", label: "Classes", icon: "school", path: "/class-groups" },
-  { id: "assignments", label: "Assignments", icon: "assignment", path: "/assignments" },
-  { id: "resources", label: "Resources", icon: "folder_open", path: "/resources" },
-];
+// navItems now lives in the shared Luminous module; re-exported here for any
+// existing importers.
+export { navItems } from "../../luminous/nav";
