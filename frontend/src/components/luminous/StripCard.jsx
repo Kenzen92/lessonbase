@@ -4,20 +4,22 @@ import { lumi } from "./tokens";
 import { accentColor } from "./shared";
 
 /**
- * Card base with a 4px coloured top strip for status/subject categorisation,
- * per the DESIGN.md "Cards" spec. Level-1 surface, hairline border, 16px
- * radius, subtle hover lift. `accent` is an accent key ("primary" | "tertiary"
- * | "amber" | "violet" | "error") or a raw hex via `accentHex`.
+ * Card base with an optional 4px coloured top strip for status/subject
+ * categorisation, per the DESIGN.md "Cards" spec. Level-1 surface, hairline
+ * border, 16px radius, subtle hover lift. `accent` is an accent key ("primary"
+ * | "tertiary" | "amber" | "violet" | "error") or a raw hex via `accentHex`.
+ * Set `strip={false}` for a clean, bandless card.
  */
 export default function StripCard({
   accent = "primary",
   accentHex,
+  strip = true,
   hover = true,
   onClick,
   sx,
   children,
 }) {
-  const strip = accentHex || accentColor(accent).solid;
+  const stripColor = accentHex || accentColor(accent).solid;
   return (
     <Box
       onClick={onClick}
@@ -38,19 +40,13 @@ export default function StripCard({
         ...sx,
       }}
     >
-      {/* Coloured top strip */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          backgroundColor: strip,
-        }}
-      />
-      <Box sx={{ p: 2.5, pt: 3 }}>{children}</Box>
+      {strip && (
+        <Box
+          aria-hidden
+          sx={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, backgroundColor: stripColor }}
+        />
+      )}
+      <Box sx={{ p: 2.5, pt: strip ? 3 : 2.5 }}>{children}</Box>
     </Box>
   );
 }

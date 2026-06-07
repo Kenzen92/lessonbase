@@ -2,7 +2,7 @@ import { Box, Typography, Button, LinearProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 import { lumi, lumiType, tint, SubjectChip, StatusPill, StripCard } from "../luminous";
-import { primaryTag, tagList } from "../../utils/tags";
+import { tagList } from "../../utils/tags";
 
 /**
  * Luminous assignment card for the board. A StripCard accented by its column,
@@ -10,13 +10,11 @@ import { primaryTag, tagList } from "../../utils/tags";
  * progress bar, and a Details action. Keeps the legacy handler props
  * (`setDrawerOpen`, `setCurrentAssignment`); `accent` is the column's accent.
  */
-const AssignmentCard = ({ assignment, setDrawerOpen, setCurrentAssignment, accent = "primary" }) => {
+const AssignmentCard = ({ assignment, setDrawerOpen, setCurrentAssignment }) => {
   const navigate = useNavigate();
   if (!assignment) return null;
 
   const tags = tagList(assignment);
-  const primary = primaryTag(assignment);
-  const stripHex = primary?.color || undefined;
 
   // Whole-day difference between today and the due date.
   const today = new Date();
@@ -36,7 +34,7 @@ const AssignmentCard = ({ assignment, setDrawerOpen, setCurrentAssignment, accen
   };
 
   return (
-    <StripCard accent={accent} accentHex={stripHex} onClick={open}>
+    <StripCard strip={false} onClick={open}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {typeof assignment.progress === "number" && (
           <LinearProgress

@@ -2,7 +2,7 @@
 //   import { AppShell, PageHeader, StripCard, lumi } from "../components/luminous";
 
 export { lumi, lumiType, tint } from "./tokens";
-export { LumiIcon, accentColor, statusAccent, SubjectChip } from "./shared";
+export { LumiIcon, accentColor, statusAccent, SubjectChip, brightenForDark } from "./shared";
 export { navItems, activeNavFromPath } from "./nav";
 
 export { default as SideNav, SIDEBAR_WIDTH } from "./side_nav";

@@ -18,7 +18,7 @@ import FilterBar from "./FilterBar";
 import KanbanColumn from "./KanbanColumn";
 import LumiModal from "./LumiModal";
 import LumiDrawer from "./LumiDrawer";
-import { SubjectChip } from "./shared";
+import { SubjectChip, brightenForDark } from "./shared";
 
 describe("Luminous shared components", () => {
   it("AppShell renders nav, search and page content", () => {
@@ -82,6 +82,15 @@ describe("Luminous shared components", () => {
     );
     await userEvent.click(screen.getByText("Class 1"));
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("brightenForDark lifts dark hues but leaves light ones and non-hex alone", () => {
+    // A dark navy gets lightened (changes), a near-white passes through.
+    expect(brightenForDark("#0f3460")).not.toBe("#0f3460");
+    expect(brightenForDark("#ffffff")).toBe("#ffffff");
+    // Named-accent / non-hex strings are returned untouched.
+    expect(brightenForDark("rgb(1,2,3)")).toBe("rgb(1,2,3)");
+    expect(brightenForDark(undefined)).toBe(undefined);
   });
 
   it("StatusPill and SubjectChip render their labels", () => {
