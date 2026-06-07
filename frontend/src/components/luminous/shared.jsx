@@ -28,6 +28,8 @@ import EventIcon from "@mui/icons-material/Event";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import LinkIcon from "@mui/icons-material/Link";
 import RestoreIcon from "@mui/icons-material/Restore";
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import { lumi, tint } from "./tokens";
 
@@ -61,6 +63,8 @@ const ICONS = {
   file: InsertDriveFileIcon,
   link: LinkIcon,
   restore: RestoreIcon,
+  close: CloseIcon,
+  arrow_back: ArrowBackIcon,
 };
 
 export const LumiIcon = ({ name, ...props }) => {

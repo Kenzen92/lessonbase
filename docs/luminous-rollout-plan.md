@@ -208,6 +208,24 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 
 **Post-rollout cleanup (pending owner OK):** `components/Dashboard/class_event_dashboard.jsx` (pre-Luminous dashboard, no longer routed) and its only-consumers `main_navigation.jsx` + `action_statistics_bar.jsx` are now fully orphaned and can be deleted.
 
+### Phase 6 — overlays (in progress)
+Shared overlay shells built first, then applied per overlay (smallest first).
+
+| Item | Status | Notes |
+|------|--------|-------|
+| `LumiModal` shell | ✅ | token Dialog: header + close, body, actions footer |
+| `LumiDrawer` shell | ✅ | token right Drawer: sticky header/footer, scroll body |
+| Shared `fieldSx` | ✅ | promoted from profile; used by modals + forms |
+| Students: add-student modal | ✅ | on LumiModal |
+| Resources: upload dialog | ✅ | on LumiModal (tabs/fields token-styled) |
+| Students: `student_details_drawer` | ⬜ | ~800 lines, deeply custom; needs LumiDrawer + token pass |
+| Classes: `class_group_details_drawer` | ⬜ | |
+| Classes: `class_group_wizard` | ⬜ | coordinate with wizard-redesign-plan |
+| Assignments: `assignment_details_drawer` | ⬜ | |
+| Assignments: `add_assignment_wizard` | ⬜ | coordinate with wizard-redesign-plan |
+| Assignments: `assignment_feedback_modal` | ⬜ | |
+| Shared: `class_event_wizard` + `class_event_details_drawer` | ⬜ | used by dashboard |
+
 ---
 
 ## 9. Quick-start for a fresh instance

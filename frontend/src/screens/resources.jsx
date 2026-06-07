@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  Chip,
-  CircularProgress,
-  Tab,
-  Tabs,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from "@mui/material";
-import { FaUpload } from "react-icons/fa";
+import { Box, Button, TextField, Chip, CircularProgress, Tab, Tabs } from "@mui/material";
 import { toast } from "react-toastify";
 
-import { AppShell, PageHeader, FilterBar, ViewToggle, EmptyState, lumi } from "../components/luminous";
+import {
+  AppShell,
+  PageHeader,
+  FilterBar,
+  ViewToggle,
+  EmptyState,
+  LumiModal,
+  PrimaryActionButton,
+  fieldSx,
+  lumi,
+} from "../components/luminous";
 import ResourceCard, { resourceCategory } from "../components/Resources/resource_card";
 import Dropzone from "../components/Resources/dropzone";
 import { useAuth } from "../contexts/auth_context";
@@ -211,77 +208,77 @@ export default function ResourcesPage() {
         </Box>
       )}
 
-      {/* Upload dialog — kept as-is; restyled in the Phase 6 overlay pass. */}
-      <Dialog
+      {/* Upload dialog on the shared LumiModal shell. */}
+      <LumiModal
         open={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            background: "linear-gradient(135deg, #10101d 0%, #0a132b 100%)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "#fff",
-            minWidth: 400,
-          },
-        }}
+        title="Add Resource"
+        actions={
+          <>
+            <Button onClick={() => setUploadDialogOpen(false)} sx={{ color: lumi.color.onSurfaceVariant }}>
+              Cancel
+            </Button>
+            <PrimaryActionButton
+              icon={uploading ? undefined : "add"}
+              label={uploading ? "Uploading…" : linkMode ? "Add link" : `Upload ${uploadFiles.length || ""}`}
+              onClick={handleUpload}
+              disabled={uploading || (!linkMode && uploadFiles.length === 0)}
+            />
+          </>
+        }
       >
-        <DialogTitle>Add Resource</DialogTitle>
-        <DialogContent>
-          <Tabs
-            value={linkMode ? 1 : 0}
-            onChange={(_, v) => setLinkMode(v === 1)}
-            sx={{ mb: 2, borderBottom: "1px solid rgba(255,255,255,0.1)" }}
-          >
-            <Tab label="Upload File" sx={{ color: "rgba(255,255,255,0.7)" }} />
-            <Tab label="Add Link" sx={{ color: "rgba(255,255,255,0.7)" }} />
-          </Tabs>
+        <Tabs
+          value={linkMode ? 1 : 0}
+          onChange={(_, v) => setLinkMode(v === 1)}
+          sx={{
+            mb: 2,
+            borderBottom: `1px solid ${lumi.color.outlineVariant}`,
+            "& .MuiTab-root": { color: lumi.color.onSurfaceVariant, textTransform: "none", fontFamily: lumi.font.body },
+            "& .MuiTab-root.Mui-selected": { color: lumi.color.primary },
+            "& .MuiTabs-indicator": { backgroundColor: lumi.color.primary },
+          }}
+        >
+          <Tab label="Upload File" />
+          <Tab label="Add Link" />
+        </Tabs>
 
-          {!linkMode ? (
-            <>
-              <Dropzone onDrop={(files) => setUploadFiles((prev) => [...prev, ...files])} />
+        {!linkMode ? (
+          <>
+            <Dropzone onDrop={(files) => setUploadFiles((prev) => [...prev, ...files])} />
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 1 }}>
               {uploadFiles.map((f, i) => (
                 <Chip
                   key={i}
                   label={f.name}
                   onDelete={() => setUploadFiles((prev) => prev.filter((_, idx) => idx !== i))}
-                  sx={{ mt: 0.5, color: "#fff" }}
+                  sx={{
+                    color: lumi.color.onSurface,
+                    backgroundColor: lumi.color.surfaceContainerHigh,
+                    "& .MuiChip-deleteIcon": { color: lumi.color.onSurfaceVariant },
+                  }}
                 />
               ))}
-            </>
-          ) : (
-            <>
-              <TextField
-                label="URL"
-                fullWidth
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                sx={{ mb: 2, "& input": { color: "#fff" } }}
-                InputLabelProps={{ style: { color: "rgba(255,255,255,0.7)" } }}
-              />
-              <TextField
-                label="Title (optional)"
-                fullWidth
-                value={linkTitle}
-                onChange={(e) => setLinkTitle(e.target.value)}
-                sx={{ "& input": { color: "#fff" } }}
-                InputLabelProps={{ style: { color: "rgba(255,255,255,0.7)" } }}
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUploadDialogOpen(false)} sx={{ color: "rgba(255,255,255,0.7)" }}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleUpload}
-            disabled={uploading || (!linkMode && uploadFiles.length === 0)}
-            startIcon={uploading ? <CircularProgress size={16} /> : <FaUpload />}
-          >
-            {linkMode ? "Add link" : `Upload ${uploadFiles.length || ""}`}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            </Box>
+          </>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <TextField
+              label="URL"
+              fullWidth
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              sx={fieldSx}
+            />
+            <TextField
+              label="Title (optional)"
+              fullWidth
+              value={linkTitle}
+              onChange={(e) => setLinkTitle(e.target.value)}
+              sx={fieldSx}
+            />
+          </Box>
+        )}
+      </LumiModal>
     </AppShell>
   );
 }
