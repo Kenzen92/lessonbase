@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
+import { lumi, lumiType } from "../luminous";
 
 /**
  * Numbered + labelled step indicator with a connecting line. Current and
@@ -38,7 +39,7 @@ const StepIndicator = ({ steps, current, onStepClick }) => {
               }}
             >
               <Box
-                sx={(theme) => ({
+                sx={{
                   width: 32,
                   height: 32,
                   borderRadius: "50%",
@@ -47,40 +48,24 @@ const StepIndicator = ({ steps, current, onStepClick }) => {
                   justifyContent: "center",
                   fontSize: 14,
                   fontWeight: 600,
-                  transition: theme.transitions.create([
-                    "background-color",
-                    "color",
-                  ]),
+                  fontFamily: lumi.font.body,
+                  transition: "background-color .2s ease, color .2s ease",
                   backgroundColor:
-                    isCompleted || isCurrent
-                      ? theme.palette.primary.main
-                      : theme.palette.surface.input,
-                  color:
-                    isCompleted || isCurrent
-                      ? theme.palette.primary.contrastText
-                      : theme.palette.text.secondary,
-                  border:
-                    isCompleted || isCurrent
-                      ? "none"
-                      : `1px solid ${theme.palette.surface.border}`,
-                })}
+                    isCompleted || isCurrent ? lumi.color.primaryContainer : lumi.color.surfaceContainerHigh,
+                  color: isCompleted || isCurrent ? lumi.color.onSurface : lumi.color.onSurfaceVariant,
+                  border: isCompleted || isCurrent ? "none" : `1px solid ${lumi.color.outlineVariant}`,
+                }}
               >
-                {isCompleted ? (
-                  <CheckIcon fontSize="small" />
-                ) : (
-                  index + 1
-                )}
+                {isCompleted ? <CheckIcon fontSize="small" /> : index + 1}
               </Box>
               <Typography
-                variant="caption"
-                sx={(theme) => ({
-                  fontSize: 12,
+                sx={{
+                  ...lumiType.labelMd,
+                  fontFamily: lumi.font.body,
                   textAlign: "center",
-                  color: isCurrent
-                    ? theme.palette.text.primary
-                    : theme.palette.text.secondary,
+                  color: isCurrent ? lumi.color.onSurface : lumi.color.onSurfaceVariant,
                   fontWeight: isCurrent ? 600 : 400,
-                })}
+                }}
               >
                 {step.label}
               </Typography>
@@ -89,17 +74,14 @@ const StepIndicator = ({ steps, current, onStepClick }) => {
             {index < steps.length - 1 && (
               <Box
                 aria-hidden="true"
-                sx={(theme) => ({
+                sx={{
                   flex: 1,
                   height: 2,
                   mt: "15px", // vertically centre on the 32px circle
                   mx: 0.5,
                   borderRadius: 1,
-                  backgroundColor:
-                    index < current
-                      ? theme.palette.primary.main
-                      : theme.palette.surface.border,
-                })}
+                  backgroundColor: index < current ? lumi.color.primaryContainer : lumi.color.outlineVariant,
+                }}
               />
             )}
           </React.Fragment>

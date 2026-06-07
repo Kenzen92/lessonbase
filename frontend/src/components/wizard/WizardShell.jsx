@@ -10,6 +10,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { useWizard } from "./useWizard";
 import StepIndicator from "./StepIndicator";
+import { lumi, lumiType, tint } from "../luminous";
 
 /**
  * The single modal scaffold for every wizard. Replaces FormModal, the inline
@@ -91,7 +92,7 @@ const WizardShell = ({
     >
       <Box
         data-testid="wizard-shell"
-        sx={(theme) => ({
+        sx={{
           position: "absolute",
           top: "50%",
           left: "50%",
@@ -101,12 +102,15 @@ const WizardShell = ({
           width: { xs: "100vw", sm: "min(640px, 95vw)" },
           maxHeight: { xs: "100dvh", sm: "90vh" },
           height: { xs: "100dvh", sm: "auto" },
-          backgroundColor: theme.palette.surface.modal,
-          border: { xs: "none", sm: `1px solid ${theme.palette.surface.divider}` },
-          borderRadius: { xs: 0, sm: 2 },
+          color: lumi.color.onSurface,
+          fontFamily: lumi.font.body,
+          backgroundColor: lumi.color.surfaceContainer,
+          backgroundImage: "none",
+          border: { xs: "none", sm: `1px solid ${lumi.color.outlineVariant}` },
+          borderRadius: { xs: 0, sm: lumi.radius.card },
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
           outline: "none",
-        })}
+        }}
       >
         {/* Header (fixed) */}
         <Box
@@ -120,7 +124,7 @@ const WizardShell = ({
           <Typography
             id="wizard-shell-title"
             component="h2"
-            sx={{ fontSize: 20, fontWeight: 600, mb: 2 }}
+            sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, mb: 2 }}
           >
             {title}
           </Typography>
@@ -152,38 +156,51 @@ const WizardShell = ({
 
         {/* Footer (sticky) */}
         <Box
-          sx={(theme) => ({
+          sx={{
             display: "flex",
             alignItems: "center",
             gap: 2,
             px: { xs: 2, sm: 4 },
             py: 2,
             flex: "0 0 auto",
-            borderTop: `1px solid ${theme.palette.surface.divider}`,
-          })}
+            borderTop: `1px solid ${lumi.color.outlineVariant}`,
+          }}
         >
-          <Button
-            onClick={onClose}
-            disabled={submitting}
-            sx={{ color: "text.secondary" }}
-          >
+          <Button onClick={onClose} disabled={submitting} sx={{ ...lumiType.buttonText, color: lumi.color.onSurfaceVariant }}>
             Cancel
           </Button>
 
           <Box sx={{ flex: 1 }} />
 
           {!isFirst && (
-            <Button variant="outlined" onClick={back} disabled={submitting}>
+            <Button
+              onClick={back}
+              disabled={submitting}
+              sx={{
+                ...lumiType.buttonText,
+                borderRadius: lumi.radius.md,
+                color: lumi.color.onSurface,
+                border: `1px solid ${lumi.color.outlineVariant}`,
+                "&:hover": { borderColor: lumi.color.outline, backgroundColor: lumi.color.surfaceVariant },
+              }}
+            >
               Back
             </Button>
           )}
           <Button
-            variant="contained"
             onClick={handlePrimary}
             disabled={submitting}
-            startIcon={
-              submitting ? <CircularProgress size={16} color="inherit" /> : null
-            }
+            startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
+            sx={{
+              ...lumiType.buttonText,
+              px: 2.5,
+              borderRadius: lumi.radius.md,
+              backgroundColor: lumi.color.primaryContainer,
+              color: lumi.color.onSurface,
+              boxShadow: `0 4px 12px ${tint(lumi.color.primaryContainer, 0.2)}`,
+              "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
+              "&.Mui-disabled": { backgroundColor: lumi.color.surfaceVariant, color: lumi.color.onSurfaceVariant },
+            }}
           >
             {isLast ? submitLabel : nextLabel}
           </Button>
