@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -14,7 +14,7 @@ import {
 } from "../../utils/agent";
 
 const validationSchema = yup.object().shape({
-  name: yup.string().optional(),
+  name: yup.string().trim().required("Class name is required"),
   start_date: yup
     .date()
     .typeError("Invalid date format")
@@ -30,8 +30,34 @@ const validationSchema = yup.object().shape({
 
 const DETAIL_FIELDS = ["name", "start_date", "start_time", "duration"];
 
+// Crockford-style alphabet (no ambiguous O/0, I/1) for a readable, type-able
+// code suffix.
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+// A Jira-ID-style placeholder name (e.g. "CLASS-A7F3") so a new class is never
+// nameless. Stateless and frontend-only; the teacher can overwrite it freely.
+const generateClassCode = () => {
+  let suffix = "";
+  for (let i = 0; i < 4; i += 1) {
+    suffix += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+  }
+  return `CLASS-${suffix}`;
+};
+
 const toStudentIds = (value) =>
   (value || []).map((s) => (typeof s === "object" ? s.id : s));
+
+// Build the form's default values. For a new class the name falls back to a
+// generated code; for an edit it uses the saved name (the code arg is ignored).
+const buildDefaults = (data, code) => ({
+  name: data?.name || code,
+  start_date: data?.start_time ? dayjs(data.start_time) : dayjs(),
+  start_time: data?.start_time
+    ? dayjs(data.start_time).format("HH:mm")
+    : dayjs().format("HH:mm"),
+  duration: data?.duration || 60,
+  tags: data?.tags || [],
+});
 
 const ClassEventWizard = ({
   open,
@@ -41,6 +67,10 @@ const ClassEventWizard = ({
   students,
   classGroups,
 }) => {
+  // Generated once per mount. The wizard is keyed on the class id upstream, so a
+  // fresh "new class" mount gets its own code while editing keeps the saved name.
+  const generatedName = useMemo(() => generateClassCode(), []);
+
   const {
     handleSubmit,
     control,
@@ -48,15 +78,7 @@ const ClassEventWizard = ({
     reset,
   } = useForm({
     resolver: yupResolver(validationSchema),
-    defaultValues: {
-      name: classData?.name || "",
-      start_date: classData?.start_time ? dayjs(classData.start_time) : dayjs(),
-      start_time: classData?.start_time
-        ? dayjs(classData.start_time).format("HH:mm")
-        : dayjs().format("HH:mm"),
-      duration: classData?.duration || 60,
-      tags: classData?.tags || [],
-    },
+    defaultValues: buildDefaults(classData, generatedName),
   });
 
   const [selectedStudents, setSelectedStudents] = useState(
@@ -91,7 +113,9 @@ const ClassEventWizard = ({
       if (result.ok) {
         toast.success("The class event was scheduled successfully");
         onSaved?.();
-        reset();
+        // Reset with a fresh code so back-to-back class creations don't reuse
+        // the same prefilled name.
+        reset(buildDefaults(classData, generateClassCode()));
         onClose?.();
       } else {
         toast.error(result.error || "Failed to schedule class.");
@@ -116,8 +140,10 @@ const ClassEventWizard = ({
               <FieldText
                 {...field}
                 label="Class name"
+                required
                 error={!!fieldState.error}
                 helperText={fieldState.error?.message}
+                hint="Auto-generated — edit to rename"
               />
             )}
           />

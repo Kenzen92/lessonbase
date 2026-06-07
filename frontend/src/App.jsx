@@ -11,7 +11,6 @@ import Signup from "./screens/signup";
 import VerifyEmail from "./screens/verify-email";
 import ForgotPassword from "./screens/forgot-password";
 import ResetPassword from "./screens/reset-password";
-import ClassEventDashboard from "./components/Dashboard/class_event_dashboard";
 import Profile from "./screens/profile";
 import PrivateRoutes from "./components/privateRoute";
 import ToastNotification from "./components/notification";
@@ -25,6 +24,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Assignments from "./screens/assignments";
 import Resources from "./screens/resources";
+import DashboardLuminous from "./screens/dashboard-luminous";
 import { useAuth } from "./contexts/auth_context";
 import InteractiveClassroom from "./components/InteractiveClassroom/InteractiveClassroom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
@@ -70,7 +70,7 @@ function App() {
               <Route element={<PrivateRoutes />}>
                 <Route
                   path="/dashboard/:id?"
-                  element={<ClassEventDashboard />}
+                  element={<DashboardLuminous />}
                 />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/students/:id?" element={<Students />} />
