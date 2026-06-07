@@ -189,10 +189,10 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 | `StripCard` | ✅ | |
 | `AvatarStack` | ✅ | built with **Classes** (Phase 2) |
 | `KebabMenu` | ✅ | built with **Classes** (Phase 2) |
-| `EmptyState` | ⬜ | build with **Resources** (Phase 3) |
-| `ViewToggle` | ⬜ | build with **Resources** (Phase 3) |
+| `EmptyState` | ✅ | built with **Resources** (Phase 3) |
+| `ViewToggle` | ✅ | built with **Resources** (Phase 3) |
 | `KanbanColumn` | ⬜ | build with **Assignments** (Phase 4) |
-| `FilterBar` | ⬜ | build with **Resources** (Phase 3), reused by Assignments |
+| `FilterBar` | ✅ | built with **Resources** (Phase 3); to be reused by Assignments |
 | Dashboard re-points to shared module, still green | ✅ | via re-export shims; dashboard unchanged visually |
 | Smoke tests for new components | ✅ | `luminous/luminous.test.jsx` (7 tests) |
 
@@ -202,7 +202,7 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 | Dashboard | ✅ shipped (reference) | ⬜ | hero kept; `class_event_*` overlays pending |
 | Students | ✅ surface done | ⬜ | `screens/students.jsx` on AppShell; new `student_row.jsx`; TopBar search wired. Visually confirmed by owner. Legacy `student_info_card.jsx` + `student_list_search.jsx` deleted. Drawer + add-student modal still legacy-styled (Phase 6). |
 | Classes | 🟦 code-complete | ⬜ | `screens/class-groups.jsx` on AppShell; `class_group_card.jsx` rebuilt on StripCard + AvatarStack + KebabMenu (View/Edit); TopBar search filters by name/subject; build+unit green; **visual review pending**. Drawer + wizard still legacy-styled (Phase 6). |
-| Resources | ⬜ | ⬜ | |
+| Resources | 🟦 code-complete | ⬜ | `screens/resources.jsx` on AppShell; new `resource_card.jsx` (grid + list layouts on StripCard); `EmptyState`/`ViewToggle`/`FilterBar` first-landed; TopBar search → server `q`; type FilterBar + grid/list toggle client-side. Dropped the legacy no-op "Show trash" button (was hardcoded `trashed={false}`). Upload dialog still legacy-styled (Phase 6). build+unit green; **visual review pending**. |
 | Assignments | ⬜ | ⬜ | |
 | Settings/Profile | ⬜ | ⬜ | |
 

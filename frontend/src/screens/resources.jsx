@@ -1,32 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
   Button,
   TextField,
-  InputAdornment,
   Chip,
   CircularProgress,
   Tab,
   Tabs,
-  IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import { FaSearch, FaUpload, FaLink, FaFile, FaTrash, FaUndo, FaDownload } from "react-icons/fa";
+import { FaUpload } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { useAuth } from "../contexts/auth_context";
+
+import { AppShell, PageHeader, FilterBar, ViewToggle, EmptyState, lumi } from "../components/luminous";
+import ResourceCard, { resourceCategory } from "../components/Resources/resource_card";
 import Dropzone from "../components/Resources/dropzone";
+import { useAuth } from "../contexts/auth_context";
+import { useUser } from "../contexts/user_context";
 import { getToken } from "../utils/tokenStorage";
 import { resolveMediaUrl } from "../utils/media";
-import Navigation from "../components/main_navigation";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -36,95 +31,16 @@ function getAuthHeaders(json = false) {
   return h;
 }
 
-const KindIcon = ({ kind }) =>
-  kind === "link" ? <FaLink size={16} color="#64b5f6" /> : <FaFile size={16} color="#81c784" />;
-
-function ResourceCard({ resource, onDelete, onRestore, trashed }) {
-  const url =
-    resource.kind === "link"
-      ? resource.url
-      : resolveMediaUrl(resource.file || resource.file_url);
-
-  return (
-    <Card
-      sx={{
-        backgroundColor: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        color: "#fff",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <CardContent sx={{ flex: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <KindIcon kind={resource.kind} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, wordBreak: "break-all" }}>
-            {resource.title}
-          </Typography>
-        </Box>
-        {resource.description && (
-          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.6)", mb: 1 }}>
-            {resource.description}
-          </Typography>
-        )}
-        {resource.mime_type && (
-          <Chip
-            label={resource.mime_type.split("/")[1]?.toUpperCase()}
-            size="small"
-            sx={{ backgroundColor: "rgba(255,255,255,0.1)", color: "#fff", mr: 0.5 }}
-          />
-        )}
-        {resource.subject_name && (
-          <Chip
-            label={resource.subject_name}
-            size="small"
-            sx={{ backgroundColor: "rgba(33,150,243,0.2)", color: "#64b5f6" }}
-          />
-        )}
-      </CardContent>
-      <CardActions>
-        {!trashed && url && (
-          <Tooltip title="Open / download">
-            <IconButton
-              component="a"
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              download={resource.kind !== "link" ? resource.original_name || resource.title : undefined}
-              size="small"
-              sx={{ color: "rgba(255,255,255,0.7)" }}
-            >
-              <FaDownload />
-            </IconButton>
-          </Tooltip>
-        )}
-        {!trashed ? (
-          <Tooltip title="Delete">
-            <IconButton size="small" sx={{ color: "#ef5350" }} onClick={() => onDelete(resource)}>
-              <FaTrash />
-            </IconButton>
-          </Tooltip>
-        ) : (
-          <Tooltip title="Restore">
-            <IconButton size="small" sx={{ color: "#81c784" }} onClick={() => onRestore(resource)}>
-              <FaUndo />
-            </IconButton>
-          </Tooltip>
-        )}
-      </CardActions>
-    </Card>
-  );
-}
-
 export default function ResourcesPage() {
   const { auth } = useAuth();
+  const { firstName, profilePicture } = useUser();
   const isTeacher = auth.userType === "teacher";
 
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [trashTab, setTrashTab] = useState(false);
   const [query, setQuery] = useState("");
+  const [view, setView] = useState("grid");
+  const [typeFilters, setTypeFilters] = useState([]);
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadFiles, setUploadFiles] = useState([]);
@@ -136,12 +52,8 @@ export default function ResourcesPage() {
   const loadResources = useCallback(async () => {
     setLoading(true);
     try {
-      const params = [];
-      if (query) params.push(`q=${encodeURIComponent(query)}`);
-      const qs = params.length ? "?" + params.join("&") : "";
-      const url = isTeacher
-        ? `${BASE_URL}/resources/${qs}`
-        : `${BASE_URL}/resources/shared/`;
+      const qs = query ? `?q=${encodeURIComponent(query)}` : "";
+      const url = isTeacher ? `${BASE_URL}/resources/${qs}` : `${BASE_URL}/resources/shared/`;
       const res = await fetch(url, { headers: getAuthHeaders() });
       if (res.ok) setResources(await res.json());
     } catch {
@@ -154,6 +66,24 @@ export default function ResourcesPage() {
   useEffect(() => {
     loadResources();
   }, [loadResources]);
+
+  // Distinct type chips present in the current result set.
+  const typeChips = useMemo(() => {
+    const byId = new Map();
+    resources.forEach((r) => {
+      const c = resourceCategory(r);
+      if (!byId.has(c.id)) byId.set(c.id, c);
+    });
+    return [...byId.values()];
+  }, [resources]);
+
+  const visibleResources = useMemo(() => {
+    if (typeFilters.length === 0) return resources;
+    return resources.filter((r) => typeFilters.includes(resourceCategory(r).id));
+  }, [resources, typeFilters]);
+
+  const toggleType = (id) =>
+    setTypeFilters((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
 
   const handleDelete = async (resource) => {
     const res = await fetch(`${BASE_URL}/resources/${resource.id}/`, {
@@ -183,7 +113,10 @@ export default function ResourcesPage() {
     setUploading(true);
     try {
       if (linkMode) {
-        if (!linkUrl) { toast.error("URL is required"); return; }
+        if (!linkUrl) {
+          toast.error("URL is required");
+          return;
+        }
         const res = await fetch(`${BASE_URL}/resources/`, {
           method: "POST",
           headers: getAuthHeaders(true),
@@ -191,7 +124,9 @@ export default function ResourcesPage() {
         });
         if (res.ok || res.status === 201) {
           toast.success("Link added");
-          setLinkUrl(""); setLinkTitle(""); setUploadDialogOpen(false);
+          setLinkUrl("");
+          setLinkTitle("");
+          setUploadDialogOpen(false);
           loadResources();
         }
       } else {
@@ -199,14 +134,11 @@ export default function ResourcesPage() {
           const fd = new FormData();
           fd.append("kind", "file");
           fd.append("file", file, file.name);
-          await fetch(`${BASE_URL}/resources/`, {
-            method: "POST",
-            headers: getAuthHeaders(),
-            body: fd,
-          });
+          await fetch(`${BASE_URL}/resources/`, { method: "POST", headers: getAuthHeaders(), body: fd });
         }
         toast.success(`${uploadFiles.length} file(s) uploaded`);
-        setUploadFiles([]); setUploadDialogOpen(false);
+        setUploadFiles([]);
+        setUploadDialogOpen(false);
         loadResources();
       }
     } catch {
@@ -217,97 +149,69 @@ export default function ResourcesPage() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "#0a0a1a", color: "#fff" }}>
-      <Navigation />
-      <Box sx={{ p: 3, maxWidth: 1200, margin: "0 auto" }}>
-        {/* Header */}
+    <AppShell
+      activeNav="resources"
+      user={{ userName: firstName, avatarUrl: resolveMediaUrl(profilePicture) }}
+      search={{ placeholder: "Search resources…", value: query, onChange: setQuery }}
+      onCreateNew={isTeacher ? () => setUploadDialogOpen(true) : undefined}
+    >
+      <PageHeader
+        title={isTeacher ? "Resource Library" : "My Resources"}
+        subtitle="Manage and organize teaching materials, documents, and assets for your classes."
+        action={
+          isTeacher
+            ? { label: "Add Resource", icon: "add", onClick: () => setUploadDialogOpen(true) }
+            : undefined
+        }
+      >
+        <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+          <FilterBar
+            chips={typeChips}
+            selected={typeFilters}
+            onToggle={toggleType}
+            onClear={() => setTypeFilters([])}
+            label="Filter by type"
+          />
+          <ViewToggle value={view} onChange={setView} />
+        </Box>
+      </PageHeader>
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress sx={{ color: lumi.color.primary }} />
+        </Box>
+      ) : visibleResources.length === 0 ? (
+        <EmptyState
+          icon="folder_open"
+          message={
+            query || typeFilters.length
+              ? "No resources match your filters."
+              : isTeacher
+              ? "No resources yet. Use Add Resource to upload a file or add a link."
+              : "No resources shared with you yet."
+          }
+        />
+      ) : view === "grid" ? (
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)", lg: "repeat(4, 1fr)" },
+            gap: 2.5,
           }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            {isTeacher ? "Resource Library" : "My Resources"}
-          </Typography>
-          {isTeacher && (
-            <Button
-              variant="contained"
-              startIcon={<FaUpload />}
-              onClick={() => setUploadDialogOpen(true)}
-              sx={{ background: "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)" }}
-            >
-              Add Resource
-            </Button>
-          )}
+          {visibleResources.map((r) => (
+            <ResourceCard key={r.id} resource={r} onDelete={handleDelete} onRestore={handleRestore} layout="grid" />
+          ))}
         </Box>
+      ) : (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+          {visibleResources.map((r) => (
+            <ResourceCard key={r.id} resource={r} onDelete={handleDelete} onRestore={handleRestore} layout="list" />
+          ))}
+        </Box>
+      )}
 
-        {/* Search */}
-        <TextField
-          placeholder="Search resources…"
-          fullWidth
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && loadResources()}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <FaSearch color="#bdbdbd" />
-              </InputAdornment>
-            ),
-            style: { color: "#fff" },
-          }}
-          sx={{
-            mb: 2,
-            "& .MuiOutlinedInput-root fieldset": { borderColor: "rgba(255,255,255,0.2)" },
-          }}
-        />
-
-        {/* Trash toggle (teachers) */}
-        {isTeacher && (
-          <Box sx={{ mb: 2 }}>
-            <Button
-              variant={trashTab ? "contained" : "outlined"}
-              size="small"
-              startIcon={<FaTrash />}
-              onClick={() => setTrashTab((v) => !v)}
-              sx={{ color: trashTab ? "#fff" : "rgba(255,255,255,0.6)" }}
-            >
-              {trashTab ? "Hide trash" : "Show trash"}
-            </Button>
-          </Box>
-        )}
-
-        {/* Resource grid */}
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : resources.length === 0 ? (
-          <Typography sx={{ color: "rgba(255,255,255,0.5)", textAlign: "center", py: 6 }}>
-            {isTeacher
-              ? "No resources yet. Use the Add Resource button to upload a file or add a link."
-              : "No resources shared with you yet."}
-          </Typography>
-        ) : (
-          <Grid container spacing={2}>
-            {resources.map((r) => (
-              <Grid key={r.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <ResourceCard
-                  resource={r}
-                  onDelete={handleDelete}
-                  onRestore={handleRestore}
-                  trashed={false}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
-
-      {/* Upload dialog */}
+      {/* Upload dialog — kept as-is; restyled in the Phase 6 overlay pass. */}
       <Dialog
         open={uploadDialogOpen}
         onClose={() => setUploadDialogOpen(false)}
@@ -338,9 +242,7 @@ export default function ResourcesPage() {
                 <Chip
                   key={i}
                   label={f.name}
-                  onDelete={() =>
-                    setUploadFiles((prev) => prev.filter((_, idx) => idx !== i))
-                  }
+                  onDelete={() => setUploadFiles((prev) => prev.filter((_, idx) => idx !== i))}
                   sx={{ mt: 0.5, color: "#fff" }}
                 />
               ))}
@@ -380,6 +282,6 @@ export default function ResourcesPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </AppShell>
   );
 }
