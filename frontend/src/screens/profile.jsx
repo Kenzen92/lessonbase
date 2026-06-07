@@ -18,28 +18,22 @@ import {
 import * as yup from "yup";
 import { useFormik } from "formik";
 
-import { AppShell, StripCard, PrimaryActionButton, lumi, lumiType, tint, LumiIcon } from "../components/luminous";
+import {
+  AppShell,
+  StripCard,
+  PrimaryActionButton,
+  fieldSx,
+  lumi,
+  lumiType,
+  tint,
+  LumiIcon,
+} from "../components/luminous";
 import { useUser } from "../contexts/user_context";
 import { useSubjects } from "../contexts/subjects_context";
 import { getToken, setUser as cacheUser } from "../utils/tokenStorage";
 import { resolveMediaUrl } from "../utils/media";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
-
-// Token-styled MUI TextField.
-const fieldSx = {
-  "& .MuiOutlinedInput-root": {
-    backgroundColor: lumi.color.surfaceContainerHigh,
-    borderRadius: lumi.radius.md,
-    color: lumi.color.onSurface,
-    "& fieldset": { borderColor: lumi.color.outlineVariant },
-    "&:hover fieldset": { borderColor: lumi.color.outline },
-    "&.Mui-focused fieldset": { borderColor: lumi.color.primary, borderWidth: 2 },
-  },
-  "& .MuiInputLabel-root": { color: lumi.color.onSurfaceVariant, fontFamily: lumi.font.body },
-  "& .MuiInputLabel-root.Mui-focused": { color: lumi.color.primary },
-  "& .MuiFormHelperText-root": { color: lumi.color.error },
-};
 
 const validationSchema = yup.object({
   username: yup.string().required("Username is required"),

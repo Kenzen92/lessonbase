@@ -16,6 +16,8 @@ import EmptyState from "./EmptyState";
 import ViewToggle from "./ViewToggle";
 import FilterBar from "./FilterBar";
 import KanbanColumn from "./KanbanColumn";
+import LumiModal from "./LumiModal";
+import LumiDrawer from "./LumiDrawer";
 import { SubjectChip } from "./shared";
 
 describe("Luminous shared components", () => {
@@ -179,5 +181,42 @@ describe("Luminous shared components", () => {
   it("KanbanColumn shows an empty state with no children", () => {
     render(<KanbanColumn title="Upcoming" accent="violet" count={0} empty="No upcoming assignments." />);
     expect(screen.getByText("No upcoming assignments.")).toBeInTheDocument();
+  });
+
+  it("LumiModal renders title, body, actions and closes", async () => {
+    const onClose = vi.fn();
+    render(
+      <LumiModal open onClose={onClose} title="Add New Student" actions={<button>Save</button>}>
+        <div>Body content</div>
+      </LumiModal>
+    );
+    expect(screen.getByRole("heading", { name: "Add New Student" })).toBeInTheDocument();
+    expect(screen.getByText("Body content")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("LumiModal renders nothing when closed", () => {
+    render(
+      <LumiModal open={false} onClose={() => {}} title="Hidden">
+        <div>Nope</div>
+      </LumiModal>
+    );
+    expect(screen.queryByText("Nope")).not.toBeInTheDocument();
+  });
+
+  it("LumiDrawer renders title, body and footer when open", async () => {
+    const onClose = vi.fn();
+    render(
+      <LumiDrawer open onClose={onClose} title="Student details" footer={<button>Delete</button>}>
+        <div>Drawer body</div>
+      </LumiDrawer>
+    );
+    expect(screen.getByRole("heading", { name: "Student details" })).toBeInTheDocument();
+    expect(screen.getByText("Drawer body")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

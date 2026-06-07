@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
-import { Box, Button, TextField, Typography, Modal, CircularProgress } from "@mui/material";
+import { Box, Button, TextField, Typography, CircularProgress } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { AppShell, PageHeader, lumi } from "../components/luminous";
+import { AppShell, PageHeader, LumiModal, PrimaryActionButton, fieldSx, lumi } from "../components/luminous";
 import StudentRow from "../components/Students/student_row";
 import StudentDetailsDrawer from "../components/Students/student_details_drawer";
 import Chat from "../components/Chat/chat";
@@ -104,7 +104,7 @@ function Students() {
   }, [statistics]);
 
   const handleFormSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     setShowStudentForm(false);
     try {
       toast.promise(
@@ -190,41 +190,34 @@ function Students() {
         refetchStudents={refetchStudents}
       />
 
-      <Modal
+      <LumiModal
         open={showStudentForm}
         onClose={() => setShowStudentForm(false)}
-        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+        title="Add New Student"
+        actions={
+          <>
+            <Button onClick={() => setShowStudentForm(false)} sx={{ color: lumi.color.onSurfaceVariant }}>
+              Cancel
+            </Button>
+            <PrimaryActionButton label="Send Invitation" icon="add" onClick={handleFormSubmit} />
+          </>
+        }
       >
-        <Box
-          component="form"
-          onSubmit={handleFormSubmit}
-          sx={{
-            backgroundColor: "#333",
-            padding: 4,
-            borderRadius: 2,
-            boxShadow: 24,
-            width: { xs: "90%", sm: "70%", md: "50%", lg: "30%" },
-            color: "white",
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            Add New Student
-          </Typography>
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            Send Invitation
-          </Button>
-        </Box>
-      </Modal>
+        <Typography sx={{ color: lumi.color.onSurfaceVariant, mb: 2 }}>
+          Invite a student by email. They&apos;ll receive a link to join.
+        </Typography>
+        <TextField
+          label="Email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleFormSubmit(e)}
+          required
+          fullWidth
+          sx={fieldSx}
+        />
+      </LumiModal>
 
       {chatOpen && (
         <Chat
