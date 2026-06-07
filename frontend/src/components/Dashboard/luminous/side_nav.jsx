@@ -72,6 +72,17 @@ export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNe
           Lessonbase
         </Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <IconButton
+            aria-label="Create New"
+            onClick={onCreateNew}
+            sx={{
+              color: lumi.color.onSurface,
+              backgroundColor: lumi.color.primaryContainer,
+              "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
+            }}
+          >
+            <LumiIcon name="add" sx={{ fontSize: 22 }} />
+          </IconButton>
           <IconButton aria-label="Notifications" sx={{ color: lumi.color.onSurfaceVariant }}>
             <LumiIcon name="notifications" sx={{ fontSize: 22 }} />
           </IconButton>

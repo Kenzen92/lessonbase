@@ -59,8 +59,10 @@ const WIZARDS = [
   },
   {
     key: "class-event",
+    // The Luminous dashboard opens the class-event wizard from its "Create New"
+    // action (sidebar on desktop, top bar on mobile/tablet).
     boardPath: "/dashboard",
-    openLabel: "Schedule a class",
+    openLabel: "Create New",
     title: "Schedule a class",
   },
 ];
