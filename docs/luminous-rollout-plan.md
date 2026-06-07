@@ -204,7 +204,9 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 | Classes | 🟦 code-complete | ⬜ | `screens/class-groups.jsx` on AppShell; `class_group_card.jsx` rebuilt on StripCard + AvatarStack + KebabMenu (View/Edit); TopBar search filters by name/subject; build+unit green; **visual review pending**. Drawer + wizard still legacy-styled (Phase 6). |
 | Resources | 🟦 code-complete | ⬜ | `screens/resources.jsx` on AppShell; new `resource_card.jsx` (grid + list layouts on StripCard); `EmptyState`/`ViewToggle`/`FilterBar` first-landed; TopBar search → server `q`; type FilterBar + grid/list toggle client-side. Dropped the legacy no-op "Show trash" button (was hardcoded `trashed={false}`). Upload dialog still legacy-styled (Phase 6). build+unit green; **visual review pending**. |
 | Assignments | 🟦 code-complete | ⬜ | `screens/assignments.jsx` on AppShell; `assignment_card.jsx` rebuilt on StripCard (tags + due-status pill + progress); `KanbanColumn` first-landed (4 columns: To Mark/amber, Set/primary, Upcoming/violet, Complete/tertiary); tag filter moved into FilterBar; TopBar title search added. Card title kept as `h6` to preserve the edit-flow e2e selector. Drawer + wizard + feedback modal still legacy-styled (Phase 6). build+unit green; **visual review pending**. |
-| Settings/Profile | ⬜ | ⬜ | |
+| Settings/Profile | 🟦 code-complete | n/a | `screens/profile.jsx` on AppShell; centered StripCard panel; Formik + yup + avatar upload preserved; fields token-styled; react-select retuned to Luminous (pill multi-values). `TopBar` search made optional → Settings shows no search box (no dead input). Username left editable (kept behaviour; screenshot's "cannot be changed" not adopted). build+unit green; **visual review pending**. No detail drawer/wizard (form-only page). |
+
+**Post-rollout cleanup (pending owner OK):** `components/Dashboard/class_event_dashboard.jsx` (pre-Luminous dashboard, no longer routed) and its only-consumers `main_navigation.jsx` + `action_statistics_bar.jsx` are now fully orphaned and can be deleted.
 
 ---
 

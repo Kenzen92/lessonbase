@@ -24,7 +24,7 @@ describe("Luminous shared components", () => {
       <MemoryRouter initialEntries={["/students"]}>
         <AppShell
           user={{ userName: "Ada", avatarUrl: null }}
-          search={{ placeholder: "Search student…" }}
+          search={{ placeholder: "Search student…", value: "", onChange: () => {} }}
         >
           <div>Page body</div>
         </AppShell>
@@ -35,6 +35,18 @@ describe("Luminous shared components", () => {
     expect(screen.getByText("Students")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search student…")).toBeInTheDocument();
     expect(screen.getByText("Page body")).toBeInTheDocument();
+  });
+
+  it("AppShell omits the search box when no onChange is given (Settings)", () => {
+    render(
+      <MemoryRouter initialEntries={["/profile"]}>
+        <AppShell activeNav="settings" user={{ userName: "Ada" }}>
+          <div>Profile body</div>
+        </AppShell>
+      </MemoryRouter>
+    );
+    expect(screen.queryByPlaceholderText(/Search/)).not.toBeInTheDocument();
+    expect(screen.getByText("Profile body")).toBeInTheDocument();
   });
 
   it("PageHeader shows title, subtitle, stats and fires the action", async () => {
