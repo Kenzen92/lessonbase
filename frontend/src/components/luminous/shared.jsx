@@ -101,13 +101,42 @@ export const statusAccent = (status = "") => {
   return "primary"; // "Set" and anything else
 };
 
-// Pill-shaped subject tag: 15% tint of the accent colour with solid text of
-// the same hue, per the design system's Chips & Tags spec. A real tag `color`
-// (hex) overrides the named accent so live subject tags keep their own hue.
+// ── Contrast helpers ────────────────────────────────────────────────────────
+const hexToRgb = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+const toHex = (v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0");
+const rgbToHex = ([r, g, b]) => `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+const channelLum = (c) => {
+  c /= 255;
+  return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+};
+const relLuminance = ([r, g, b]) =>
+  0.2126 * channelLum(r) + 0.7152 * channelLum(g) + 0.0722 * channelLum(b);
+const mixWhite = ([r, g, b], t) => [r + (255 - r) * t, g + (255 - g) * t, b + (255 - b) * t];
+
+// Lift a hue toward white until it reads on the dark Luminous surface, keeping
+// its identity. Already-light colours (and named accents) pass through.
+export const brightenForDark = (hex, target = 0.5) => {
+  if (typeof hex !== "string" || !/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
+  const rgb = hexToRgb(hex);
+  if (relLuminance(rgb) >= target) return hex;
+  for (let t = 0.1; t <= 1; t += 0.1) {
+    const mixed = mixWhite(rgb, t);
+    if (relLuminance(mixed) >= target) return rgbToHex(mixed);
+  }
+  return rgbToHex(mixWhite(rgb, 1));
+};
+
+// Pill-shaped subject tag: a tint of the accent colour with high-contrast text
+// of the same hue. A real tag `color` (hex) overrides the named accent so live
+// subject tags keep their own hue, brightened just enough to stay legible on
+// the dark surface.
 export const SubjectChip = ({ label, accent, color }) => {
   const named = accentColor(accent);
-  const solid = color || named.solid;
-  const text = color || named.text;
+  const base = color || named.solid;
+  const text = brightenForDark(color || named.text);
   return (
     <span
       style={{
@@ -118,8 +147,9 @@ export const SubjectChip = ({ label, accent, color }) => {
         fontSize: 12,
         fontWeight: 600,
         fontFamily: lumi.font.body,
-        backgroundColor: tint(solid, 0.15),
+        backgroundColor: tint(base, 0.22),
         color: text,
+        border: `1px solid ${tint(text, 0.35)}`,
         whiteSpace: "nowrap",
       }}
     >

@@ -208,6 +208,10 @@ Core set (needed by page 1) is **built, tested, and green** (`npm run build` ✓
 
 **Post-rollout cleanup (pending owner OK):** `components/Dashboard/class_event_dashboard.jsx` (pre-Luminous dashboard, no longer routed) and its only-consumers `main_navigation.jsx` + `action_statistics_bar.jsx` are now fully orphaned and can be deleted.
 
+### Post-review refinements
+- **Assignment cards**: dropped the coloured top strip (owner felt it was cluttered). `StripCard` gained a `strip={false}` option; assignment cards now render bandless. Column header accents in `KanbanColumn` are kept.
+- **Subject chips**: low-contrast dark subject hues were hard to read on the dark surface. `SubjectChip` now brightens its text via a luminance-aware `brightenForDark()` (lifts dark hues toward white until legible, keeps light hues/named accents as-is), with a slightly stronger tint + hairline border. Applies everywhere `SubjectChip` is used.
+
 ### Phase 6 — overlays (in progress)
 Shared overlay shells built first, then applied per overlay (smallest first).
 
