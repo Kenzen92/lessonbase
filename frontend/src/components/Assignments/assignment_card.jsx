@@ -1,158 +1,108 @@
-import React from "react";
-import { Box, Chip, Typography, Button, LinearProgress } from "@mui/material";
-import subjectIconMap from "../../utils/icons";
-import { primaryTag, tagList } from "../../utils/tags";
-import EventNoteIcon from "@mui/icons-material/EventNote";
-import { FaUserGraduate, FaExclamationTriangle } from "react-icons/fa";
+import { Box, Typography, Button, LinearProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-const AssignmentCard = ({
-  assignment,
-  setDrawerOpen,
-  setCurrentAssignment,
-}) => {
+import { lumi, lumiType, tint, SubjectChip, StatusPill, StripCard } from "../luminous";
+import { primaryTag, tagList } from "../../utils/tags";
+
+/**
+ * Luminous assignment card for the board. A StripCard accented by its column,
+ * showing tag chips, a due-status pill (Late / Today / N days), an optional
+ * progress bar, and a Details action. Keeps the legacy handler props
+ * (`setDrawerOpen`, `setCurrentAssignment`); `accent` is the column's accent.
+ */
+const AssignmentCard = ({ assignment, setDrawerOpen, setCurrentAssignment, accent = "primary" }) => {
   const navigate = useNavigate();
-  if (!assignment) {
-    return null;
-  }
+  if (!assignment) return null;
 
   const tags = tagList(assignment);
   const primary = primaryTag(assignment);
-  // Use a fallback icon if the primary tag has no matching icon.
-  const IconComponent = subjectIconMap[primary?.name] || FaUserGraduate;
+  const stripHex = primary?.color || undefined;
 
-  const date_today = new Date();
-  const dueDateObj = new Date(assignment.due_date);
+  // Whole-day difference between today and the due date.
+  const today = new Date();
+  const due = new Date(assignment.due_date);
+  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dueMid = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+  const dayDiff = Math.ceil((dueMid.getTime() - todayMid.getTime()) / (1000 * 60 * 60 * 24));
 
-  // To compare just the dates and ignore the time
-  const today_midnight = new Date(
-    date_today.getFullYear(),
-    date_today.getMonth(),
-    date_today.getDate()
-  );
-  const dueDate_midnight = new Date(
-    dueDateObj.getFullYear(),
-    dueDateObj.getMonth(),
-    dueDateObj.getDate()
-  );
+  const isLate = !assignment.marked && dayDiff < 0;
+  const dueToday = !assignment.marked && dayDiff === 0;
+  const daysRemaining = !assignment.marked && dayDiff > 0;
 
-  const timeDifference = dueDate_midnight.getTime() - today_midnight.getTime();
-  const numDayDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
-
-  const isLate = !assignment.marked && numDayDifference < 0;
-  const dueToday = !assignment.marked && numDayDifference === 0;
-  // Show days remaining only if not marked and due in the future
-  const daysRemaining = !assignment.marked && numDayDifference > 0;
-
-  // Define reusable styles for the Chip label span to handle truncation
-  const chipLabelTruncateStyles = {
-    "& .MuiChip-label": {
-      display: "inline-block",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-      whiteSpace: "nowrap",
-    },
+  const open = () => {
+    setCurrentAssignment(assignment);
+    navigate(`/assignments/${assignment.id}`);
+    setDrawerOpen(true);
   };
 
   return (
-    <Box
-      sx={{
-        boxShadow: 2,
-        p: 1, // Increased padding for better internal spacing
-        marginTop: 1,
-        borderColor: "#fff",
-        borderRadius: "10px",
-        borderStyle: "solid",
-        borderWidth: 0.1,
-        backgroundColor: "#292929",
-        transition: "background-color 0.3s ease",
-        "&:hover": {
-          backgroundColor: "#333",
-        },
-      }}
-    >
-      <Box sx={{ width: "100%" }}>
-        <LinearProgress variant="determinate" value={assignment.progress} />
-      </Box>
-      <Typography variant="h6" gutterBottom>
-        {assignment.title}
-      </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          gap: 1, // Use gap for consistent spacing between chips
-          alignItems: "center", // Vertically align chips
-          mb: 2,
-          flexWrap: "wrap", // Allow chips to wrap if space is limited
-        }}
-      >
-        {/* Tag chips (subject is now a tag) */}
-        {tags.map((tag, index) => (
-          <Chip
-            key={tag.id ?? `${tag.name}-${index}`}
-            icon={
-              index === 0 ? (
-                <IconComponent style={{ color: "#fff" }} size={14} />
-              ) : undefined
-            }
-            label={tag.name}
-            size="small"
+    <StripCard accent={accent} accentHex={stripHex} onClick={open}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+        {typeof assignment.progress === "number" && (
+          <LinearProgress
+            variant="determinate"
+            value={assignment.progress}
             sx={{
-              ...chipLabelTruncateStyles,
-              color: "#fff",
-              backgroundColor: tag.color || "#333",
+              height: 4,
+              borderRadius: lumi.radius.pill,
+              backgroundColor: lumi.color.surfaceVariant,
+              "& .MuiLinearProgress-bar": { backgroundColor: lumi.color.primary },
             }}
           />
-        ))}
+        )}
 
-        {/* Status Chip (Late or Today) */}
-        {isLate || dueToday ? (
-          <Chip
-            icon={<FaExclamationTriangle style={{ color: "fff" }} size={14} />}
-            key={`${assignment.id}-status`} // Added a more specific key for uniqueness
-            label={isLate ? "Late" : "Today"}
-            color={isLate ? "error" : "warning"}
-            size="small" // Ensure consistent small size
-            sx={{
-              color: "#fff", // Ensure text color is white on colored chips
-              // No label truncation needed for these short labels
-            }}
-          />
-        ) : null}
-
-        {/* Days Remaining Chip */}
-        {daysRemaining ? (
-          <Chip
-            icon={<EventNoteIcon style={{ color: "#fff" }} size={14} />}
-            label={`${numDayDifference} ${
-              numDayDifference === 1 ? "Day" : "Days"
-            }`}
-            size="small" // Ensure consistent small size
-            sx={{
-              ...chipLabelTruncateStyles, // Apply truncation styles
-              color: "#fff", // Keep text color white
-              backgroundColor: "#333",
-            }}
-          />
-        ) : null}
-      </Box>
-      {/* Centered the button */}
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <Button
-          variant="contained"
-          size="small"
-          sx={{ mb: 1 }}
-          onClick={() => {
-            setCurrentAssignment(assignment);
-            navigate(`/assignments/${assignment.id}`);
-            setDrawerOpen(true);
-          }}
+        <Typography
+          component="h6"
+          sx={{ ...lumiType.headlineMd, fontSize: "16px", m: 0, color: lumi.color.onBackground }}
         >
-          Details
-        </Button>
+          {assignment.title}
+        </Typography>
+
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, alignItems: "center" }}>
+          {tags.map((tag, i) => (
+            <SubjectChip key={tag.id ?? `${tag.name}-${i}`} label={tag.name} color={tag.color} />
+          ))}
+          {isLate && <StatusPill label="Late" accent="error" />}
+          {dueToday && <StatusPill label="Today" accent="amber" />}
+          {daysRemaining && (
+            <Box
+              component="span"
+              sx={{
+                ...lumiType.labelMd,
+                px: 1.25,
+                py: 0.5,
+                borderRadius: lumi.radius.pill,
+                backgroundColor: tint(lumi.color.outline, 0.15),
+                color: lumi.color.onSurfaceVariant,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {dayDiff} {dayDiff === 1 ? "day" : "days"}
+            </Box>
+          )}
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 0.5 }}>
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              open();
+            }}
+            sx={{
+              ...lumiType.buttonText,
+              px: 2,
+              height: 32,
+              borderRadius: lumi.radius.md,
+              backgroundColor: lumi.color.primaryContainer,
+              color: lumi.color.onSurface,
+              "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
+            }}
+          >
+            Details
+          </Button>
+        </Box>
       </Box>
-    </Box>
+    </StripCard>
   );
 };
 

@@ -19,3 +19,4 @@ export { default as KebabMenu } from "./KebabMenu";
 export { default as EmptyState } from "./EmptyState";
 export { default as ViewToggle } from "./ViewToggle";
 export { default as FilterBar } from "./FilterBar";
+export { default as KanbanColumn } from "./KanbanColumn";

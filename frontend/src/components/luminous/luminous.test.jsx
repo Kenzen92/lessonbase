@@ -15,6 +15,7 @@ import KebabMenu from "./KebabMenu";
 import EmptyState from "./EmptyState";
 import ViewToggle from "./ViewToggle";
 import FilterBar from "./FilterBar";
+import KanbanColumn from "./KanbanColumn";
 import { SubjectChip } from "./shared";
 
 describe("Luminous shared components", () => {
@@ -150,5 +151,21 @@ describe("Luminous shared components", () => {
   it("FilterBar renders nothing without chips", () => {
     const { container } = render(<FilterBar chips={[]} selected={[]} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("KanbanColumn shows title, count and children", () => {
+    render(
+      <KanbanColumn title="To Mark" accent="amber" count={1}>
+        <div>Homework 2</div>
+      </KanbanColumn>
+    );
+    expect(screen.getByText("To Mark")).toBeInTheDocument();
+    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(screen.getByText("Homework 2")).toBeInTheDocument();
+  });
+
+  it("KanbanColumn shows an empty state with no children", () => {
+    render(<KanbanColumn title="Upcoming" accent="violet" count={0} empty="No upcoming assignments." />);
+    expect(screen.getByText("No upcoming assignments.")).toBeInTheDocument();
   });
 });
