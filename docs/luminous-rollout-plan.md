@@ -220,12 +220,13 @@ Shared overlay shells built first, then applied per overlay (smallest first).
 | Resources: upload dialog | ✅ | on LumiModal (tabs/fields token-styled) |
 | Students: `student_details_drawer` | ✅ | on LumiDrawer; stats/progress/info/schedule/groups token-swapped; chat + delete in footer. `student-drawer-chat-action` testid + "Open Chat" text preserved (e2e safe) |
 | Classes: `class_group_details_drawer` | ✅ | on LumiDrawer; stat/info/subject/student sections token-swapped; Edit in footer |
-| Classes: `class_group_wizard` | ⬜ | coordinate with wizard-redesign-plan |
+| Wizard frame (`WizardShell` + `StepIndicator`) | ✅ | restyled to lumi tokens — **all three wizards** share the Luminous modal frame (surface Paper, headline title, token step dots/connector, primary/Back/Cancel footer). `wizard-shell` testid + tests preserved. |
+| Classes: `class_group_wizard` fields | ⬜ | frame done; deeper field token-swap → `wizard-redesign-plan.md` |
 | Assignments: `assignment_details_drawer` | ✅ | on LumiDrawer; subject/progress/description + teacher stat cards + grouped student sections token-swapped; Edit/Delete in footer; delete-confirm on LumiModal. Also fixed a latent crash (missing `toast` import + undefined `handleReloadData`) in the delete path. |
-| Assignments: `add_assignment_wizard` | ⬜ | coordinate with wizard-redesign-plan |
+| Assignments: `add_assignment_wizard` fields | ⬜ | frame done; deeper field token-swap → `wizard-redesign-plan.md` |
 | Assignments: `assignment_feedback_modal` | ✅ | on LumiModal; submit in footer; fields use shared fieldSx; existing test still green |
 | Shared: `class_event_details_drawer` | ✅ | on LumiDrawer; actions in footer; surfaces token-swapped (shell + key surfaces depth) |
-| Shared: `class_event_wizard` | ⬜ | used by dashboard; coordinate with wizard-redesign-plan |
+| Shared: `class_event_wizard` fields | ⬜ | frame done; deeper field token-swap → `wizard-redesign-plan.md` |
 
 ---
 
