@@ -52,6 +52,17 @@ class ClassEventCreateSerializer(serializers.ModelSerializer):
         set_tags(event, tags)
         return event
 
+    def validate(self, data):
+        if self.instance and self.instance.start_time < datetime.now(timezone.utc):
+            errors = {}
+            if "start_time" in data and data["start_time"] != self.instance.start_time:
+                errors["start_time"] = "The start time of a past class cannot be changed."
+            if "duration" in data and data["duration"] != self.instance.duration:
+                errors["duration"] = "The duration of a past class cannot be changed."
+            if errors:
+                raise serializers.ValidationError(errors)
+        return data
+
     def update(self, instance, validated_data):
         tags = validated_data.pop("tags", None)
         event = super().update(instance, validated_data)
