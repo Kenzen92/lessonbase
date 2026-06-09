@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Box } from "@mui/material";
+import { Alert, Box } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -59,6 +59,8 @@ const buildDefaults = (data, code) => ({
   tags: data?.tags || [],
 });
 
+const PAST_EVENT_HELPER = "Can't edit — this class has already taken place.";
+
 const ClassEventWizard = ({
   open,
   onClose,
@@ -81,6 +83,10 @@ const ClassEventWizard = ({
     defaultValues: buildDefaults(classData, generatedName),
   });
 
+  // Derive directly from start_time so this works regardless of whether
+  // `previous` is present (list serializer) or absent (detail serializer).
+  const isPastEvent = classData ? new Date(classData.start_time) < new Date() : false;
+
   const [selectedStudents, setSelectedStudents] = useState(
     toStudentIds(classData?.students)
   );
@@ -98,8 +104,11 @@ const ClassEventWizard = ({
     const combined = datePart.hour(timePart.hour()).minute(timePart.minute());
 
     const payload = {
-      start_time: combined.toISOString(),
-      duration: data.duration,
+      // For past events send the original start_time/duration unchanged so
+      // the backend comparison always passes. The form strips seconds (HH:mm
+      // only) which would otherwise cause a spurious mismatch.
+      start_time: isPastEvent ? classData.start_time : combined.toISOString(),
+      duration: isPastEvent ? classData.duration : data.duration,
       students: selectedStudents,
       tags: data.tags,
       name: data.name,
@@ -111,18 +120,18 @@ const ClassEventWizard = ({
         ? await handleUpdateClassEvent(classData.id, payload)
         : await handleCreateClassEvent(payload);
       if (result.ok) {
-        toast.success("The class event was scheduled successfully");
+        toast.success("The class event was saved successfully");
         onSaved?.();
         // Reset with a fresh code so back-to-back class creations don't reuse
         // the same prefilled name.
         reset(buildDefaults(classData, generateClassCode()));
         onClose?.();
       } else {
-        toast.error(result.error || "Failed to schedule class.");
+        toast.error(result.error || "Failed to save class.");
       }
     } catch (error) {
       console.error("Error:", error.message);
-      toast.error("Failed to schedule class.");
+      toast.error("Failed to save class.");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +142,12 @@ const ClassEventWizard = ({
       label: "Details",
       content: (
         <Box>
+          {isPastEvent && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              This class has already taken place. You can update the name, tags,
+              and student list, but the date, time, and duration are fixed.
+            </Alert>
+          )}
           <Controller
             name="name"
             control={control}
@@ -154,8 +169,9 @@ const ClassEventWizard = ({
               <FieldDate
                 {...field}
                 label="Date"
+                disabled={isPastEvent}
                 error={!!fieldState.error}
-                helperText={fieldState.error?.message}
+                helperText={isPastEvent ? PAST_EVENT_HELPER : (fieldState.error?.message || " ")}
               />
             )}
           />
@@ -168,8 +184,9 @@ const ClassEventWizard = ({
                 value={field.value ? dayjs(field.value, "HH:mm") : null}
                 onChange={(v) => field.onChange(v ? v.format("HH:mm") : null)}
                 inputRef={field.ref}
+                disabled={isPastEvent}
                 error={!!fieldState.error}
-                helperText={fieldState.error?.message}
+                helperText={isPastEvent ? PAST_EVENT_HELPER : (fieldState.error?.message || " ")}
               />
             )}
           />
@@ -182,8 +199,9 @@ const ClassEventWizard = ({
                 label="Duration (minutes)"
                 min={10}
                 max={180}
+                disabled={isPastEvent}
                 error={!!fieldState.error}
-                helperText={fieldState.error?.message}
+                helperText={isPastEvent ? PAST_EVENT_HELPER : (fieldState.error?.message || " ")}
               />
             )}
           />
@@ -219,7 +237,7 @@ const ClassEventWizard = ({
     <WizardShell
       open={open}
       onClose={onClose}
-      title={classData ? "Edit class" : "Schedule a class"}
+      title={classData ? (isPastEvent ? "Edit past class" : "Edit class") : "Schedule a class"}
       steps={steps}
       submitting={isSubmitting}
       submitLabel={classData ? "Save changes" : "Schedule class"}
