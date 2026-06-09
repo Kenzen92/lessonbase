@@ -20,7 +20,7 @@ import {
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import subjectIconMap from "../../utils/icons";
-import { primaryTag } from "../../utils/tags";
+import { primaryTag, tagList } from "../../utils/tags";
 
 const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
   const navigate = useNavigate();
@@ -98,24 +98,46 @@ const ClassEventCard = ({ eventData, handleReloadData, handleOpenDetails }) => {
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
+            gap: 1,
             mb: 1,
           }}
         >
-          <Chip
-            icon={<IconComponent color="#fff" size={18} />}
-            label={primary?.name || eventData.name || "Class"}
-            sx={{
-              backgroundColor: primary?.color || "#455A64",
-              color: "#fff",
-              fontWeight: 600,
-              px: 1.5,
-              py: 0.5,
-              borderRadius: "12px",
-            }}
-          />
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          {/* Tag chips — primary gets the subject icon, extras are plain */}
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 0.75 }}>
+            {tagList(eventData).length > 0 ? (
+              tagList(eventData).map((tag, i) => (
+                <Chip
+                  key={tag.id ?? tag.name}
+                  icon={i === 0 ? <IconComponent color="#fff" size={18} /> : undefined}
+                  label={tag.name}
+                  sx={{
+                    backgroundColor: tag.color || "#455A64",
+                    color: "#fff",
+                    fontWeight: 600,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: "12px",
+                  }}
+                />
+              ))
+            ) : (
+              <Chip
+                icon={<IconComponent color="#fff" size={18} />}
+                label={eventData.name || "Class"}
+                sx={{
+                  backgroundColor: primary?.color || "#455A64",
+                  color: "#fff",
+                  fontWeight: 600,
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: "12px",
+                }}
+              />
+            )}
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexShrink: 0 }}>
             {isOngoing && timeRemaining && (
               <Chip
                 icon={<FaClock size={14} color={"white"} />}
