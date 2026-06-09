@@ -4,7 +4,7 @@ import { Box, List, Typography, Button } from "@mui/material";
 import StudentListCard from "../Students/student_list_card";
 import ResourcePicker from "../Resources/ResourcePicker";
 import ClassFeedbackSummary from "./class_feedback_summary";
-import { primaryTag } from "../../utils/tags";
+import { tagList } from "../../utils/tags";
 import { useAuth } from "../../contexts/auth_context";
 import {
   LumiDrawer,
@@ -47,7 +47,7 @@ export default function ClassEventDetailsDrawer({
 }) {
   const { auth } = useAuth();
   const isTeacher = auth.userType === "teacher";
-  const primary = primaryTag(currentClassEvent);
+  const tags = tagList(currentClassEvent);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const isPastEvent = currentClassEvent
@@ -102,9 +102,11 @@ export default function ClassEventDetailsDrawer({
       >
         {currentClassEvent && (
           <>
-            {primary && (
-              <Box sx={{ mb: 2.5 }}>
-                <SubjectChip label={primary.name} color={primary.color} />
+            {tags.length > 0 && (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2.5 }}>
+                {tags.map((tag) => (
+                  <SubjectChip key={tag.id ?? tag.name} label={tag.name} color={tag.color} />
+                ))}
               </Box>
             )}
 
