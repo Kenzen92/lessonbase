@@ -1,72 +1,61 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Typography,
-  ListItem,
-  Button,
-  Avatar,
-  IconButton,
-} from "@mui/material";
-import inputStyle from "../../styles/input";
+import { Avatar, Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { FaChevronRight } from "react-icons/fa";
 
-const StudentListCard = ({ student, removeStudent, action }) => {
+import { resolveMediaUrl } from "../../utils/media";
+import { LumiIcon, lumi, lumiType } from "../luminous";
+
+/**
+ * Compact student row used inside detail drawers: avatar + name, the whole
+ * row navigating to the student's detail page (or `onClick` when given).
+ * `subtitle` adds a muted second line; `trailing` replaces the default
+ * chevron with custom content (e.g. a submission status / action button).
+ */
+const StudentListCard = ({ student, subtitle, onClick, trailing }) => {
   const navigate = useNavigate();
-
-  const handleNavigateStudentDetails = () => {
-    navigate(`/students/${student.id}`);
-  };
+  const handleClick = onClick || (() => navigate(`/students/${student.id}`));
 
   return (
-    <ListItem
-      alignItems="flex-start"
-      sx={{ px: 0, justifyContent: "space-between" }}
+    <Box
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        p: 1,
+        borderRadius: lumi.radius.md,
+        cursor: "pointer",
+        "&:hover": { backgroundColor: lumi.color.surfaceContainerHigh },
+      }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 2,
-        }}
+      <Avatar
+        alt={student.first_name}
+        src={resolveMediaUrl(student.profile_picture) || undefined}
+        sx={{ width: 36, height: 36, bgcolor: lumi.color.surfaceVariant, color: lumi.color.onSurface }}
       >
-        <Avatar alt={student.first_name} src={student.avatar} />
-        <Typography sx={{ ...inputStyle }}>
+        {student.first_name ? student.first_name[0].toUpperCase() : "?"}
+      </Avatar>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Typography noWrap sx={{ ...lumiType.bodyMd, fontWeight: 600, color: lumi.color.onSurface }}>
           {student.first_name} {student.last_name}
         </Typography>
-      </Box>
-      <Box>
-        {action == "navigate" ? (
-          <Button
-            onClick={() => {
-              handleNavigateStudentDetails(student.id);
-            }}
-            startIcon={<FaChevronRight color="white" />}
-            sx={{
-              color: "#fff",
-              textTransform: "none",
-              fontSize: "0.95rem",
-              "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.1)",
-              },
-            }}
-          >
-            Details
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => {
-              removeStudent(student.id);
-            }}
-          >
-            Remove
-          </Button>
+        {subtitle && (
+          <Typography noWrap sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
+            {subtitle}
+          </Typography>
         )}
       </Box>
-    </ListItem>
+      {trailing ?? (
+        <LumiIcon name="chevron_right" sx={{ fontSize: 18, color: lumi.color.onSurfaceVariant }} />
+      )}
+    </Box>
   );
 };
 

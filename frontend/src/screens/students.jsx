@@ -176,17 +176,18 @@ function Students() {
 
       <StudentDetailsDrawer
         open={drawerOpen}
-        setOpen={setDrawerOpen}
         onClose={() => {
           setDrawerOpen(false);
           navigate("/students");
         }}
         student={currentStudent}
-        setChatOpen={setChatOpen}
-        setChatId={setChatId}
-        setDrawerOpen={setDrawerOpen}
         chats={chats}
         chatsLoaded={chatsLoaded}
+        onOpenChat={(id) => {
+          setChatId(id);
+          setDrawerOpen(false);
+          setChatOpen(true);
+        }}
         refetchStudents={refetchStudents}
       />
 

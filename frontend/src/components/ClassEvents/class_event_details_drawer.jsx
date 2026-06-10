@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Box, List, Typography, Button } from "@mui/material";
+import { useState } from "react";
+import { Box } from "@mui/material";
 
 import StudentListCard from "../Students/student_list_card";
 import ResourcePicker from "../Resources/ResourcePicker";
@@ -8,34 +8,15 @@ import { tagList } from "../../utils/tags";
 import { useAuth } from "../../contexts/auth_context";
 import {
   LumiDrawer,
-  LumiModal,
   PrimaryActionButton,
   SubjectChip,
-  LumiIcon,
+  DrawerSection,
+  DrawerStats,
+  DrawerList,
+  DangerButton,
+  ConfirmDeleteModal,
   lumi,
-  lumiType,
-  tint,
 } from "../luminous";
-
-// Token-styled "section card" used throughout the drawer body.
-const sectionSx = {
-  backgroundColor: lumi.color.surfaceContainer,
-  border: `1px solid ${lumi.color.hairline}`,
-  borderRadius: lumi.radius.card,
-  p: 2.5,
-  mb: 2.5,
-};
-
-function SectionTitle({ icon, iconColor, children }) {
-  return (
-    <Typography
-      sx={{ ...lumiType.headlineMd, fontSize: "16px", color: lumi.color.onBackground, mb: 2, display: "flex", alignItems: "center", gap: 1 }}
-    >
-      <LumiIcon name={icon} sx={{ fontSize: 20, color: iconColor || lumi.color.primary }} />
-      {children}
-    </Typography>
-  );
-}
 
 export default function ClassEventDetailsDrawer({
   open,
@@ -54,39 +35,27 @@ export default function ClassEventDetailsDrawer({
     ? new Date(currentClassEvent.start_time) < new Date()
     : false;
 
-  const eventDate = new Date(currentClassEvent?.start_time);
-  const formattedDate = eventDate.toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-  const formattedTime = eventDate.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  const destructiveButtonSx = {
-    flex: 1,
-    ...lumiType.buttonText,
-    borderRadius: lumi.radius.md,
-    color: lumi.color.error,
-    border: `1px solid ${tint(lumi.color.error, 0.4)}`,
-    "&:hover": { backgroundColor: tint(lumi.color.error, 0.1) },
-  };
+  const eventDate = currentClassEvent ? new Date(currentClassEvent.start_time) : null;
+  const subtitle = eventDate
+    ? `${eventDate.toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })} · ${eventDate.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })}`
+    : undefined;
 
   const footer = isTeacher ? (
     <>
       <PrimaryActionButton label="Edit Event" icon="edit" onClick={handleOpenStudentSearch} sx={{ flex: 1 }} />
       {isPastEvent ? (
-        <Button onClick={() => setDeleteConfirmOpen(true)} sx={destructiveButtonSx}>
-          Delete
-        </Button>
+        <DangerButton label="Delete" onClick={() => setDeleteConfirmOpen(true)} sx={{ flex: 1 }} />
       ) : (
-        <Button onClick={handleCancelClassEvent} sx={destructiveButtonSx}>
-          Cancel Class
-        </Button>
+        <DangerButton label="Cancel Class" onClick={handleCancelClassEvent} sx={{ flex: 1 }} />
       )}
     </>
   ) : null;
@@ -97,7 +66,7 @@ export default function ClassEventDetailsDrawer({
         open={open}
         onClose={onClose}
         title={currentClassEvent?.name}
-        subtitle={currentClassEvent ? `${formattedDate} · ${formattedTime}` : undefined}
+        subtitle={subtitle}
         footer={footer}
       >
         {currentClassEvent && (
@@ -110,107 +79,56 @@ export default function ClassEventDetailsDrawer({
               </Box>
             )}
 
-            {/* Enrolled count */}
-            <Box
-              sx={{
-                ...sectionSx,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                backgroundColor: tint(lumi.color.primary, 0.1),
-                border: `1px solid ${tint(lumi.color.primary, 0.3)}`,
-              }}
-            >
-              <LumiIcon name="group" sx={{ fontSize: 26, color: lumi.color.primary }} />
-              <Box sx={{ textAlign: "center" }}>
-                <Typography sx={{ ...lumiType.headlineLg, fontSize: "24px", color: lumi.color.primary }}>
-                  {currentClassEvent.students?.length || 0}
-                </Typography>
-                <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
-                  Students Enrolled
-                </Typography>
-              </Box>
-            </Box>
+            <DrawerStats
+              items={[
+                {
+                  icon: "group",
+                  value: currentClassEvent.students?.length || 0,
+                  label: "Students Enrolled",
+                  accent: lumi.color.primary,
+                },
+              ]}
+            />
 
-            {/* Students */}
-            <Box sx={sectionSx}>
-              <SectionTitle icon="group">Students</SectionTitle>
-              {currentClassEvent.students?.length > 0 ? (
-                <List sx={{ p: 0 }}>
-                  {currentClassEvent.students.map((student) => (
-                    <Box key={student.id} sx={{ mb: 1 }}>
-                      <StudentListCard student={student} action={"navigate"} />
-                    </Box>
-                  ))}
-                </List>
-              ) : (
-                <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, fontStyle: "italic" }}>
-                  No students enrolled
-                </Typography>
-              )}
-            </Box>
+            <DrawerList
+              icon="group"
+              title="Students"
+              items={currentClassEvent.students || []}
+              emptyMessage="No students enrolled"
+              renderItem={(student) => <StudentListCard key={student.id} student={student} />}
+            />
 
-            {/* Resources */}
-            <Box sx={sectionSx}>
-              <SectionTitle icon="folder_open">Class Resources</SectionTitle>
+            <DrawerSection icon="folder_open" title="Class Resources">
               <ResourcePicker
                 context={{ type: "class-event", id: currentClassEvent?.id }}
                 mode={isTeacher ? "teacher" : "student"}
                 value={currentClassEvent?.resources ?? []}
                 onChange={handleReloadData}
               />
-            </Box>
+            </DrawerSection>
 
-            {/* Session feedback — teachers, past classes */}
             {isTeacher && isPastEvent && (
-              <Box sx={sectionSx}>
-                <SectionTitle icon="event" iconColor={lumi.color.amber}>
-                  Session Feedback
-                </SectionTitle>
+              <DrawerSection icon="event" iconColor={lumi.color.amber} title="Session Feedback">
                 <ClassFeedbackSummary classEventId={currentClassEvent.id} />
-              </Box>
+              </DrawerSection>
             )}
           </>
         )}
       </LumiDrawer>
 
-      <LumiModal
+      <ConfirmDeleteModal
         open={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={() => {
+          setDeleteConfirmOpen(false);
+          handleCancelClassEvent();
+        }}
         title="Delete past class?"
-        maxWidth="xs"
-        actions={
-          <>
-            <Button
-              onClick={() => setDeleteConfirmOpen(false)}
-              sx={{ color: lumi.color.onSurfaceVariant }}
-            >
-              Keep it
-            </Button>
-            <Button
-              onClick={() => {
-                setDeleteConfirmOpen(false);
-                handleCancelClassEvent();
-              }}
-              sx={{
-                ...lumiType.buttonText,
-                borderRadius: lumi.radius.md,
-                px: 2,
-                color: lumi.color.onErrorContainer,
-                backgroundColor: lumi.color.errorContainer,
-                "&:hover": { backgroundColor: lumi.color.errorContainer, filter: "brightness(1.1)" },
-              }}
-            >
-              Delete
-            </Button>
-          </>
-        }
+        cancelLabel="Keep it"
       >
-        <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }}>
-          This will permanently delete <strong>{currentClassEvent?.name}</strong> and its attendance record. This cannot be undone.
-        </Typography>
-      </LumiModal>
+        This will permanently delete <strong>{currentClassEvent?.name}</strong> and its attendance
+        record. This cannot be undone.
+      </ConfirmDeleteModal>
     </>
   );
 }

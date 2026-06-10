@@ -13,6 +13,7 @@ import {
 import moment from "moment";
 import { FaWindowClose } from "react-icons/fa";
 import { getToken } from "../../utils/tokenStorage";
+import { resolveMediaUrl } from "../../utils/media";
 
 const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
   const [message, setMessage] = useState("");
@@ -83,9 +84,12 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
       sx={{
         position: "fixed",
         bottom: 20,
-        left: 20,
-        width: 300,
+        right: 20,
+        width: 320,
         overflow: "hidden",
+        // Keep the popup above the app shell (side nav / top bar) so it is
+        // never buried behind fixed chrome.
+        zIndex: (theme) => theme.zIndex.modal + 1,
       }}
     >
       <Paper
@@ -106,7 +110,7 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Avatar alt={student.first_name} src={student.profile_image}>
+            <Avatar alt={student.first_name} src={resolveMediaUrl(student.profile_picture) || undefined}>
               {student.first_name[0]}
             </Avatar>
             <Typography variant="h6" sx={{ fontWeight: "bold" }}>
