@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { Box } from "@mui/material";
 import {
   Excalidraw,
+  MainMenu,
   CaptureUpdateAction,
   reconcileElements,
 } from "@excalidraw/excalidraw";
@@ -140,6 +141,9 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
           "--color-primary-light": "rgba(49, 164, 255, 0.25)",
           fontFamily: lumi.font.body,
         },
+        // The library sidebar's "Browse libraries" button links out to
+        // libraries.excalidraw.com — keep the classroom unbranded.
+        "& .library-menu-browse-button": { display: "none" },
       }}
     >
       <Excalidraw
@@ -153,7 +157,17 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
             toggleTheme: false,
           },
         }}
-      />
+      >
+        {/* Custom menu: useful actions only, no Excalidraw+/socials links. */}
+        <MainMenu>
+          <MainMenu.DefaultItems.CommandPalette />
+          <MainMenu.DefaultItems.SearchMenu />
+          <MainMenu.DefaultItems.SaveAsImage />
+          <MainMenu.DefaultItems.ClearCanvas />
+          <MainMenu.Separator />
+          <MainMenu.DefaultItems.Help />
+        </MainMenu>
+      </Excalidraw>
     </Box>
   );
 };
