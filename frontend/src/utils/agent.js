@@ -137,10 +137,6 @@ export const handleUpdateClassEvent = async (eventId, eventData, navigate) => {
   return await apiMutate(getFullUrl(`/class-event/${eventId}/`), "PUT", eventData, navigate);
 };
 
-export const fetchClassEvents = async (navigate) => {
-  return await apiRequest(getFullUrl('/class-event/'), "GET", null, navigate);
-}
-
 // Range-scoped, paginated class events for the Luminous dashboard. Resolves to
 // the DRF envelope `{ count, next, previous, results }`.
 export const fetchClassEventsPaged = async ({ range, limit = 15, offset = 0 }, navigate) => {

@@ -1,7 +1,7 @@
 // Maps live context data (statistics / class events / assignments) into the
 // presentational shapes the Luminous dashboard components expect. Kept pure and
 // separate from the screen so it's easy to unit-test and reason about.
-import { primaryTag } from "../../../utils/tags";
+import { primaryTag, tagList } from "../../../utils/tags";
 import { humanFileSize } from "../../../utils/format";
 import { statusAccent } from "./shared";
 
@@ -95,6 +95,8 @@ export function toUpcomingClasses(events = []) {
       subject: tag?.name || e.name || "Class",
       subjectColor: tag?.color || null,
       subjectAccent: "primary",
+      // Every tag, in server order, for cards that show the full chip row.
+      tags: tagList(e).map((t) => ({ id: t.id ?? t.name, label: t.name, color: t.color || null })),
       title: e.name || "Untitled Class",
       startTime: timeFmt.format(start),
       durationMins: e.duration,
