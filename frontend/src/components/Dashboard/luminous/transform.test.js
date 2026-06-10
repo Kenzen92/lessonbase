@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { toMetrics } from "./transform";
+import { toMetrics, toUpcomingClasses } from "./transform";
 
 const MB = 1024 * 1024;
 
@@ -30,5 +30,37 @@ describe("toMetrics — storage detail on the Resources card", () => {
 
   it("gives every metric a navigation path", () => {
     toMetrics(stats).forEach((m) => expect(m.path).toMatch(/^\//));
+  });
+});
+
+describe("toUpcomingClasses — tag chips", () => {
+  const event = (overrides = {}) => ({
+    id: 1,
+    name: "Algebra Basics",
+    start_time: "2026-06-10T14:00:00Z",
+    duration: 45,
+    students: [],
+    resources: [],
+    ...overrides,
+  });
+
+  it("maps every tag onto the card, in order, with id/label/color", () => {
+    const tags = [
+      { id: 7, name: "Maths", kind: "subject", color: "#ff0000" },
+      { id: 8, name: "Exam Prep", kind: "topic", color: "#00ff00" },
+      { id: 9, name: "Year 10", kind: "topic", color: null },
+    ];
+    const [card] = toUpcomingClasses([event({ tags })]);
+    expect(card.tags).toEqual([
+      { id: 7, label: "Maths", color: "#ff0000" },
+      { id: 8, label: "Exam Prep", color: "#00ff00" },
+      { id: 9, label: "Year 10", color: null },
+    ]);
+  });
+
+  it("returns an empty tag list (with the event name as subject) when untagged", () => {
+    const [card] = toUpcomingClasses([event()]);
+    expect(card.tags).toEqual([]);
+    expect(card.subject).toBe("Algebra Basics");
   });
 });

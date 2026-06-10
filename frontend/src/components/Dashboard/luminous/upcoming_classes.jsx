@@ -38,7 +38,14 @@ function ClassCard({ event, onDetails }) {
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
-          <SubjectChip label={event.subject} accent={event.subjectAccent} color={event.subjectColor} />
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+            {(event.tags?.length
+              ? event.tags
+              : [{ id: "subject", label: event.subject, color: event.subjectColor }]
+            ).map((tag) => (
+              <SubjectChip key={tag.id} label={tag.label} accent={event.subjectAccent} color={tag.color} />
+            ))}
+          </Box>
           <Typography
             component="h3"
             className="lumi-class-title"
@@ -47,7 +54,9 @@ function ClassCard({ event, onDetails }) {
             {event.title}
           </Typography>
         </Box>
-        <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurface, whiteSpace: "nowrap" }}>
+        <Typography
+          sx={{ ...lumiType.labelMd, color: lumi.color.onSurface, whiteSpace: "nowrap", flexShrink: 0 }}
+        >
           {event.startTime} ({event.durationMins}m)
         </Typography>
       </Box>
