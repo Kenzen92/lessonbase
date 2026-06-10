@@ -49,6 +49,7 @@ export default function LuminousDashboard({
   onViewAllAssignments,
   onRangeChange,
   onLoadMoreClasses,
+  onMetricClick,
 }) {
   return (
     <Box
@@ -86,7 +87,7 @@ export default function LuminousDashboard({
           userName={user.userName}
         />
 
-        <MetricsGrid metrics={metrics} />
+        <MetricsGrid metrics={metrics} onMetricClick={onMetricClick} />
 
         <UpcomingClasses
           classes={upcomingClasses}

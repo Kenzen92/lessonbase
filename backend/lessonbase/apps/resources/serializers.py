@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.resources.models import Resource, ResourceTag, ALLOWED_MIME_TYPES, MAX_FILE_SIZE
+from apps.resources.models import Resource, ResourceTag, ALLOWED_MIME_TYPES
 from apps.subjects.models import Subject
 
 
@@ -68,6 +68,8 @@ class ResourceCreateSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
+        from apps.resources.quota import upload_violation
+
         kind = data.get("kind", Resource.Kind.FILE)
         if kind == Resource.Kind.FILE:
             if "file" not in data:
@@ -75,14 +77,13 @@ class ResourceCreateSerializer(serializers.Serializer):
                     {"file": "A file is required when kind is 'file'."}
                 )
             f = data["file"]
-            if f.size > MAX_FILE_SIZE:
-                raise serializers.ValidationError(
-                    {"file": "File exceeds the 50 MB limit."}
-                )
             if f.content_type not in ALLOWED_MIME_TYPES:
                 raise serializers.ValidationError(
                     {"file": f"File type '{f.content_type}' is not allowed."}
                 )
+            quota_error = upload_violation(self.context["request"].user, [f])
+            if quota_error:
+                raise serializers.ValidationError({"file": quota_error})
         elif kind == Resource.Kind.LINK:
             if not data.get("url"):
                 raise serializers.ValidationError(

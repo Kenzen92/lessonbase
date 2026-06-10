@@ -8,7 +8,7 @@ from apps.user_accounts.serializers import StudentSerializer
 from apps.tags.serializers import TagSerializer
 from apps.tags.utils import set_tags, tags_for
 from apps.assignments.models import Assignment, Submission, Feedback
-from apps.resources.models import Resource, ALLOWED_MIME_TYPES, MAX_FILE_SIZE
+from apps.resources.models import Resource, ALLOWED_MIME_TYPES
 
 
 class ResourceAttachmentSerializer(serializers.Serializer):
@@ -150,6 +150,7 @@ class AssignmentDetailsSerializer(serializers.ModelSerializer):
                 "url": link.resource.url,
                 "original_name": link.resource.original_name,
                 "mime_type": link.resource.mime_type,
+                "size_bytes": link.resource.size_bytes,
             }
             for link in links
         ]
@@ -171,15 +172,14 @@ class SubmissionCreateSerializer(serializers.Serializer):
     )
 
     def validate_files(self, value):
+        from apps.resources.quota import validate_upload
+
         for f in value:
-            if f.size > MAX_FILE_SIZE:
-                raise serializers.ValidationError(
-                    f"File '{f.name}' exceeds the 50 MB limit."
-                )
             if f.content_type not in ALLOWED_MIME_TYPES:
                 raise serializers.ValidationError(
                     f"File type '{f.content_type}' is not allowed."
                 )
+        validate_upload(self.context["request"].user, value)
         return value
 
     def create(self, validated_data):
@@ -250,6 +250,7 @@ class SubmissionDetailsSerializer(serializers.ModelSerializer):
                 "url": r.url,
                 "original_name": r.original_name,
                 "mime_type": r.mime_type,
+                "size_bytes": r.size_bytes,
             }
             for r in obj.files.all()
         ]
@@ -271,6 +272,8 @@ class SubmissionDetailsSerializer(serializers.ModelSerializer):
                         "file": r.file.url if r.file else None,
                         "url": r.url,
                         "original_name": r.original_name,
+                        "mime_type": r.mime_type,
+                        "size_bytes": r.size_bytes,
                     }
                     for r in fb.files.all()
                 ],
@@ -311,15 +314,14 @@ class FeedbackSerializer(serializers.Serializer):
         return value
 
     def validate_files(self, value):
+        from apps.resources.quota import validate_upload
+
         for f in value:
-            if f.size > MAX_FILE_SIZE:
-                raise serializers.ValidationError(
-                    f"File '{f.name}' exceeds the 50 MB limit."
-                )
             if f.content_type not in ALLOWED_MIME_TYPES:
                 raise serializers.ValidationError(
                     f"File type '{f.content_type}' is not allowed."
                 )
+        validate_upload(self.context["request"].user, value)
         return value
 
     def upsert(self, submission, teacher):

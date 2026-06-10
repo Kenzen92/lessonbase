@@ -2,6 +2,9 @@ import React, { useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
 
+import { lumi, tint } from "../luminous";
+import { humanFileSize } from "../../utils/format";
+
 const DEFAULT_ACCEPT = {
   "image/jpeg": [],
   "image/png": [],
@@ -18,37 +21,56 @@ const DEFAULT_ACCEPT = {
   "text/plain": [],
 };
 
+// Mirrors the server's per-file cap (apps/resources/models.py MAX_FILE_SIZE).
+const MAX_FILE_BYTES = 100 * 1024 * 1024;
+
 const baseStyle = {
   flex: 1,
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  padding: "20px",
+  padding: "28px 20px",
   borderWidth: 2,
-  borderRadius: 2,
-  borderColor: "#eeeeee",
+  borderRadius: lumi.radius.card,
+  borderColor: lumi.color.outlineVariant,
   borderStyle: "dashed",
-  backgroundColor: "#1c1b1b",
-  color: "#bdbdbd",
+  backgroundColor: lumi.color.surfaceContainerLow,
+  color: lumi.color.onSurfaceVariant,
+  fontFamily: lumi.font.body,
+  fontSize: 14,
+  cursor: "pointer",
   outline: "none",
-  transition: "border .24s ease-in-out",
+  transition: "border-color .24s ease-in-out, background-color .24s ease-in-out",
 };
 
-const focusedStyle = { borderColor: "#2196f3" };
-const acceptStyle = { borderColor: "#00e676" };
-const rejectStyle = { borderColor: "#ff1744" };
+const focusedStyle = { borderColor: lumi.color.primary };
+const acceptStyle = {
+  borderColor: lumi.color.tertiary,
+  backgroundColor: tint(lumi.color.tertiary, 0.08),
+};
+const rejectStyle = {
+  borderColor: lumi.color.error,
+  backgroundColor: tint(lumi.color.error, 0.08),
+};
 
-const Dropzone = ({ onDrop, accept, disabled }) => {
+const Dropzone = ({ onDrop, accept, disabled, maxSize = MAX_FILE_BYTES }) => {
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
       accept: accept || DEFAULT_ACCEPT,
-      maxSize: 50 * 1024 * 1024,
+      maxSize,
       disabled,
       onDropAccepted: (files) => {
         onDrop(files);
       },
-      onDropRejected: () => {
-        toast.error("File rejected. Ensure it is under 50 MB and of the correct type.");
+      onDropRejected: (rejections) => {
+        const tooBig = rejections.find((r) =>
+          r.errors?.some((e) => e.code === "file-too-large")
+        );
+        toast.error(
+          tooBig
+            ? `"${tooBig.file.name}" is too large — files are limited to ${humanFileSize(maxSize)}.`
+            : "File rejected. That file type is not supported."
+        );
       },
     });
 
@@ -67,7 +89,19 @@ const Dropzone = ({ onDrop, accept, disabled }) => {
     <div className="container">
       <div {...getRootProps({ style })}>
         <input {...getInputProps()} />
-        <p>Drag and drop files here, or click to select</p>
+        <p style={{ margin: 0 }}>Drag and drop files here, or click to select</p>
+        <p
+          style={{
+            margin: "6px 0 0",
+            fontFamily: lumi.font.mono,
+            fontSize: 12,
+            letterSpacing: "0.02em",
+            color: lumi.color.onSurfaceVariant,
+            opacity: 0.8,
+          }}
+        >
+          Max {humanFileSize(maxSize)} per file
+        </p>
       </div>
     </div>
   );

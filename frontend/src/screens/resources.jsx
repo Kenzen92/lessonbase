@@ -10,8 +10,10 @@ import {
   EmptyState,
   LumiModal,
   PrimaryActionButton,
+  StorageMeter,
   fieldSx,
   lumi,
+  lumiType,
 } from "../components/luminous";
 import ResourceCard, { resourceCategory } from "../components/Resources/resource_card";
 import Dropzone from "../components/Resources/dropzone";
@@ -19,6 +21,8 @@ import { useAuth } from "../contexts/auth_context";
 import { useUser } from "../contexts/user_context";
 import { getToken } from "../utils/tokenStorage";
 import { resolveMediaUrl } from "../utils/media";
+import { humanFileSize } from "../utils/format";
+import { extractApiError } from "../utils/apiError";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -45,6 +49,23 @@ export default function ResourcesPage() {
   const [linkTitle, setLinkTitle] = useState("");
   const [linkMode, setLinkMode] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  const [storage, setStorage] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const loadStorage = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/resources/storage/`, { headers: getAuthHeaders() });
+      if (res.ok) setStorage(await res.json());
+    } catch {
+      /* meter is non-critical; leave hidden on failure */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadStorage();
+  }, [loadStorage]);
 
   const loadResources = useCallback(async () => {
     setLoading(true);
@@ -82,16 +103,26 @@ export default function ResourcesPage() {
   const toggleType = (id) =>
     setTypeFilters((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
 
-  const handleDelete = async (resource) => {
-    const res = await fetch(`${BASE_URL}/resources/${resource.id}/`, {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    });
-    if (res.ok || res.status === 204) {
-      toast.success(`"${resource.title}" deleted`);
-      loadResources();
-    } else {
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`${BASE_URL}/resources/${deleteTarget.id}/`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok || res.status === 204) {
+        toast.success(`"${deleteTarget.title}" deleted`);
+        setDeleteTarget(null);
+        loadResources();
+        loadStorage();
+      } else {
+        toast.error(await extractApiError(res, "Could not delete resource"));
+      }
+    } catch {
       toast.error("Could not delete resource");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -103,7 +134,27 @@ export default function ResourcesPage() {
     if (res.ok) {
       toast.success(`"${resource.title}" restored`);
       loadResources();
+      loadStorage();
     }
+  };
+
+  // Client-side mirror of the server limits, so users get instant feedback
+  // instead of a failed request. The server remains the source of truth.
+  const uploadBlockedReason = () => {
+    if (!storage) return null;
+    const oversize = uploadFiles.find((f) => f.size > storage.max_file_bytes);
+    if (oversize) {
+      return `"${oversize.name}" is too large — individual files are limited to ${humanFileSize(
+        storage.max_file_bytes
+      )}.`;
+    }
+    const incoming = uploadFiles.reduce((sum, f) => sum + f.size, 0);
+    if (storage.used_bytes + incoming > storage.limit_bytes) {
+      return `Not enough storage space — this upload needs ${humanFileSize(
+        incoming
+      )} but only ${humanFileSize(storage.remaining_bytes)} is free.`;
+    }
+    return null;
   };
 
   const handleUpload = async () => {
@@ -125,18 +176,38 @@ export default function ResourcesPage() {
           setLinkTitle("");
           setUploadDialogOpen(false);
           loadResources();
+        } else {
+          toast.error(await extractApiError(res, "Could not add link"));
         }
       } else {
+        const blocked = uploadBlockedReason();
+        if (blocked) {
+          toast.error(blocked);
+          return;
+        }
+        let uploaded = 0;
         for (const file of uploadFiles) {
           const fd = new FormData();
           fd.append("kind", "file");
           fd.append("file", file, file.name);
-          await fetch(`${BASE_URL}/resources/`, { method: "POST", headers: getAuthHeaders(), body: fd });
+          const res = await fetch(`${BASE_URL}/resources/`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: fd,
+          });
+          if (res.ok || res.status === 201) {
+            uploaded += 1;
+          } else {
+            toast.error(await extractApiError(res, `Could not upload "${file.name}"`));
+          }
         }
-        toast.success(`${uploadFiles.length} file(s) uploaded`);
-        setUploadFiles([]);
-        setUploadDialogOpen(false);
-        loadResources();
+        if (uploaded > 0) {
+          toast.success(`${uploaded} file(s) uploaded`);
+          setUploadFiles([]);
+          setUploadDialogOpen(false);
+          loadResources();
+          loadStorage();
+        }
       }
     } catch {
       toast.error("Upload failed");
@@ -169,7 +240,12 @@ export default function ResourcesPage() {
             onClear={() => setTypeFilters([])}
             label="Filter by type"
           />
-          <ViewToggle value={view} onChange={setView} />
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 3 }}>
+            {storage && (
+              <StorageMeter usedBytes={storage.used_bytes} limitBytes={storage.limit_bytes} />
+            )}
+            <ViewToggle value={view} onChange={setView} />
+          </Box>
         </Box>
       </PageHeader>
 
@@ -197,13 +273,13 @@ export default function ResourcesPage() {
           }}
         >
           {visibleResources.map((r) => (
-            <ResourceCard key={r.id} resource={r} onDelete={handleDelete} onRestore={handleRestore} layout="grid" />
+            <ResourceCard key={r.id} resource={r} onDelete={setDeleteTarget} onRestore={handleRestore} layout="grid" />
           ))}
         </Box>
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {visibleResources.map((r) => (
-            <ResourceCard key={r.id} resource={r} onDelete={handleDelete} onRestore={handleRestore} layout="list" />
+            <ResourceCard key={r.id} resource={r} onDelete={setDeleteTarget} onRestore={handleRestore} layout="list" />
           ))}
         </Box>
       )}
@@ -249,7 +325,7 @@ export default function ResourcesPage() {
               {uploadFiles.map((f, i) => (
                 <Chip
                   key={i}
-                  label={f.name}
+                  label={`${f.name} · ${humanFileSize(f.size)}`}
                   onDelete={() => setUploadFiles((prev) => prev.filter((_, idx) => idx !== i))}
                   sx={{
                     color: lumi.color.onSurface,
@@ -276,6 +352,49 @@ export default function ResourcesPage() {
               onChange={(e) => setLinkTitle(e.target.value)}
               sx={fieldSx}
             />
+          </Box>
+        )}
+      </LumiModal>
+
+      {/* Delete confirmation. */}
+      <LumiModal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete resource?"
+        maxWidth="xs"
+        actions={
+          <>
+            <Button onClick={() => setDeleteTarget(null)} sx={{ color: lumi.color.onSurfaceVariant }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              disabled={deleting}
+              sx={{
+                ...lumiType.buttonText,
+                px: 2.5,
+                borderRadius: lumi.radius.md,
+                color: lumi.color.onErrorContainer,
+                backgroundColor: lumi.color.errorContainer,
+                "&:hover": { backgroundColor: lumi.color.errorContainer, filter: "brightness(1.15)" },
+              }}
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </Button>
+          </>
+        }
+      >
+        {deleteTarget && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+            <Box component="p" sx={{ ...lumiType.bodyMd, color: lumi.color.onSurface, m: 0 }}>
+              {`"${deleteTarget.title}" will be removed from your library`}
+              {deleteTarget.kind === "file" && typeof deleteTarget.size_bytes === "number"
+                ? `, freeing ${humanFileSize(deleteTarget.size_bytes)} of storage.`
+                : "."}
+            </Box>
+            <Box component="p" sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant, m: 0 }}>
+              Classes and assignments using it will lose access.
+            </Box>
           </Box>
         )}
       </LumiModal>

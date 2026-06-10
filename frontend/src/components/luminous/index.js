@@ -11,6 +11,7 @@ export { default as TopBar } from "./TopBar";
 export { default as SearchInput } from "./SearchInput";
 export { default as PageHeader } from "./PageHeader";
 export { default as StatSummary } from "./StatSummary";
+export { default as StorageMeter } from "./StorageMeter";
 export { default as PrimaryActionButton } from "./PrimaryActionButton";
 export { default as StripCard } from "./StripCard";
 export { default as StatusPill } from "./StatusPill";

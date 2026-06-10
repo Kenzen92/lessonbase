@@ -4,10 +4,20 @@ import { lumi, lumiType } from "./tokens";
 import { LumiIcon, accentColor, tint } from "./shared";
 import { sampleMetrics } from "./sample_data";
 
-function MetricCard({ metric }) {
+function MetricCard({ metric, onClick }) {
   const accent = accentColor(metric.accent);
   return (
     <Box
+      onClick={onClick}
+      {...(onClick
+        ? {
+            role: "button",
+            tabIndex: 0,
+            onKeyDown: (e) => {
+              if (e.key === "Enter" || e.key === " ") onClick();
+            },
+          }
+        : {})}
       sx={{
         position: "relative",
         overflow: "hidden",
@@ -16,6 +26,10 @@ function MetricCard({ metric }) {
         p: 2,
         border: "1px solid rgba(255,255,255,0.05)",
         "&:hover .lumi-blob": { backgroundColor: tint(accent.solid, 0.2) },
+        ...(onClick && {
+          cursor: "pointer",
+          "&:hover": { borderColor: tint(accent.solid, 0.4) },
+        }),
       }}
     >
       {/* Ambient colour blob */}
@@ -56,11 +70,23 @@ function MetricCard({ metric }) {
       <Typography sx={{ ...lumiType.headlineLg, color: lumi.color.onBackground, position: "relative" }}>
         {metric.value}
       </Typography>
+      {metric.detail && (
+        <Typography
+          sx={{
+            ...lumiType.labelMd,
+            position: "relative",
+            mt: 0.5,
+            color: metric.detailWarning ? lumi.color.amberText : lumi.color.onSurfaceVariant,
+          }}
+        >
+          {metric.detail}
+        </Typography>
+      )}
     </Box>
   );
 }
 
-export default function MetricsGrid({ metrics = sampleMetrics }) {
+export default function MetricsGrid({ metrics = sampleMetrics, onMetricClick }) {
   return (
     <Box
       sx={{
@@ -71,7 +97,11 @@ export default function MetricsGrid({ metrics = sampleMetrics }) {
       }}
     >
       {metrics.map((metric) => (
-        <MetricCard key={metric.id} metric={metric} />
+        <MetricCard
+          key={metric.id}
+          metric={metric}
+          onClick={onMetricClick ? () => onMetricClick(metric) : undefined}
+        />
       ))}
     </Box>
   );

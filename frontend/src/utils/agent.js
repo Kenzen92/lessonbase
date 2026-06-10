@@ -174,6 +174,10 @@ export const fetchStudentStatistics = async (navigate) => {
   return await apiRequest(`${BASE_URL}/student-statistics/`, "GET", null, navigate);
 };
 
+export const fetchStorageUsage = async (navigate) => {
+  return await apiRequest(getFullUrl(`/resources/storage/`), "GET", null, navigate);
+};
+
 export const cancelClassEvent = async (eventID, navigate) => {
   return await apiRequest(`${BASE_URL}/class-event/${eventID}/`, "DELETE", null, navigate);
 }
@@ -235,6 +239,15 @@ export const handleDeleteStudent = async (id, navigate) => {
 export const fetchSubmission = async (assignmentID, studentID, navigate) => {
   return await apiRequest(
     `${BASE_URL}/submission/by-assignment/${assignmentID}/student/${studentID}/`,
+    "GET",
+    null,
+    navigate
+  );
+};
+
+export const fetchSubmissionDetails = async (submissionID, navigate) => {
+  return await apiRequest(
+    `${BASE_URL}/submission/${submissionID}/`,
     "GET",
     null,
     navigate

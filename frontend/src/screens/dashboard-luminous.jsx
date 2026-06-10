@@ -21,7 +21,7 @@ import { useStudents } from "../contexts/students_context.jsx";
 import { useClassGroups } from "../contexts/class_groups_context.jsx";
 import { useAuth } from "../contexts/auth_context.jsx";
 
-import { cancelClassEvent, fetchClassEventsPaged, fetchClassEvent } from "../utils/agent.js";
+import { cancelClassEvent, fetchClassEventsPaged, fetchClassEvent, fetchStorageUsage } from "../utils/agent.js";
 import { resolveMediaUrl } from "../utils/media.js";
 import { getToken, clearAuth } from "../utils/tokenStorage";
 
@@ -53,6 +53,24 @@ export default function DashboardLuminous() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentClassEvent, setCurrentClassEvent] = useState(null);
+  const [storage, setStorage] = useState(null);
+
+  // Storage usage feeds the Resources metric card's detail line.
+  useEffect(() => {
+    if (!auth?.token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const usage = await fetchStorageUsage(navigate);
+        if (!cancelled) setStorage(usage);
+      } catch {
+        // Non-critical: the card simply omits the usage line.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [auth?.token, navigate]);
 
   // ── Class events: range-scoped, server-paginated (15 per page) ──────────
   const {
@@ -77,7 +95,7 @@ export default function DashboardLuminous() {
   });
 
   // ── Derived presentational props ────────────────────────────────────────
-  const metrics = useMemo(() => toMetrics(statistics), [statistics]);
+  const metrics = useMemo(() => toMetrics(statistics, storage), [statistics, storage]);
   const upcomingClasses = useMemo(() => {
     const events = (pagedClasses?.pages || []).flatMap((page) => page?.results || []);
     return toUpcomingClasses(events);
@@ -96,8 +114,15 @@ export default function DashboardLuminous() {
   })();
 
   // ── Class event handlers (mirror the original dashboard) ────────────────
-  const handleReloadData = () =>
+  // Also refresh the drawer's event so in-drawer mutations (e.g. attaching a
+  // resource) are reflected immediately, not only after reopening.
+  const handleReloadData = async () => {
     queryClient.invalidateQueries({ queryKey: ["classEvents"] });
+    if (currentClassEvent?.id) {
+      const fresh = await fetchClassEvent(currentClassEvent.id, navigate);
+      if (fresh) setCurrentClassEvent(fresh);
+    }
+  };
 
   const handleOpenDetails = (event) => {
     const raw = event?.raw || event;
@@ -180,6 +205,7 @@ export default function DashboardLuminous() {
         onRangeChange={setClassRange}
         onLoadMoreClasses={fetchNextPage}
         onNavigate={(item) => navigate(item.path)}
+        onMetricClick={(metric) => metric.path && navigate(metric.path)}
         onCreateNew={handleCreateNew}
         onLogout={handleLogout}
         onClassDetails={handleOpenDetails}
