@@ -3,6 +3,7 @@ import { Box, Typography, TextField, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { useAuth } from "../../contexts/auth_context";
 import { getToken } from "../../utils/tokenStorage";
+import { lumi, lumiType, tint } from "../luminous";
 
 function getWebSocketURL(path) {
   const WEBSOCKET_URL = import.meta.env.VITE_REACT_APP_WEBSOCKET_URL;
@@ -83,9 +84,17 @@ const TextChat = ({ roomId }) => {
       }}
     >
       {/* Header */}
-      <Box sx={{ px: 1.5, py: 1, flexShrink: 0 }}>
-        <Typography variant="subtitle2" sx={{ color: "rgba(255,255,255,0.8)" }}>
-          Chat
+      <Box
+        sx={{
+          px: 1.5,
+          py: 1,
+          flexShrink: 0,
+          backgroundColor: lumi.color.surfaceContainer,
+          borderBottom: `1px solid ${lumi.color.hairline}`,
+        }}
+      >
+        <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
+          CHAT
         </Typography>
       </Box>
 
@@ -100,9 +109,10 @@ const TextChat = ({ roomId }) => {
           flexDirection: "column",
           gap: 0.5,
           minHeight: 0,
+          pt: 1,
           "&::-webkit-scrollbar": { width: 4 },
           "&::-webkit-scrollbar-thumb": {
-            backgroundColor: "rgba(255,255,255,0.2)",
+            backgroundColor: lumi.color.outlineVariant,
             borderRadius: 2,
           },
         }}
@@ -117,9 +127,9 @@ const TextChat = ({ roomId }) => {
                 alignSelf: isOwn ? "flex-end" : "flex-start",
                 maxWidth: "85%",
                 backgroundColor: isOwn
-                  ? "rgba(33, 150, 243, 0.3)"
-                  : "rgba(255, 255, 255, 0.08)",
-                borderRadius: "8px",
+                  ? tint(lumi.color.primaryContainer, 0.25)
+                  : lumi.color.surfaceContainerHigh,
+                borderRadius: lumi.radius.md,
                 px: 1,
                 py: 0.5,
               }}
@@ -127,7 +137,8 @@ const TextChat = ({ roomId }) => {
               {!isOwn && (
                 <Typography
                   sx={{
-                    color: "rgba(33, 150, 243, 0.9)",
+                    color: lumi.color.primary,
+                    fontFamily: lumi.font.body,
                     fontSize: "0.65rem",
                     fontWeight: 600,
                   }}
@@ -135,7 +146,14 @@ const TextChat = ({ roomId }) => {
                   {msg.sender}
                 </Typography>
               )}
-              <Typography sx={{ color: "#fff", fontSize: "0.75rem", wordBreak: "break-word" }}>
+              <Typography
+                sx={{
+                  color: lumi.color.onSurface,
+                  fontFamily: lumi.font.body,
+                  fontSize: "0.75rem",
+                  wordBreak: "break-word",
+                }}
+              >
                 {msg.message}
               </Typography>
             </Box>
@@ -157,17 +175,18 @@ const TextChat = ({ roomId }) => {
           onKeyDown={handleKeyDown}
           sx={{
             "& .MuiOutlinedInput-root": {
-              color: "#fff",
+              color: lumi.color.onSurface,
+              fontFamily: lumi.font.body,
               fontSize: "0.75rem",
-              backgroundColor: "rgba(255,255,255,0.05)",
-              borderRadius: "8px",
-              "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
-              "&:hover fieldset": { borderColor: "rgba(255,255,255,0.2)" },
-              "&.Mui-focused fieldset": { borderColor: "rgba(33,150,243,0.5)" },
+              backgroundColor: lumi.color.surfaceContainer,
+              borderRadius: lumi.radius.md,
+              "& fieldset": { borderColor: lumi.color.outlineVariant },
+              "&:hover fieldset": { borderColor: lumi.color.outline },
+              "&.Mui-focused fieldset": { borderColor: lumi.color.primary },
             },
           }}
         />
-        <IconButton data-testid="classroom-chat-send" onClick={sendMessage} size="small" sx={{ color: "rgba(33,150,243,0.8)" }}>
+        <IconButton data-testid="classroom-chat-send" onClick={sendMessage} size="small" sx={{ color: lumi.color.primary }}>
           <SendIcon fontSize="small" />
         </IconButton>
       </Box>

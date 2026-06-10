@@ -1,8 +1,30 @@
 from collections import defaultdict
+import asyncio
 import json
+import os
+import weakref
+
+import redis.asyncio as aioredis
 from .models import Chat, Message, ClassroomChatMessage
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
+
+# One client per event loop: a redis.asyncio client is bound to the loop it
+# was created on, and the test runner (and any sync->async bridge) spins up
+# fresh loops, so a module-level singleton would go stale.
+_redis_clients = weakref.WeakKeyDictionary()
+
+
+def get_redis():
+    loop = asyncio.get_running_loop()
+    client = _redis_clients.get(loop)
+    if client is None:
+        client = aioredis.from_url(
+            os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"),
+            decode_responses=True,
+        )
+        _redis_clients[loop] = client
+    return client
 
 
 class DirectChatConsumer(AsyncWebsocketConsumer):
@@ -196,292 +218,161 @@ class ClassroomChatConsumer(AsyncWebsocketConsumer):
             )
 
 
-class WhiteboardState:
-    def __init__(self):
-        self.lines = []
-        self.current_lines = {}  # Store in-progress lines
-        self.history = [[]]
-        self.history_step = 0
+SCENE_TTL_SECONDS = 60 * 60 * 24  # scenes expire a day after the last edit
+MAX_FILE_BYTES = 4 * 1024 * 1024  # per embedded image (serialized)
+
+
+def element_wins(candidate, stored):
+    """Excalidraw reconciliation rule: higher version wins; on a version
+    tie the lower versionNonce wins (matching the client's reconcileElements)."""
+    cv = candidate.get("version", 0)
+    sv = stored.get("version", 0)
+    if cv != sv:
+        return cv > sv
+    return candidate.get("versionNonce", 0) < stored.get("versionNonce", 0)
 
 
 class WhiteboardConsumer(AsyncWebsocketConsumer):
-    # Class-level storage for room states
-    room_states = defaultdict(WhiteboardState)
+    """Sync layer for the collaborative Excalidraw board.
+
+    The scene is a flat map of versioned Excalidraw elements plus a map of
+    binary files (embedded images). State lives in Redis hashes so it
+    survives restarts and is shared across workers. Deleted elements remain
+    in the map with isDeleted=true so deletions propagate to late joiners;
+    the whole scene expires via TTL.
+    """
 
     async def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"whiteboard_{self.room_name}"
 
-        # Get user from scope (set by TokenAuthMiddleware)
         user = self.scope.get("user")
-
-        # Reject if user is not authenticated
         if not user or not user.is_authenticated:
             await self.close(code=4001)
             return
 
-        # Verify classroom access
         has_access = await self.verify_classroom_access(self.room_name, user)
         if not has_access:
             await self.close(code=4003)
             return
 
-        # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
         await self.accept()
-
-        # Send current state to new connection
-        state = self.room_states[self.room_name]
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "type": "sync_response",
-                    "payload": {
-                        "lines": state.lines,
-                        "history": state.history,
-                        "historyStep": state.history_step,
-                    },
-                }
-            )
-        )
+        await self.send_snapshot()
 
     @sync_to_async
     def verify_classroom_access(self, access_token, user):
-        """Verify that the user has access to this classroom"""
         from apps.classes.models import ClassEvent
 
         try:
             classroom = ClassEvent.objects.get(
                 access_token=access_token, is_active=True
             )
-
-            # Check if classroom has expired
             if classroom.is_expired():
                 return False
-
-            # Check if user is a teacher or student in this classroom
             return classroom.can_access(user)
         except ClassEvent.DoesNotExist:
             return False
 
     async def disconnect(self, close_code):
-        # Leave room group
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
+    @property
+    def elements_key(self):
+        return f"whiteboard:{self.room_name}:elements"
+
+    @property
+    def files_key(self):
+        return f"whiteboard:{self.room_name}:files"
+
+    async def send_snapshot(self):
+        r = get_redis()
+        raw_elements = await r.hvals(self.elements_key)
+        raw_files = await r.hgetall(self.files_key)
+
+        elements = [json.loads(e) for e in raw_elements]
+        # Excalidraw fractional indices sort lexicographically; preserve z-order.
+        elements.sort(key=lambda el: el.get("index") or "")
+        files = {fid: json.loads(f) for fid, f in raw_files.items()}
+
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "scene_snapshot",
+                    "payload": {"elements": elements, "files": files},
+                }
+            )
+        )
+
     async def receive(self, text_data):
-        data = json.loads(text_data)
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            return
         event_type = data.get("type")
-        payload = data.get("payload", {})
+        payload = data.get("payload") or {}
 
-        state = self.room_states[self.room_name]
-        print(f"Received event: {event_type} with payload: {payload}")
-
-        if event_type == "draw_start":
-            # Add new line to current lines
-            line = payload["line"]
-            state.current_lines[line["id"]] = line
-            state.lines.append(line)
-
-            # Broadcast to group (excluding sender)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "draw_start",
-                    "payload": payload,
-                    "sender_channel": self.channel_name,
-                },
-            )
-
-        elif event_type == "draw_update":
-            line_id = payload["lineId"]
-            new_points = payload["newPoints"]
-
-            if line_id in state.current_lines:
-                # Update the line with new points
-                current_line = state.current_lines[line_id]
-                current_line["points"].extend(new_points)
-
-                # Update the line in the main lines array
-                line_index = next(
-                    i for i, line in enumerate(state.lines) if line["id"] == line_id
-                )
-                state.lines[line_index] = current_line
-
-                # Broadcast update (excluding sender)
+        if event_type == "scene_update":
+            accepted, new_files = await self.apply_scene_update(payload)
+            if accepted or new_files:
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
                         "type": "broadcast_event",
-                        "event_type": "draw_update",
-                        "payload": payload,
+                        "event_type": "scene_update",
+                        "payload": {"elements": accepted, "files": new_files},
                         "sender_channel": self.channel_name,
                     },
                 )
 
-        elif event_type == "draw_end":
-            line_id = payload["lineId"]
-            if line_id in state.current_lines:
-                # Remove from current lines
-                del state.current_lines[line_id]
-
-                # Update history
-                state.history = state.history[: state.history_step + 1]
-                state.history.append(list(state.lines))
-                state.history_step = len(state.history) - 1
-
-                # Broadcast completion (excluding sender)
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        "type": "broadcast_event",
-                        "event_type": "draw_end",
-                        "payload": {
-                            "lineId": line_id,
-                            "historyStep": state.history_step,
-                        },
-                        "sender_channel": self.channel_name,
-                    },
-                )
-
-        elif event_type == "undo":
-            if state.history_step > 0:
-                state.history_step -= 1
-                state.lines = list(state.history[state.history_step])
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        "type": "broadcast_event",
-                        "event_type": "undo",
-                        "payload": {"historyStep": state.history_step},
-                        "sender_channel": self.channel_name,
-                    },
-                )
-
-        elif event_type == "redo":
-            if state.history_step < len(state.history) - 1:
-                state.history_step += 1
-                state.lines = list(state.history[state.history_step])
-                await self.channel_layer.group_send(
-                    self.room_group_name,
-                    {
-                        "type": "broadcast_event",
-                        "event_type": "redo",
-                        "payload": {"historyStep": state.history_step},
-                        "sender_channel": self.channel_name,
-                    },
-                )
-
-        elif event_type == "text_update":
-            text_id = payload["textId"]
-            text_content = payload["text"]
-
-            # Find and update the text in state
-            for line in state.lines:
-                if line.get("id") == text_id:
-                    line["text"] = text_content
-                    break
-
-            # Broadcast text update (excluding sender)
+        elif event_type == "pointer":
+            # Ephemeral presence: relay only, never stored.
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     "type": "broadcast_event",
-                    "event_type": "text_update",
+                    "event_type": "pointer",
                     "payload": payload,
                     "sender_channel": self.channel_name,
                 },
             )
 
-        elif event_type == "text_move":
-            text_id = payload["textId"]
-            x = payload["x"]
-            y = payload["y"]
+        elif event_type == "request_snapshot":
+            await self.send_snapshot()
 
-            # Find and update the text position in state
-            for line in state.lines:
-                if line.get("id") == text_id:
-                    line["x"] = x
-                    line["y"] = y
-                    break
+    async def apply_scene_update(self, payload):
+        """Reconcile incoming elements/files into Redis; return what was accepted."""
+        r = get_redis()
+        accepted = []
+        for el in payload.get("elements") or []:
+            if not isinstance(el, dict) or not el.get("id"):
+                continue
+            el_id = str(el["id"])
+            stored_raw = await r.hget(self.elements_key, el_id)
+            if stored_raw is not None and not element_wins(el, json.loads(stored_raw)):
+                continue
+            await r.hset(self.elements_key, el_id, json.dumps(el))
+            accepted.append(el)
 
-            # Broadcast position update (excluding sender)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "text_move",
-                    "payload": payload,
-                    "sender_channel": self.channel_name,
-                },
-            )
+        new_files = {}
+        for fid, f in (payload.get("files") or {}).items():
+            if not isinstance(f, dict):
+                continue
+            blob = json.dumps(f)
+            if len(blob) > MAX_FILE_BYTES:
+                continue
+            if not await r.hexists(self.files_key, str(fid)):
+                await r.hset(self.files_key, str(fid), blob)
+                new_files[str(fid)] = f
 
-        elif event_type == "shape_delete":
-            shape_id = payload["shapeId"]
-
-            # Remove the shape from state
-            state.lines = [line for line in state.lines if line.get("id") != shape_id]
-
-            # Remove from current lines if it's there
-            if shape_id in state.current_lines:
-                del state.current_lines[shape_id]
-
-            # Broadcast delete (excluding sender)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "shape_delete",
-                    "payload": payload,
-                    "sender_channel": self.channel_name,
-                },
-            )
-
-        elif event_type == "shape_move":
-            shape_id = payload["shapeId"]
-            shape = payload["shape"]
-
-            # Find and update the shape in state
-            for i, line in enumerate(state.lines):
-                if line.get("id") == shape_id:
-                    state.lines[i] = shape
-                    break
-
-            # Broadcast shape move (excluding sender)
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "shape_move",
-                    "payload": payload,
-                    "sender_channel": self.channel_name,
-                },
-            )
-
-        elif event_type == "clear":
-            print("Clearing whiteboard state for room:", self.room_name)
-            print(state.lines)
-            state.lines = []
-            state.current_lines = {}
-            state.history = [[]]
-            state.history_step = 0
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    "type": "broadcast_event",
-                    "event_type": "clear",
-                    "payload": {},
-                    "sender_channel": self.channel_name,
-                },
-            )
+        if accepted or new_files:
+            await r.expire(self.elements_key, SCENE_TTL_SECONDS)
+            await r.expire(self.files_key, SCENE_TTL_SECONDS)
+        return accepted, new_files
 
     async def broadcast_event(self, event):
-        # Skip sending to the original sender to prevent echo
         if event.get("sender_channel") == self.channel_name:
             return
-
-        # Send event to WebSocket
         await self.send(
             text_data=json.dumps(
                 {"type": event["event_type"], "payload": event["payload"]}
@@ -599,7 +490,15 @@ class WebRTCConsumer(AsyncWebsocketConsumer):
         payload = data.get("payload", {})
 
         # Relay signaling messages to the rest of the group.
-        if event_type in ("offer", "answer", "ice_candidate", "call_end"):
+        if event_type in (
+            "offer",
+            "answer",
+            "description",
+            "ice_candidate",
+            "call_end",
+            "media_state",
+            "screen_share",
+        ):
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {

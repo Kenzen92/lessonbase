@@ -354,3 +354,161 @@ class ClassroomChatSecurityAndLogicTests(BaseTransactionTestCase):
             await communicator.disconnect()
 
         async_to_sync(scenario)()
+
+
+@override_settings(CHANNEL_LAYERS=TEST_CHANNEL_LAYERS)
+class WhiteboardSceneSyncTests(BaseTransactionTestCase):
+    """Excalidraw scene sync: snapshot on connect, reconciled broadcasts,
+    version-rule rejection of stale edits. Scene state lives in Redis keyed by
+    the classroom's (random) access token, so tests are isolated per classroom."""
+
+    def setUp(self):
+        super().setUp()
+        from apps.classes.models import ClassEvent
+
+        self.teacher_token = Token.objects.create(user=self.teacher)
+        self.student_token = Token.objects.create(user=self.student)
+        self.outsider = self.create_extra_student(
+            username="outsider_whiteboard_student",
+            email="outsider-whiteboard@example.com",
+        )
+        self.outsider_token = Token.objects.create(user=self.outsider)
+        self.classroom = ClassEvent.objects.create(
+            name="Whiteboard Class",
+            start_time="2099-01-01T10:00:00Z",
+            duration=60,
+        )
+        self.classroom.teachers.add(self.teacher)
+        self.classroom.students.add(self.student)
+
+    def _ws_path(self, token=None):
+        suffix = f"?token={token}" if token else ""
+        return f"/ws/whiteboard/{self.classroom.access_token}/{suffix}"
+
+    @staticmethod
+    def _element(el_id, version=1, version_nonce=100, **extra):
+        return {
+            "id": el_id,
+            "type": "rectangle",
+            "version": version,
+            "versionNonce": version_nonce,
+            "isDeleted": False,
+            "index": "a1",
+            **extra,
+        }
+
+    def test_whiteboard_rejects_anonymous_connections(self):
+        async def scenario():
+            communicator = WebsocketCommunicator(application, self._ws_path())
+            connected, close_code = await communicator.connect()
+            self.assertFalse(connected)
+            self.assertEqual(close_code, 4001)
+
+        async_to_sync(scenario)()
+
+    def test_whiteboard_rejects_users_without_classroom_access(self):
+        async def scenario():
+            communicator = WebsocketCommunicator(
+                application, self._ws_path(self.outsider_token.key)
+            )
+            connected, close_code = await communicator.connect()
+            self.assertFalse(connected)
+            self.assertEqual(close_code, 4003)
+
+        async_to_sync(scenario)()
+
+    def test_scene_update_broadcasts_and_snapshots_to_late_joiner(self):
+        async def scenario():
+            teacher_socket = WebsocketCommunicator(
+                application, self._ws_path(self.teacher_token.key)
+            )
+            connected, _ = await teacher_socket.connect()
+            self.assertTrue(connected)
+
+            snapshot = await teacher_socket.receive_json_from()
+            self.assertEqual(snapshot["type"], "scene_snapshot")
+            self.assertEqual(snapshot["payload"]["elements"], [])
+
+            student_socket = WebsocketCommunicator(
+                application, self._ws_path(self.student_token.key)
+            )
+            connected, _ = await student_socket.connect()
+            self.assertTrue(connected)
+            await student_socket.receive_json_from()  # student's empty snapshot
+
+            element = self._element("rect-1")
+            await teacher_socket.send_json_to(
+                {"type": "scene_update", "payload": {"elements": [element]}}
+            )
+
+            broadcast = await student_socket.receive_json_from()
+            self.assertEqual(broadcast["type"], "scene_update")
+            self.assertEqual(broadcast["payload"]["elements"][0]["id"], "rect-1")
+
+            # Sender must not receive an echo.
+            self.assertTrue(await teacher_socket.receive_nothing())
+
+            # A fresh connection gets the element in its snapshot.
+            late_socket = WebsocketCommunicator(
+                application, self._ws_path(self.student_token.key)
+            )
+            connected, _ = await late_socket.connect()
+            self.assertTrue(connected)
+            late_snapshot = await late_socket.receive_json_from()
+            self.assertEqual(late_snapshot["type"], "scene_snapshot")
+            ids = [el["id"] for el in late_snapshot["payload"]["elements"]]
+            self.assertIn("rect-1", ids)
+
+            await teacher_socket.disconnect()
+            await student_socket.disconnect()
+            await late_socket.disconnect()
+
+        async_to_sync(scenario)()
+
+    def test_stale_versions_are_rejected_not_broadcast(self):
+        async def scenario():
+            teacher_socket = WebsocketCommunicator(
+                application, self._ws_path(self.teacher_token.key)
+            )
+            student_socket = WebsocketCommunicator(
+                application, self._ws_path(self.student_token.key)
+            )
+            await teacher_socket.connect()
+            await student_socket.connect()
+            await teacher_socket.receive_json_from()  # snapshot
+            await student_socket.receive_json_from()  # snapshot
+
+            await teacher_socket.send_json_to(
+                {
+                    "type": "scene_update",
+                    "payload": {"elements": [self._element("rect-2", version=5)]},
+                }
+            )
+            first = await student_socket.receive_json_from()
+            self.assertEqual(first["payload"]["elements"][0]["version"], 5)
+
+            # A stale edit (lower version) must be dropped server-side.
+            await teacher_socket.send_json_to(
+                {
+                    "type": "scene_update",
+                    "payload": {"elements": [self._element("rect-2", version=3)]},
+                }
+            )
+            self.assertTrue(await student_socket.receive_nothing())
+
+            # The newer version survives in the snapshot.
+            late_socket = WebsocketCommunicator(
+                application, self._ws_path(self.teacher_token.key)
+            )
+            await late_socket.connect()
+            late_snapshot = await late_socket.receive_json_from()
+            stored = {
+                el["id"]: el for el in late_snapshot["payload"]["elements"]
+            }
+            self.assertEqual(stored["rect-2"]["version"], 5)
+
+            await teacher_socket.disconnect()
+            await student_socket.disconnect()
+            await late_socket.disconnect()
+
+        async_to_sync(scenario)()
