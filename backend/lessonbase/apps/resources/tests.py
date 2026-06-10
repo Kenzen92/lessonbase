@@ -1,4 +1,5 @@
 import io
+from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.authtoken.models import Token
@@ -10,6 +11,11 @@ from apps.resources.models import (
     ResourceTag,
     ClassResource,
     AssignmentMaterial,
+)
+from apps.resources.quota import (
+    STUDENT_STORAGE_LIMIT,
+    TEACHER_STORAGE_LIMIT,
+    storage_used,
 )
 
 
@@ -168,6 +174,194 @@ class ResourceLibraryTest(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         resource.refresh_from_db()
         self.assertEqual(resource.title, "New title")
+
+
+class StorageQuotaTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        self.teacher_token, _ = Token.objects.get_or_create(user=self.teacher)
+        self.student_token, _ = Token.objects.get_or_create(user=self.student)
+        self.url = "/resources/"
+
+    def _teacher_auth(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.teacher_token.key}")
+
+    def _student_auth(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.student_token.key}")
+
+    def _fill_quota(self, owner, leaving=0):
+        """Create a resource that consumes the owner's quota except `leaving` bytes."""
+        limit = (
+            STUDENT_STORAGE_LIMIT
+            if owner.pk == self.student.pk
+            else TEACHER_STORAGE_LIMIT
+        )
+        return Resource.objects.create(
+            owner=owner,
+            title="Bulk",
+            kind=Resource.Kind.FILE,
+            size_bytes=limit - leaving,
+        )
+
+    # ── per-file limit ───────────────────────────────────────────────────────
+
+    def test_file_over_per_file_limit_is_rejected(self):
+        self._teacher_auth()
+        with patch("apps.resources.quota.MAX_FILE_SIZE", 10):
+            response = self.client.post(
+                self.url,
+                {"kind": "file", "file": make_pdf()},
+                format="multipart",
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Resource.objects.count(), 0)
+
+    # ── account-level quota ──────────────────────────────────────────────────
+
+    def test_teacher_upload_blocked_when_quota_full(self):
+        self._teacher_auth()
+        self._fill_quota(self.teacher)
+        response = self.client.post(
+            self.url, {"kind": "file", "file": make_pdf()}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("storage", str(response.data).lower())
+
+    def test_teacher_upload_allowed_when_space_remains(self):
+        self._teacher_auth()
+        self._fill_quota(self.teacher, leaving=1024)
+        response = self.client.post(
+            self.url, {"kind": "file", "file": make_pdf()}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+
+    def test_student_quota_is_smaller_than_teacher_quota(self):
+        # A resource footprint above the student limit but below the teacher
+        # limit blocks the student while the same upload passes for a teacher.
+        self._student_auth()
+        Resource.objects.create(
+            owner=self.student,
+            title="Bulk",
+            kind=Resource.Kind.FILE,
+            size_bytes=STUDENT_STORAGE_LIMIT,
+        )
+        response = self.client.post(
+            self.url, {"kind": "file", "file": make_pdf()}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 400)
+
+        self._teacher_auth()
+        Resource.objects.create(
+            owner=self.teacher,
+            title="Bulk",
+            kind=Resource.Kind.FILE,
+            size_bytes=STUDENT_STORAGE_LIMIT,
+        )
+        response = self.client.post(
+            self.url, {"kind": "file", "file": make_pdf()}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+
+    def test_soft_delete_frees_quota(self):
+        self._teacher_auth()
+        bulk = self._fill_quota(self.teacher)
+        bulk.soft_delete()
+        response = self.client.post(
+            self.url, {"kind": "file", "file": make_pdf()}, format="multipart"
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+
+    def test_link_resources_do_not_consume_quota(self):
+        self._teacher_auth()
+        Resource.objects.create(
+            owner=self.teacher, title="Link", kind=Resource.Kind.LINK, url="https://a.com"
+        )
+        self.assertEqual(storage_used(self.teacher), 0)
+
+    # ── other upload paths ───────────────────────────────────────────────────
+
+    def test_class_event_attach_respects_quota(self):
+        self._teacher_auth()
+        self._fill_quota(self.teacher)
+        response = self.client.post(
+            f"/class-event/{self.lessons[0].id}/resources/",
+            {"file": make_pdf()},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(ClassResource.objects.count(), 0)
+
+    def test_assignment_material_attach_respects_quota(self):
+        import datetime
+
+        from apps.assignments.models import Assignment
+
+        self._teacher_auth()
+        self._fill_quota(self.teacher)
+        assignment = Assignment.objects.create(
+            title="Quota Assignment",
+            max_score=100,
+            due_date=datetime.date.today() + datetime.timedelta(days=7),
+        )
+        assignment.teachers.add(self.teacher)
+        response = self.client.post(
+            f"/assignment/{assignment.id}/materials/",
+            {"file": make_pdf()},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(AssignmentMaterial.objects.count(), 0)
+
+    def test_student_submission_upload_respects_quota(self):
+        import datetime
+
+        from apps.assignments.models import Assignment
+
+        self._student_auth()
+        self._fill_quota(self.student)
+        assignment = Assignment.objects.create(
+            title="Quota Submission",
+            max_score=100,
+            due_date=datetime.date.today() + datetime.timedelta(days=7),
+        )
+        assignment.teachers.add(self.teacher)
+        assignment.students.add(self.student)
+        response = self.client.post(
+            f"/assignment/{assignment.id}/submissions/",
+            {"files": [make_pdf()]},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    # ── storage endpoint ─────────────────────────────────────────────────────
+
+    def test_storage_endpoint_reports_teacher_usage(self):
+        self._teacher_auth()
+        Resource.objects.create(
+            owner=self.teacher, title="A", kind=Resource.Kind.FILE, size_bytes=1000
+        )
+        Resource.objects.create(
+            owner=self.teacher, title="B", kind=Resource.Kind.FILE, size_bytes=500
+        )
+        # Someone else's file must not count.
+        Resource.objects.create(
+            owner=self.student, title="C", kind=Resource.Kind.FILE, size_bytes=999
+        )
+        response = self.client.get(f"{self.url}storage/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["used_bytes"], 1500)
+        self.assertEqual(response.data["limit_bytes"], TEACHER_STORAGE_LIMIT)
+        self.assertEqual(
+            response.data["remaining_bytes"], TEACHER_STORAGE_LIMIT - 1500
+        )
+
+    def test_storage_endpoint_reports_student_limit(self):
+        self._student_auth()
+        response = self.client.get(f"{self.url}storage/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["used_bytes"], 0)
+        self.assertEqual(response.data["limit_bytes"], STUDENT_STORAGE_LIMIT)
 
 
 class ResourceTagTest(BaseTestCase):

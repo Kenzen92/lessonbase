@@ -12,7 +12,11 @@ import {
 import { toast } from "react-toastify";
 
 import AssignmentAttemptFiles from "../Resources/assignment_attempt_files";
+import AssignmentFeedbackFiles from "../Resources/assignment_feedback_files";
+import Dropzone from "../Resources/dropzone";
 import { getToken } from "../../utils/tokenStorage";
+import { humanFileSize } from "../../utils/format";
+import { extractApiError } from "../../utils/apiError";
 import { LumiModal, PrimaryActionButton, fieldSx, LumiIcon, lumi, lumiType } from "../luminous";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
@@ -76,8 +80,7 @@ function AssignmentFeedbackModal({
         setSelectedFeedbackFiles([]);
         handleReloadData?.();
       } else {
-        const err = await res.json().catch(() => ({}));
-        toast.error(err.error || err.detail || "Failed to submit feedback");
+        toast.error(await extractApiError(res, "Failed to submit feedback"));
       }
     } catch {
       toast.error("An error occurred while submitting feedback");
@@ -198,23 +201,31 @@ function AssignmentFeedbackModal({
                 />
               </Grid>
               <Grid size={12}>
+                {currentAssignmentAttempt.feedback?.files?.length > 0 && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant, mb: 1 }}>
+                      Previously Attached
+                    </Typography>
+                    <AssignmentFeedbackFiles files={currentAssignmentAttempt.feedback.files} />
+                    {selectedFeedbackFiles.length > 0 && (
+                      <Typography sx={{ ...lumiType.labelMd, color: lumi.color.amberText, mt: 1 }}>
+                        Uploading new files will replace the previously attached ones.
+                      </Typography>
+                    )}
+                  </Box>
+                )}
                 <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, mb: 1 }}>
                   Attach files (e.g. annotated documents)
                 </Typography>
-                <input
-                  type="file"
-                  multiple
-                  style={{ color: lumi.color.onSurfaceVariant }}
-                  onChange={(e) =>
-                    setSelectedFeedbackFiles((prev) => [...prev, ...Array.from(e.target.files)])
-                  }
+                <Dropzone
+                  onDrop={(files) => setSelectedFeedbackFiles((prev) => [...prev, ...files])}
                 />
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 1 }}>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: selectedFeedbackFiles.length ? 1 : 0 }}>
                   {selectedFeedbackFiles.map((f, i) => (
                     <Chip
                       key={i}
                       icon={<LumiIcon name="file" sx={{ fontSize: 14 }} />}
-                      label={f.name}
+                      label={`${f.name} · ${humanFileSize(f.size)}`}
                       onDelete={() =>
                         setSelectedFeedbackFiles((prev) => prev.filter((_, idx) => idx !== i))
                       }

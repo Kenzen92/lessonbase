@@ -122,7 +122,8 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get", "post"], url_path="materials")
     def materials(self, request, pk=None):
-        from apps.resources.models import Resource, AssignmentMaterial, ALLOWED_MIME_TYPES, MAX_FILE_SIZE
+        from apps.resources.models import Resource, AssignmentMaterial, ALLOWED_MIME_TYPES
+        from apps.resources.quota import upload_violation
         from apps.resources.serializers import ResourceSerializer
 
         assignment = get_object_or_404(Assignment, pk=pk)
@@ -146,15 +147,15 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             resource = get_object_or_404(Resource, pk=resource_id, owner=user)
         elif request.FILES.get("file"):
             uploaded = request.FILES["file"]
-            if uploaded.size > MAX_FILE_SIZE:
-                return Response(
-                    {"error": "File exceeds 50 MB limit."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
             if uploaded.content_type not in ALLOWED_MIME_TYPES:
                 return Response(
                     {"error": "File type not allowed."},
                     status=status.HTTP_400_BAD_REQUEST,
+                )
+            quota_error = upload_violation(user, [uploaded])
+            if quota_error:
+                return Response(
+                    {"error": quota_error}, status=status.HTTP_400_BAD_REQUEST
                 )
             resource = Resource.objects.create(
                 owner=user,
@@ -253,7 +254,9 @@ class SubmissionViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = FeedbackSerializer(data=request.data)
+        serializer = FeedbackSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         fb = serializer.upsert(submission, teacher=user)
         return Response(self._serialize_feedback(fb), status=status.HTTP_200_OK)
@@ -285,6 +288,8 @@ class SubmissionViewSet(viewsets.ViewSet):
                     "file": r.file.url if r.file else None,
                     "url": r.url,
                     "original_name": r.original_name,
+                    "mime_type": r.mime_type,
+                    "size_bytes": r.size_bytes,
                 }
                 for r in fb.files.all()
             ],

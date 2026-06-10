@@ -98,6 +98,23 @@ class ResourceViewSet(viewsets.ViewSet):
         resource.restore()
         return Response(ResourceSerializer(resource).data)
 
+    @action(detail=False, methods=["get"], url_path="storage")
+    def storage(self, request):
+        """Account-level storage usage for the current user."""
+        from apps.resources.models import MAX_FILE_SIZE
+        from apps.resources.quota import storage_limit_for, storage_used
+
+        used = storage_used(request.user)
+        limit = storage_limit_for(request.user)
+        return Response(
+            {
+                "used_bytes": used,
+                "limit_bytes": limit,
+                "remaining_bytes": max(limit - used, 0),
+                "max_file_bytes": MAX_FILE_SIZE,
+            }
+        )
+
     @action(detail=False, methods=["get"], url_path="shared")
     def shared(self, request):
         """Resources shared with the current user via class or assignment membership."""
@@ -186,7 +203,8 @@ class ClassEventResourcesViewSet(viewsets.ViewSet):
         return Response(ResourceSerializer([l.resource for l in links], many=True).data)
 
     def create(self, request, class_event_pk=None):
-        from apps.resources.models import ALLOWED_MIME_TYPES, MAX_FILE_SIZE
+        from apps.resources.models import ALLOWED_MIME_TYPES
+        from apps.resources.quota import upload_violation
 
         class_event = self._get_class_event(class_event_pk)
         user = request.user.get_real_instance()
@@ -207,15 +225,15 @@ class ClassEventResourcesViewSet(viewsets.ViewSet):
             resource = get_object_or_404(Resource, pk=resource_id, owner=user)
         elif request.FILES.get("file"):
             uploaded = request.FILES["file"]
-            if uploaded.size > MAX_FILE_SIZE:
-                return Response(
-                    {"error": "File exceeds 50 MB limit."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
             if uploaded.content_type not in ALLOWED_MIME_TYPES:
                 return Response(
                     {"error": "File type not allowed."},
                     status=status.HTTP_400_BAD_REQUEST,
+                )
+            quota_error = upload_violation(user, [uploaded])
+            if quota_error:
+                return Response(
+                    {"error": quota_error}, status=status.HTTP_400_BAD_REQUEST
                 )
             resource = Resource.objects.create(
                 owner=user,

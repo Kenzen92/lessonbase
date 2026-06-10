@@ -2,6 +2,19 @@ import { Box, Typography, IconButton, Tooltip } from "@mui/material";
 
 import { lumi, lumiType, tint, LumiIcon, SubjectChip, StripCard, accentColor } from "../luminous";
 import { resolveMediaUrl } from "../../utils/media";
+import { humanFileSize } from "../../utils/format";
+
+// Friendly short labels for office mime types whose subtype is unreadable
+// (e.g. "vnd.openxmlformats-officedocument.wordprocessingml.document").
+const MIME_LABELS = {
+  "application/msword": "DOC",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+  "application/vnd.ms-excel": "XLS",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+  "application/vnd.ms-powerpoint": "PPT",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": "PPTX",
+  "text/plain": "TXT",
+};
 
 // Resolve a resource to an accent + a short mono type label + icon.
 function resourceMeta(resource) {
@@ -12,8 +25,8 @@ function resourceMeta(resource) {
   const sub = mime.split("/")[1];
   if (mime.includes("pdf")) return { accent: "error", typeLabel: "PDF", icon: "file" };
   if (mime.startsWith("image/")) return { accent: "primary", typeLabel: (sub || "image").toUpperCase(), icon: "file" };
-  if (mime.startsWith("text/")) return { accent: "tertiary", typeLabel: (sub || "text").toUpperCase(), icon: "file" };
-  return { accent: "amber", typeLabel: (sub || "file").toUpperCase(), icon: "file" };
+  if (mime.startsWith("text/")) return { accent: "tertiary", typeLabel: MIME_LABELS[mime] || (sub || "text").toUpperCase(), icon: "file" };
+  return { accent: "amber", typeLabel: MIME_LABELS[mime] || (sub || "file").toUpperCase(), icon: "file" };
 }
 
 // Coarse bucket for the filter bar (Images, not PNG/JPG individually).
@@ -23,25 +36,13 @@ export function resourceCategory(resource) {
   if (mime.includes("pdf")) return { id: "PDF", label: "PDF", color: lumi.color.error };
   if (mime.startsWith("image/")) return { id: "IMAGE", label: "Images", color: lumi.color.primary };
   if (mime.startsWith("text/")) return { id: "TEXT", label: "Text", color: lumi.color.tertiary };
+  if (MIME_LABELS[mime]) return { id: "DOC", label: "Documents", color: lumi.color.amber };
   return { id: "OTHER", label: "Other", color: lumi.color.amber };
-}
-
-function humanSize(bytes) {
-  if (typeof bytes !== "number" || Number.isNaN(bytes)) return null;
-  if (bytes < 1024) return `${bytes} B`;
-  const units = ["KB", "MB", "GB"];
-  let v = bytes / 1024;
-  let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
-    i += 1;
-  }
-  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i]}`;
 }
 
 // Compose a best-effort "size · updated" meta line from whatever fields exist.
 function metaLine(resource) {
-  const size = humanSize(resource.size ?? resource.file_size);
+  const size = humanFileSize(resource.size_bytes ?? resource.size ?? resource.file_size);
   const stamp = resource.updated_at || resource.created_at || resource.uploaded_at;
   let when = null;
   if (stamp) {

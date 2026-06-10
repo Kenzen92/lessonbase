@@ -2,6 +2,7 @@
 // presentational shapes the Luminous dashboard components expect. Kept pure and
 // separate from the screen so it's easy to unit-test and reason about.
 import { primaryTag } from "../../../utils/tags";
+import { humanFileSize } from "../../../utils/format";
 import { statusAccent } from "./shared";
 
 const timeFmt = new Intl.DateTimeFormat("en-GB", {
@@ -36,25 +37,41 @@ function dividerLabel(start, today) {
   return start.toLocaleDateString("en-GB");
 }
 
-/** Dashboard metric cards from the statistics payload (missing keys → 0). */
-export function toMetrics(stats = {}) {
+/**
+ * Dashboard metric cards from the statistics payload (missing keys → 0).
+ * When the storage envelope ({ used_bytes, limit_bytes }) is available, the
+ * Resources card grows a usage detail line, flagged once usage reaches 90%.
+ */
+export function toMetrics(stats = {}, storage = null) {
   const n = (key) => Number(stats?.[key] ?? 0);
+
+  let storageDetail = {};
+  if (storage && typeof storage.used_bytes === "number" && storage.limit_bytes) {
+    storageDetail = {
+      detail: `${humanFileSize(storage.used_bytes)} of ${humanFileSize(storage.limit_bytes)} used`,
+      detailWarning: storage.used_bytes / storage.limit_bytes >= 0.9,
+    };
+  }
+
   return [
-    { id: "students", label: "Total Students", value: n("total_students"), icon: "group", accent: "primary" },
+    { id: "students", label: "Total Students", value: n("total_students"), icon: "group", accent: "primary", path: "/students" },
     {
       id: "classes",
       label: "Active Classes",
       value: Number(stats?.total_classes ?? stats?.total_class_groups ?? 0),
       icon: "school",
       accent: "tertiary",
+      path: "/class-groups",
     },
-    { id: "pending", label: "Pending Assignments", value: n("pending_assignments"), icon: "pending", accent: "amber" },
+    { id: "pending", label: "Pending Assignments", value: n("pending_assignments"), icon: "pending", accent: "amber", path: "/assignments" },
     {
       id: "resources",
       label: "Resources",
       value: Number(stats?.total_resources ?? stats?.total_documents ?? 0),
       icon: "folder",
       accent: "violet",
+      path: "/resources",
+      ...storageDetail,
     },
   ];
 }

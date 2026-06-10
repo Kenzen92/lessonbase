@@ -20,7 +20,7 @@ ALLOWED_MIME_TYPES = frozenset([
     "text/plain",
 ])
 
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100 MB per file
 
 
 class ActiveResourceManager(models.Manager):

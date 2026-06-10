@@ -186,7 +186,9 @@ function Assignments() {
         feedbackModelOpen={feedbackModelOpen}
         setFeedbackModalOpen={setFeedbackModalOpen}
         currentAssignmentAttempt={currentAssignmentAttempt}
+        maxAssignmentScore={currentAssignment?.max_score}
         handleReloadData={() => {
+          refetchAssignments();
           if (currentAssignment) setCurrentAssignment({ ...currentAssignment });
         }}
       />

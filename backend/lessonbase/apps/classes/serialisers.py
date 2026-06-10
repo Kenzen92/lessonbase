@@ -21,6 +21,7 @@ class ResourceSummarySerializer(serializers.Serializer):
     url = serializers.URLField(source="resource.url")
     original_name = serializers.CharField(source="resource.original_name")
     mime_type = serializers.CharField(source="resource.mime_type")
+    size_bytes = serializers.IntegerField(source="resource.size_bytes", allow_null=True)
     added_by = serializers.PrimaryKeyRelatedField(read_only=True)
 
 

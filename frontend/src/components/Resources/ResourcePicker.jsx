@@ -3,19 +3,28 @@ import {
   Box,
   Typography,
   Chip,
-  Button,
+  IconButton,
   Tabs,
   Tab,
   TextField,
   InputAdornment,
   CircularProgress,
-  Link,
+  Tooltip,
 } from "@mui/material";
-import { FaSearch, FaUpload, FaLink, FaFile } from "react-icons/fa";
 import { toast } from "react-toastify";
+
 import Dropzone from "./dropzone";
+import {
+  lumi,
+  lumiType,
+  tint,
+  LumiIcon,
+  PrimaryActionButton,
+  fieldSx,
+} from "../luminous";
 import { getToken } from "../../utils/tokenStorage";
 import { resolveMediaUrl } from "../../utils/media";
+import { humanFileSize } from "../../utils/format";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
@@ -28,8 +37,26 @@ function getAuthHeaders() {
   return { Authorization: `Token ${getToken()}` };
 }
 
+// Short type label for the meta line, mirroring resource_card's mapping.
+function typeLabel(resource) {
+  if (resource.kind === "link") return "LINK";
+  const mime = (resource.mime_type || "").toLowerCase();
+  if (mime.includes("pdf")) return "PDF";
+  if (mime.startsWith("image/")) return (mime.split("/")[1] || "image").toUpperCase();
+  if (mime === "text/plain") return "TXT";
+  if (mime.includes("wordprocessingml")) return "DOCX";
+  if (mime.includes("spreadsheetml")) return "XLSX";
+  if (mime.includes("presentationml")) return "PPTX";
+  if (mime === "application/msword") return "DOC";
+  if (mime === "application/vnd.ms-excel") return "XLS";
+  if (mime === "application/vnd.ms-powerpoint") return "PPT";
+  return "FILE";
+}
+
 /**
- * ResourcePicker — replaces the old ClassResources component.
+ * ResourcePicker — attach / detach resources on a class event or assignment.
+ * Luminous-styled: attached rows with icon badge + type/size meta, an upload
+ * dropzone, and a searchable "My library" tab for re-using existing resources.
  *
  * Props:
  *   context        { type: 'class-event' | 'assignment', id }
@@ -120,7 +147,8 @@ const ResourcePicker = ({ context, mode, value = [], onChange, disabled = false 
         toast.success(`"${resource.title}" attached`);
         onChange?.();
       } else {
-        toast.error("Could not attach resource");
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Could not attach resource");
       }
     } catch {
       toast.error("An error occurred");
@@ -154,31 +182,91 @@ const ResourcePicker = ({ context, mode, value = [], onChange, disabled = false 
     <Box>
       {/* Attached resources */}
       {value.length === 0 ? (
-        <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.5)", mt: 1, mb: 1 }}>
+        <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, fontStyle: "italic", mt: 1, mb: 1 }}>
           No files attached yet.
         </Typography>
       ) : (
-        <Box sx={{ mb: 1 }}>
-          {value.map((resource, i) => (
-            <Chip
-              key={resource.id ?? i}
-              icon={resource.kind === "link" ? <FaLink size={12} /> : <FaFile size={12} />}
-              label={
-                <Link
-                  href={resourceUrl(resource)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download={resource.kind !== "link" ? resource.original_name || resource.title : undefined}
-                  sx={{ color: "inherit", textDecoration: "none" }}
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 1.5 }}>
+          {value.map((resource, i) => {
+            const url = resourceUrl(resource);
+            const size = humanFileSize(resource.size_bytes);
+            return (
+              <Box
+                key={resource.id ?? i}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: lumi.radius.md,
+                  backgroundColor: lumi.color.surfaceContainerHigh,
+                  border: `1px solid ${lumi.color.hairline}`,
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    flexShrink: 0,
+                    borderRadius: lumi.radius.md,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: tint(lumi.color.primary, 0.15),
+                    color: lumi.color.primary,
+                  }}
                 >
-                  {resource.title || resource.original_name || "File"}
-                </Link>
-              }
-              onDelete={isTeacher && !disabled ? () => handleDetach(resource) : undefined}
-              color="primary"
-              sx={{ m: "0.25rem", width: "100%", justifyContent: "space-between" }}
-            />
-          ))}
+                  <LumiIcon name={resource.kind === "link" ? "link" : "file"} sx={{ fontSize: 16 }} />
+                </Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    component={url ? "a" : "span"}
+                    {...(url
+                      ? {
+                          href: url,
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                          download:
+                            resource.kind !== "link"
+                              ? resource.original_name || resource.title
+                              : undefined,
+                        }
+                      : {})}
+                    sx={{
+                      ...lumiType.bodyMd,
+                      fontWeight: 600,
+                      color: lumi.color.onSurface,
+                      textDecoration: "none",
+                      display: "block",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      "&:hover": url ? { color: lumi.color.primary } : undefined,
+                    }}
+                  >
+                    {resource.title || resource.original_name || "File"}
+                  </Typography>
+                  <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
+                    {typeLabel(resource)}
+                    {size ? ` · ${size}` : ""}
+                  </Typography>
+                </Box>
+                {isTeacher && !disabled && (
+                  <Tooltip title="Remove from this list">
+                    <IconButton
+                      size="small"
+                      aria-label={`Remove ${resource.title || "resource"}`}
+                      onClick={() => handleDetach(resource)}
+                      sx={{ color: lumi.color.onSurfaceVariant, "&:hover": { color: lumi.color.error } }}
+                    >
+                      <LumiIcon name="close" sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+            );
+          })}
         </Box>
       )}
 
@@ -188,36 +276,54 @@ const ResourcePicker = ({ context, mode, value = [], onChange, disabled = false 
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
-            textColor="inherit"
-            sx={{ borderBottom: "1px solid rgba(255,255,255,0.1)", mb: 1 }}
+            sx={{
+              mb: 1.5,
+              minHeight: 36,
+              borderBottom: `1px solid ${lumi.color.outlineVariant}`,
+              "& .MuiTab-root": {
+                color: lumi.color.onSurfaceVariant,
+                textTransform: "none",
+                fontFamily: lumi.font.body,
+                minHeight: 36,
+                py: 0.5,
+              },
+              "& .MuiTab-root.Mui-selected": { color: lumi.color.primary },
+              "& .MuiTabs-indicator": { backgroundColor: lumi.color.primary },
+            }}
           >
-            <Tab label="Upload new" sx={{ color: "rgba(255,255,255,0.7)" }} />
-            <Tab label="My library" sx={{ color: "rgba(255,255,255,0.7)" }} />
+            <Tab label="Upload new" />
+            <Tab label="My library" />
           </Tabs>
 
           {tab === 0 && (
             <Box>
               <Dropzone onDrop={handleFileDrop} />
-              {selectedFiles.map((f, i) => (
-                <Chip
-                  key={i}
-                  label={f.name}
-                  onDelete={() => handleRemoveSelected(f)}
-                  color="secondary"
-                  sx={{ m: "0.25rem", width: "100%", justifyContent: "space-between" }}
-                />
-              ))}
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: selectedFiles.length ? 1 : 0 }}>
+                {selectedFiles.map((f, i) => (
+                  <Chip
+                    key={i}
+                    label={`${f.name} · ${humanFileSize(f.size)}`}
+                    onDelete={() => handleRemoveSelected(f)}
+                    sx={{
+                      color: lumi.color.onSurface,
+                      backgroundColor: lumi.color.surfaceContainerHigh,
+                      "& .MuiChip-deleteIcon": { color: lumi.color.onSurfaceVariant },
+                    }}
+                  />
+                ))}
+              </Box>
               {selectedFiles.length > 0 && (
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-                  <Button
-                    variant="contained"
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
+                  <PrimaryActionButton
+                    icon={uploading ? undefined : "add"}
+                    label={
+                      uploading
+                        ? "Uploading…"
+                        : `Upload ${selectedFiles.length} file${selectedFiles.length > 1 ? "s" : ""}`
+                    }
                     onClick={handleUpload}
                     disabled={uploading}
-                    startIcon={uploading ? <CircularProgress size={16} /> : <FaUpload />}
-                    sx={{ width: 200 }}
-                  >
-                    Upload {selectedFiles.length} file{selectedFiles.length > 1 ? "s" : ""}
-                  </Button>
+                  />
                 </Box>
               )}
             </Box>
@@ -235,52 +341,65 @@ const ResourcePicker = ({ context, mode, value = [], onChange, disabled = false 
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <FaSearch color="#bdbdbd" />
+                      <LumiIcon name="search" sx={{ fontSize: 18, color: lumi.color.onSurfaceVariant }} />
                     </InputAdornment>
                   ),
-                  style: { color: "#fff" },
                 }}
-                sx={{
-                  mb: 1,
-                  "& .MuiOutlinedInput-root fieldset": {
-                    borderColor: "rgba(255,255,255,0.2)",
-                  },
-                }}
+                sx={{ ...fieldSx, mb: 1 }}
               />
               {libraryLoading ? (
                 <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                  <CircularProgress size={24} />
+                  <CircularProgress size={24} sx={{ color: lumi.color.primary }} />
                 </Box>
               ) : libraryResources.length === 0 ? (
-                <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.5)" }}>
+                <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant, fontStyle: "italic" }}>
                   No resources in your library yet.
                 </Typography>
               ) : (
-                libraryResources.map((r) => (
-                  <Box
-                    key={r.id}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      py: 0.5,
-                      borderBottom: "1px solid rgba(255,255,255,0.05)",
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ color: "#fff", flex: 1 }}>
-                      {r.title}
-                    </Typography>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      disabled={alreadyAttachedIds.has(r.id)}
-                      onClick={() => handleAttachFromLibrary(r)}
-                      sx={{ color: "#fff", borderColor: "rgba(255,255,255,0.3)", ml: 1 }}
+                libraryResources.map((r) => {
+                  const attached = alreadyAttachedIds.has(r.id);
+                  const size = humanFileSize(r.size_bytes);
+                  return (
+                    <Box
+                      key={r.id}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 1,
+                        py: 0.75,
+                        borderBottom: `1px solid ${lumi.color.hairline}`,
+                      }}
                     >
-                      {alreadyAttachedIds.has(r.id) ? "Attached" : "Attach"}
-                    </Button>
-                  </Box>
-                ))
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurface }} noWrap>
+                          {r.title}
+                        </Typography>
+                        <Typography sx={{ ...lumiType.labelMd, color: lumi.color.onSurfaceVariant }}>
+                          {typeLabel(r)}
+                          {size ? ` · ${size}` : ""}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={attached ? "Attached" : "Attach"}
+                        size="small"
+                        clickable={!attached}
+                        disabled={attached}
+                        onClick={attached ? undefined : () => handleAttachFromLibrary(r)}
+                        sx={{
+                          ...lumiType.labelMd,
+                          color: attached ? lumi.color.onSurfaceVariant : lumi.color.primary,
+                          backgroundColor: attached
+                            ? lumi.color.surfaceContainerHigh
+                            : tint(lumi.color.primary, 0.15),
+                          "&:hover": attached
+                            ? undefined
+                            : { backgroundColor: tint(lumi.color.primary, 0.25) },
+                        }}
+                      />
+                    </Box>
+                  );
+                })
               )}
             </Box>
           )}
