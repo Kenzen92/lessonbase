@@ -34,6 +34,7 @@ Pointer presence (optional, later): `{type:"pointer", payload:{x,y,username}}`, 
 
 - De-branding: custom `<MainMenu>` (command palette, find, export image, reset, help) replaces the default menu's Excalidraw+/GitHub/socials links; library sidebar's "Browse libraries" link hidden via `.library-menu-browse-button { display:none }`. Remaining external links: only inside the Help dialog (keyboard-shortcut docs) — judged acceptable.
 - HMR can transiently double-render the MainMenu trigger (tunnel-rat artifact); clean loads are fine.
+- Image-tool freeze fix: the stock toolbar image button puts mouse users into click-to-place mode (`insertOnCanvasDirectly:false` hardcoded for pointerType "mouse"), which runs main-thread Pica resizes for a cursor preview — hangs the tab on large photos / fingerprinting-protected profiles, and "resolves" only when the queued click places the image. Fix: stock button hidden via CSS `label:has([data-testid='toolbar-image'])` (NOT `UIOptions.tools.image:false` — that also blocks `setActiveTool`), replaced with a custom top-right button calling `setActiveTool({type:"image", insertOnCanvasDirectly:true})` → image inserts at viewport centre immediately, no placement click. Note: keyboard shortcut "9" still triggers the stock placement mode (acceptable; command palette uses direct insert for keyboard). Needs a human to e2e the native file dialog.
 
 ## Outstanding / next session
 

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import { Box, IconButton, Tooltip } from "@mui/material";
+import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import {
   Excalidraw,
   MainMenu,
@@ -144,6 +145,11 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
         // The library sidebar's "Browse libraries" button links out to
         // libraries.excalidraw.com — keep the classroom unbranded.
         "& .library-menu-browse-button": { display: "none" },
+        // Hide the stock image tool: for mouse users it enters click-to-place
+        // mode whose cursor-preview resize can hang the tab on large photos.
+        // Our top-right button inserts directly instead. (CSS-hide rather than
+        // UIOptions.tools.image=false, which would also block setActiveTool.)
+        "& label:has([data-testid='toolbar-image'])": { display: "none" },
       }}
     >
       <Excalidraw
@@ -157,6 +163,31 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
             toggleTheme: false,
           },
         }}
+        renderTopRightUI={() => (
+          <Tooltip title="Insert image">
+            <IconButton
+              data-testid="insert-image-btn"
+              size="small"
+              onClick={() =>
+                apiRef.current?.setActiveTool({
+                  type: "image",
+                  insertOnCanvasDirectly: true,
+                })
+              }
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: lumi.radius.md,
+                color: lumi.color.onSurface,
+                backgroundColor: "var(--island-bg-color, transparent)",
+                border: `1px solid ${lumi.color.outlineVariant}`,
+                "&:hover": { backgroundColor: lumi.color.surfaceContainerHigh },
+              }}
+            >
+              <ImageOutlinedIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+        )}
       >
         {/* Custom menu: useful actions only, no Excalidraw+/socials links. */}
         <MainMenu>
