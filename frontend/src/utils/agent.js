@@ -117,6 +117,10 @@ export const fetchAssignment = async (assignment_id, navigate) => {
     return await apiRequest(getFullUrl(`/assignment/${assignment_id}/`), "GET", null, navigate);
 }
 
+export const deleteAssignment = async (assignment_id, navigate) => {
+    return await apiMutate(getFullUrl(`/assignment/${assignment_id}/`), "DELETE", null, navigate);
+}
+
 export const handleCreateAssignment = async (formData, navigate) => {
   return await apiMutate(getFullUrl('/assignment/'), "POST", formData, navigate);
 };

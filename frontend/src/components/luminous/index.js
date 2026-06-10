@@ -23,4 +23,15 @@ export { default as FilterBar } from "./FilterBar";
 export { default as KanbanColumn } from "./KanbanColumn";
 export { default as LumiModal } from "./LumiModal";
 export { default as LumiDrawer } from "./LumiDrawer";
+export {
+  drawerSectionSx,
+  DrawerSection,
+  DrawerStats,
+  DrawerProgress,
+  DrawerInfoRow,
+  DrawerEmptyText,
+  DrawerList,
+  DangerButton,
+  ConfirmDeleteModal,
+} from "./DrawerKit";
 export { fieldSx } from "./fieldSx";

@@ -35,8 +35,10 @@ class Assignment(models.Model):
         number_of_students = self.students.count()
         if number_of_students == 0:
             return 0
-        accepted_count = self.submissions.filter(feedback__accepted=True).count()
-        return (accepted_count / number_of_students) * 100
+        graded_count = self.submissions.filter(
+            status__in=[Submission.Status.GRADED, Submission.Status.RETURNED]
+        ).count()
+        return (graded_count / number_of_students) * 100
 
 
 class Submission(models.Model):

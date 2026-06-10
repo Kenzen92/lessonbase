@@ -9,7 +9,7 @@ import { LumiIcon } from "./shared";
  * actions. Replaces the ad-hoc `Drawer` + gradient Box scaffolds across the
  * detail drawers so every drawer shares one frame.
  */
-export default function LumiDrawer({ open, onClose, title, subtitle, width = 520, footer, children }) {
+export default function LumiDrawer({ open, onClose, title, subtitle, leading, width = 520, footer, children }) {
   return (
     <Drawer
       anchor="right"
@@ -45,17 +45,20 @@ export default function LumiDrawer({ open, onClose, title, subtitle, width = 520
             borderBottom: `1px solid ${lumi.color.outlineVariant}`,
           }}
         >
-          <Box sx={{ minWidth: 0 }}>
-            {title && (
-              <Typography component="h2" sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground }} noWrap>
-                {title}
-              </Typography>
-            )}
-            {subtitle && (
-              <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }} noWrap>
-                {subtitle}
-              </Typography>
-            )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+            {leading}
+            <Box sx={{ minWidth: 0 }}>
+              {title && (
+                <Typography component="h2" sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground }} noWrap>
+                  {title}
+                </Typography>
+              )}
+              {subtitle && (
+                <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }} noWrap>
+                  {subtitle}
+                </Typography>
+              )}
+            </Box>
           </Box>
           <IconButton
             aria-label="Close"
@@ -67,7 +70,7 @@ export default function LumiDrawer({ open, onClose, title, subtitle, width = 520
         </Box>
 
         {/* Body */}
-        <Box sx={{ flex: 1, overflowY: "auto", p: 3 }}>{children}</Box>
+        <Box sx={{ flex: 1, overflowY: "auto", px: 3, py: 2.5 }}>{children}</Box>
 
         {/* Footer */}
         {footer && (
