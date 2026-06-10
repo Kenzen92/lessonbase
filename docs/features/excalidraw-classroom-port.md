@@ -32,6 +32,9 @@ Pointer presence (optional, later): `{type:"pointer", payload:{x,y,username}}`, 
 - [x] 7b. 4 new `WhiteboardSceneSyncTests` in apps/core/tests.py (auth, broadcast+snapshot, stale-version rejection). BE: 24/24 OK (docker /tmp/wt run). FE: vitest 112/112 OK.
 - [x] 7c. Live two-tab verify on worktree stack: freehand + rect sync both ways instantly; move sync preserves the other tab's selection; full-page reload restores scene from Redis; pasted PNG (element + binary file) syncs to peer tab; resource drawer lists library, fileless resources guarded.
 
+- De-branding: custom `<MainMenu>` (command palette, find, export image, reset, help) replaces the default menu's Excalidraw+/GitHub/socials links; library sidebar's "Browse libraries" link hidden via `.library-menu-browse-button { display:none }`. Remaining external links: only inside the Help dialog (keyboard-shortcut docs) — judged acceptable.
+- HMR can transiently double-render the MainMenu trigger (tunnel-rat artifact); clean loads are fine.
+
 ## Outstanding / next session
 
 - Resource-drawer insert untested with a REAL stored file (all seeded image resources are metadata-only, `file: null`). Test by uploading a real image first. If files live on R2 (`media.jkenny.tech`), browser fetch needs CORS headers on the bucket — likely needs a Cloudflare CORS rule before prod.
