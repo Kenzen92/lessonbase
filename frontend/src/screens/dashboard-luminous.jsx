@@ -216,6 +216,7 @@ export default function DashboardLuminous() {
         onMetricClick={(metric) => metric.path && navigate(metric.path)}
         onCreateNew={handleCreateNew}
         onLogout={handleLogout}
+        onProfile={() => navigate("/profile")}
         onClassDetails={handleOpenDetails}
         onClassStart={handleStartClass}
         onAssignmentClick={(row) => navigate(`/assignments/${row.id}`)}
