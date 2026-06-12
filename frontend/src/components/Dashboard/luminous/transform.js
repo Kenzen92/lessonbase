@@ -92,6 +92,12 @@ export function toUpcomingClasses(events = []) {
       id: e.id,
       dateKey: midnight(start).toISOString(),
       date: dividerLabel(start, today),
+      // Raw timestamps + access token so the card can decide whether the class
+      // is startable (within the next hour / in progress) and link into the
+      // interactive classroom.
+      startMs: start.getTime(),
+      endMs: start.getTime() + (Number(e.duration) || 0) * 60000,
+      accessToken: e.access_token || null,
       subject: tag?.name || e.name || "Class",
       subjectColor: tag?.color || null,
       subjectAccent: "primary",

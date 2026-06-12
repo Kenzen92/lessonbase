@@ -45,6 +45,7 @@ export default function LuminousDashboard({
   onCreateNew,
   onLogout,
   onClassDetails,
+  onClassStart,
   onAssignmentClick,
   onViewAllAssignments,
   onRangeChange,
@@ -98,6 +99,7 @@ export default function LuminousDashboard({
           onRangeChange={onRangeChange}
           onLoadMore={onLoadMoreClasses}
           onDetails={onClassDetails}
+          onStart={onClassStart}
         />
 
         {/* Bottom grid: assignments table (2 cols) + weekly marking rail (1 col).
