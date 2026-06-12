@@ -8,7 +8,7 @@ import { LumiIcon } from "./shared";
  * The hero "Welcome back" banner. `brandName` is highlighted in primary; the
  * greeting falls back to the platform name when no user name is supplied.
  */
-export default function WelcomeHeader({ brandName = "Lessonbase", avatarUrl, userName }) {
+export default function WelcomeHeader({ brandName = "Lessonbase", avatarUrl, userName, onProfile }) {
   return (
     <Box
       component={motion.header}
@@ -91,13 +91,15 @@ export default function WelcomeHeader({ brandName = "Lessonbase", avatarUrl, use
           >
             <LumiIcon name="notifications" sx={{ fontSize: 22 }} />
           </IconButton>
-          <Avatar
-            src={avatarUrl || undefined}
-            alt={userName || "Profile"}
-            sx={{ width: 40, height: 40, border: `2px solid rgba(156,202,255,0.3)` }}
-          >
-            {userName ? userName[0].toUpperCase() : null}
-          </Avatar>
+          <IconButton aria-label="Open profile" onClick={onProfile} disabled={!onProfile} sx={{ p: 0 }}>
+            <Avatar
+              src={avatarUrl || undefined}
+              alt={userName || "Profile"}
+              sx={{ width: 40, height: 40, border: `2px solid rgba(156,202,255,0.3)` }}
+            >
+              {userName ? userName[0].toUpperCase() : null}
+            </Avatar>
+          </IconButton>
         </Box>
       </Box>
     </Box>

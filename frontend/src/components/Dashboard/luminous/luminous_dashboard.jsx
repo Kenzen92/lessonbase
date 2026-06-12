@@ -26,8 +26,8 @@ import {
  *
  * Handler props (all optional) are forwarded to the relevant sections so the UI
  * is ready for state management:
- *   onNavigate, onCreateNew, onLogout, onClassDetails, onViewAllAssignments,
- *   onRangeChange.
+ *   onNavigate, onCreateNew, onLogout, onProfile, onClassDetails,
+ *   onViewAllAssignments, onRangeChange.
  */
 export default function LuminousDashboard({
   activeNav = "dashboard",
@@ -44,6 +44,7 @@ export default function LuminousDashboard({
   onNavigate,
   onCreateNew,
   onLogout,
+  onProfile,
   onClassDetails,
   onClassStart,
   onAssignmentClick,
@@ -68,6 +69,7 @@ export default function LuminousDashboard({
         onNavigate={onNavigate}
         onCreateNew={onCreateNew}
         onLogout={onLogout}
+        onProfile={onProfile}
       />
 
       <Box
@@ -86,6 +88,7 @@ export default function LuminousDashboard({
           brandName={user.name || "Lessonbase"}
           avatarUrl={user.avatarUrl}
           userName={user.userName}
+          onProfile={onProfile}
         />
 
         <MetricsGrid metrics={metrics} onMetricClick={onMetricClick} />
