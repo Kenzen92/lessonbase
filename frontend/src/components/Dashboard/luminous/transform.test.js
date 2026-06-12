@@ -64,3 +64,29 @@ describe("toUpcomingClasses — tag chips", () => {
     expect(card.subject).toBe("Algebra Basics");
   });
 });
+
+describe("toUpcomingClasses — start affordance fields", () => {
+  const event = (overrides = {}) => ({
+    id: 1,
+    name: "Algebra Basics",
+    start_time: "2026-06-10T14:00:00Z",
+    duration: 45,
+    students: [],
+    resources: [],
+    ...overrides,
+  });
+
+  it("exposes start/end timestamps and the access token", () => {
+    const [card] = toUpcomingClasses([event({ access_token: "tok-123" })]);
+    const startMs = new Date("2026-06-10T14:00:00Z").getTime();
+    expect(card.startMs).toBe(startMs);
+    expect(card.endMs).toBe(startMs + 45 * 60000);
+    expect(card.accessToken).toBe("tok-123");
+  });
+
+  it("defaults the access token to null and tolerates a missing duration", () => {
+    const [card] = toUpcomingClasses([event({ duration: undefined })]);
+    expect(card.accessToken).toBeNull();
+    expect(card.endMs).toBe(card.startMs);
+  });
+});

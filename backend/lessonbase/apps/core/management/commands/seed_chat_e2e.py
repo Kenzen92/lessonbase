@@ -82,6 +82,32 @@ class Command(BaseCommand):
         classroom.teachers.add(teacher)
         classroom.students.add(student)
 
+        # Startability fixtures for the dashboard Start button: a class inside
+        # the 60-minute startable window and one well outside it.
+        ClassEvent.objects.filter(access_token="playwright-imminent-classroom").delete()
+        imminent_classroom = ClassEvent.objects.create(
+            name="Playwright Imminent Classroom",
+            start_time=timezone.now() + timedelta(minutes=30),
+            duration=60,
+            access_token="playwright-imminent-classroom",
+            is_active=True,
+        )
+        add_tag(imminent_classroom, subject.name, color=subject.color, kind="subject")
+        imminent_classroom.teachers.add(teacher)
+        imminent_classroom.students.add(student)
+
+        ClassEvent.objects.filter(access_token="playwright-distant-classroom").delete()
+        distant_classroom = ClassEvent.objects.create(
+            name="Playwright Distant Classroom",
+            start_time=timezone.now() + timedelta(hours=3),
+            duration=60,
+            access_token="playwright-distant-classroom",
+            is_active=True,
+        )
+        add_tag(distant_classroom, subject.name, color=subject.color, kind="subject")
+        distant_classroom.teachers.add(teacher)
+        distant_classroom.students.add(student)
+
         # Past classroom: start_time in the past so `previous === true` in dashboard
         ClassEvent.objects.filter(access_token="playwright-past-classroom").delete()
         past_classroom = ClassEvent.objects.create(
@@ -121,6 +147,16 @@ class Command(BaseCommand):
                 "id": past_classroom.id,
                 "access_token": past_classroom.access_token,
                 "name": past_classroom.name,
+            },
+            "imminent_classroom": {
+                "id": imminent_classroom.id,
+                "access_token": imminent_classroom.access_token,
+                "name": imminent_classroom.name,
+            },
+            "distant_classroom": {
+                "id": distant_classroom.id,
+                "access_token": distant_classroom.access_token,
+                "name": distant_classroom.name,
             },
         }
 

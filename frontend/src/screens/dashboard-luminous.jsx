@@ -142,6 +142,14 @@ export default function DashboardLuminous() {
     setWizardOpen(true);
   };
 
+  // Start/join a class: the card only offers this for events inside the
+  // startable window, so here we just follow the access token into the
+  // interactive classroom.
+  const handleStartClass = (event) => {
+    const token = event?.accessToken || event?.raw?.access_token;
+    if (token) navigate(`/interactive-classroom/${token}`);
+  };
+
   const handleCancelClassEvent = async () => {
     if (!currentClassEvent) return;
     await cancelClassEvent(currentClassEvent.id);
@@ -209,6 +217,7 @@ export default function DashboardLuminous() {
         onCreateNew={handleCreateNew}
         onLogout={handleLogout}
         onClassDetails={handleOpenDetails}
+        onClassStart={handleStartClass}
         onAssignmentClick={(row) => navigate(`/assignments/${row.id}`)}
         onViewAllAssignments={() => navigate("/assignments")}
       />
