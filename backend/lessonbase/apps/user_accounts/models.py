@@ -73,6 +73,28 @@ class Teacher(CustomAccount):
         return self.username
 
 
+class MarketingPreferences(models.Model):
+    """Per-account email marketing opt-ins. Everything defaults to opted-out
+    (consent must be given, not assumed); a row is created lazily the first
+    time the account reads or writes its preferences."""
+
+    account = models.OneToOneField(
+        "user_accounts.CustomAccount",
+        on_delete=models.CASCADE,
+        related_name="marketing_preferences",
+    )
+    product_updates = models.BooleanField(default=False)
+    tips_and_tutorials = models.BooleanField(default=False)
+    promotions = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "marketing preferences"
+
+    def __str__(self):
+        return f"Marketing preferences for {self.account.username}"
+
+
 class Staff(models.Model):
     user = models.OneToOneField(
         CustomUser,

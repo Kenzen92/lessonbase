@@ -16,6 +16,8 @@ export const activeNavFromPath = (pathname = "") => {
   if (pathname.startsWith("/class-groups")) return "classes";
   if (pathname.startsWith("/assignments")) return "assignments";
   if (pathname.startsWith("/resources")) return "resources";
-  if (pathname.startsWith("/profile")) return "settings";
+  if (pathname.startsWith("/settings")) return "settings";
+  // Profile is reached via the avatar, not the sidebar — nothing lights up.
+  if (pathname.startsWith("/profile")) return "profile";
   return "dashboard";
 };

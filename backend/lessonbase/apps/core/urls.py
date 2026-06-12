@@ -18,6 +18,7 @@ from apps.user_accounts.views import (
     confirm_account,
     login,
     logout,
+    marketing_preferences,
     profile,
     auth_user,
 )
@@ -71,6 +72,7 @@ urlpatterns = [
 
     # Other endpoints
     path("profile/", profile),
+    path("marketing-preferences/", marketing_preferences, name="marketing_preferences"),
     path("class-event/student/<int:student_id>/", class_events_for_student),
     path("subjects/all/", all_subjects),
     path("subjects/", subjects),

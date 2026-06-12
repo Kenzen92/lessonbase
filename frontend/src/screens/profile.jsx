@@ -1,6 +1,6 @@
-// Profile / Settings — Luminous redesign. All form logic (Formik + yup, avatar
-// upload, submit) is preserved from the original; only the chrome and field
-// styling move onto the Luminous design system.
+// Profile — personal information only (avatar, name, email, subjects).
+// Account preferences live on the separate Settings screen. All form logic
+// (Formik + yup, avatar upload, submit) is preserved from the original.
 import React, { useState, useEffect, useRef } from "react";
 import Select from "react-select";
 import { toast } from "react-toastify";
@@ -179,7 +179,7 @@ function Profile() {
 
   return (
     <AppShell
-      activeNav="settings"
+      activeNav="profile"
       user={{ userName: firstName, avatarUrl: resolveMediaUrl(profilePicture) }}
     >
       <Box sx={{ maxWidth: 640, mx: "auto" }}>
@@ -222,7 +222,7 @@ function Profile() {
               {userName ? `${userName}'s Profile` : "Profile"}
             </Typography>
             <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }}>
-              Manage your account settings and preferences.
+              Manage your personal information.
             </Typography>
           </Box>
 
@@ -293,7 +293,7 @@ function Profile() {
               </Box>
 
               <Typography sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, mt: 4, mb: 2 }}>
-                Teaching Subjects
+                {user?.user_type === "Student" ? "Subjects" : "Teaching Subjects"}
               </Typography>
               <FormControl fullWidth error={formik.touched.subjects && Boolean(formik.errors.subjects)}>
                 <Select
@@ -318,7 +318,7 @@ function Profile() {
               <PrimaryActionButton
                 type="submit"
                 size="large"
-                icon="settings"
+                icon="person"
                 label={formik.isSubmitting ? "Updating…" : "Update Profile"}
                 disabled={formik.isSubmitting}
                 sx={{ width: "100%", mt: 4 }}

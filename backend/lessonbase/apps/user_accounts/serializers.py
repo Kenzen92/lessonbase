@@ -1,6 +1,7 @@
 from apps.user_accounts.models import (
     ClassGroup,
     CustomAccount,
+    MarketingPreferences,
     Teacher,
     Student,
     Staff,
@@ -108,6 +109,12 @@ class CustomAccountSerializer(serializers.ModelSerializer):
             "last_name",
             "email",
         )
+
+
+class MarketingPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MarketingPreferences
+        fields = ["product_updates", "tips_and_tutorials", "promotions"]
 
 
 class StaffSerializer(serializers.ModelSerializer):

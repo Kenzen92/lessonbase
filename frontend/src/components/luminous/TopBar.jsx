@@ -1,4 +1,4 @@
-import { Box, Typography, IconButton, Avatar } from "@mui/material";
+import { Box, Typography, IconButton, Avatar, ButtonBase } from "@mui/material";
 
 import { lumi, lumiType } from "./tokens";
 import { LumiIcon } from "./shared";
@@ -17,6 +17,7 @@ export default function TopBar({
   searchValue = "",
   onSearchChange,
   onSearchSubmit,
+  onProfile,
   user = {},
 }) {
   const { userName, avatarUrl, role } = user;
@@ -57,7 +58,19 @@ export default function TopBar({
           <LumiIcon name="notifications" sx={{ fontSize: 22 }} />
         </IconButton>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+        <ButtonBase
+          onClick={onProfile}
+          disabled={!onProfile}
+          aria-label="Open profile"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            borderRadius: lumi.radius.md,
+            p: 0.5,
+            "&:hover": { backgroundColor: lumi.color.surfaceVariant },
+          }}
+        >
           {userName && (
             <Box sx={{ textAlign: "right", display: { xs: "none", lg: "block" } }}>
               <Typography sx={{ ...lumiType.bodyMd, fontWeight: 700, color: lumi.color.onSurface, lineHeight: 1.2 }}>
@@ -77,7 +90,7 @@ export default function TopBar({
           >
             {userName ? userName[0].toUpperCase() : null}
           </Avatar>
-        </Box>
+        </ButtonBase>
       </Box>
     </Box>
   );
