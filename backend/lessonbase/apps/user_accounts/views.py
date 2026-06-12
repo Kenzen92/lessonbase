@@ -18,6 +18,7 @@ from rest_framework.authtoken.models import Token
 from apps.user_accounts.models import (
     ClassGroup,
     CustomAccount,
+    MarketingPreferences,
     Staff,
     Student,
     Teacher,
@@ -28,6 +29,7 @@ from .serializers import (
     ClassGroupListSerializer,
     CustomAccountSerializer,
     LoginSerializer,
+    MarketingPreferencesSerializer,
     StudentSerializer,
     TeacherDetailSerializer,
     TeacherListSerializer,
@@ -351,6 +353,25 @@ def profile(request):
         else:
             print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET", "PATCH"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def marketing_preferences(request):
+    """Email marketing opt-ins for the authenticated account (teacher or
+    student alike). The row is created on first access, defaulting to
+    everything opted-out."""
+    prefs, _ = MarketingPreferences.objects.get_or_create(account=request.user)
+
+    if request.method == "GET":
+        return Response(MarketingPreferencesSerializer(prefs).data)
+
+    serializer = MarketingPreferencesSerializer(prefs, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])

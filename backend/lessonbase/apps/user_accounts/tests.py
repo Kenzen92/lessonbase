@@ -21,6 +21,67 @@ class SetUpTestCase(BaseTestCase):
             self.teacher.students.add(self.teacher)
 
 
+class MarketingPreferencesApiTest(BaseTestCase):
+    """GET lazily creates an opted-out row; PATCH toggles persist. The
+    endpoint serves whichever account is authenticated (teacher or student)."""
+
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        token, _ = Token.objects.get_or_create(user=self.teacher)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    def test_get_defaults_to_all_opted_out(self):
+        res = self.client.get("/marketing-preferences/")
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(
+            res.data,
+            {
+                "product_updates": False,
+                "tips_and_tutorials": False,
+                "promotions": False,
+            },
+        )
+
+    def test_patch_toggles_persist(self):
+        res = self.client.patch(
+            "/marketing-preferences/",
+            {"product_updates": True, "promotions": True},
+            format="json",
+        )
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertTrue(res.data["product_updates"])
+        self.assertFalse(res.data["tips_and_tutorials"])
+        self.assertTrue(res.data["promotions"])
+
+        # Survives a re-read and stays scoped to this account.
+        res = self.client.get("/marketing-preferences/")
+        self.assertTrue(res.data["product_updates"])
+
+        from apps.user_accounts.models import MarketingPreferences
+
+        self.assertEqual(MarketingPreferences.objects.count(), 1)
+        self.assertEqual(
+            MarketingPreferences.objects.get().account_id, self.teacher.id
+        )
+
+    def test_student_has_independent_preferences(self):
+        student_client = APIClient()
+        token, _ = Token.objects.get_or_create(user=self.student)
+        student_client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+        self.client.patch(
+            "/marketing-preferences/", {"product_updates": True}, format="json"
+        )
+        res = student_client.get("/marketing-preferences/")
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertFalse(res.data["product_updates"])
+
+    def test_requires_authentication(self):
+        res = APIClient().get("/marketing-preferences/")
+        self.assertEqual(res.status_code, 401)
+
+
 class ClassGroupApiTest(BaseTestCase):
     """Covers create + edit of a class group, including the tags write path.
 

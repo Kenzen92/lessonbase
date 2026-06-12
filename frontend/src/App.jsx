@@ -12,6 +12,7 @@ import VerifyEmail from "./screens/verify-email";
 import ForgotPassword from "./screens/forgot-password";
 import ResetPassword from "./screens/reset-password";
 import Profile from "./screens/profile";
+import Settings from "./screens/settings";
 import PrivateRoutes from "./components/privateRoute";
 import ToastNotification from "./components/notification";
 import Students from "./screens/students";
@@ -73,6 +74,7 @@ function App() {
                   element={<DashboardLuminous />}
                 />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/students/:id?" element={<Students />} />
                 <Route path="/class-groups/:id?" element={<Classes />} />
                 <Route path="/assignments/:id?" element={<Assignments />} />

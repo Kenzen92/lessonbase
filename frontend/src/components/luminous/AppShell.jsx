@@ -60,6 +60,7 @@ export default function AppShell({ activeNav, user = {}, search = {}, onCreateNe
         onNavigate={(item) => navigate(item.path)}
         onCreateNew={onCreateNew}
         onLogout={handleLogout}
+        onProfile={() => navigate("/profile")}
       />
 
       <Box
@@ -79,6 +80,7 @@ export default function AppShell({ activeNav, user = {}, search = {}, onCreateNe
           searchValue={search.value}
           onSearchChange={search.onChange}
           onSearchSubmit={search.onSubmit}
+          onProfile={() => navigate("/profile")}
           user={user}
         />
 

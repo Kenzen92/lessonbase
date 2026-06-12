@@ -210,6 +210,14 @@ export const fetchProfileData = async (navigate) => {
   return await apiRequest(`${BASE_URL}/profile/`, "GET", null, navigate);
 };
 
+export const fetchMarketingPreferences = async (navigate) => {
+  return await apiRequest(getFullUrl("/marketing-preferences/"), "GET", null, navigate);
+};
+
+export const updateMarketingPreferences = async (prefs, navigate) => {
+  return await apiMutate(getFullUrl("/marketing-preferences/"), "PATCH", prefs, navigate);
+};
+
 export const submitSessionFeedback = async (classEventId, rating, comment, navigate) => {
   return await apiRequest(
     getFullUrl("/session-feedback/"),

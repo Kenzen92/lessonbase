@@ -47,7 +47,7 @@ function NavLink({ item, active, onClick }) {
  * Desktop sidebar (fixed) + mobile top bar. Purely presentational: pass an
  * `activeId` and an `onNavigate(item)` handler to wire it to a router.
  */
-export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNew, onLogout, avatarUrl }) {
+export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNew, onLogout, onProfile, avatarUrl }) {
   return (
     <>
       {/* Mobile top bar */}
@@ -86,7 +86,9 @@ export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNe
           <IconButton aria-label="Notifications" sx={{ color: lumi.color.onSurfaceVariant }}>
             <LumiIcon name="notifications" sx={{ fontSize: 22 }} />
           </IconButton>
-          <Avatar src={avatarUrl || undefined} sx={{ width: 32, height: 32 }} />
+          <IconButton aria-label="Open profile" onClick={onProfile} sx={{ p: 0 }}>
+            <Avatar src={avatarUrl || undefined} sx={{ width: 32, height: 32 }} />
+          </IconButton>
         </Box>
       </Box>
 
@@ -172,7 +174,7 @@ export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNe
           }}
         >
           <NavLink
-            item={{ id: "settings", label: "Settings", icon: "settings", path: "/profile" }}
+            item={{ id: "settings", label: "Settings", icon: "settings", path: "/settings" }}
             active={activeId === "settings"}
             onClick={onNavigate}
           />
