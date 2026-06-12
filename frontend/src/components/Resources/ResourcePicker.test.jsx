@@ -24,6 +24,8 @@ vi.mock("react-dropzone", () => ({
       onClick: (e) => e.preventDefault(),
     }),
     getInputProps: () => ({
+      type: "file",
+      multiple: true,
       onChange: (e) => {
         onDropAccepted([...e.target.files]);
       },
@@ -107,6 +109,59 @@ describe("ResourcePicker — teacher mode", () => {
 
     // The Upload tab is already active by default; confirm the dropzone area is present
     expect(screen.getByText(/drag and drop/i)).toBeInTheDocument();
+  });
+});
+
+describe("ResourcePicker — multi-file upload", () => {
+  const fileA = () => new File(["aaa"], "a.pdf", { type: "application/pdf" });
+  const fileB = () => new File(["bbb"], "b.pdf", { type: "application/pdf" });
+
+  async function selectFilesAndUpload(container, files) {
+    const input = container.querySelector("input[type='file']") || container.querySelector("input");
+    fireEvent.change(input, { target: { files } });
+    const uploadBtn = await screen.findByRole("button", {
+      name: new RegExp(`upload ${files.length} file`, "i"),
+    });
+    fireEvent.click(uploadBtn);
+  }
+
+  it("POSTs each selected file in its own request with a single 'file' field", async () => {
+    const onChange = vi.fn();
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+
+    const { container } = setup({ mode: "teacher", onChange });
+    await selectFilesAndUpload(container, [fileA(), fileB()]);
+
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const bodies = global.fetch.mock.calls.map(([, opts]) => opts.body);
+    expect(bodies[0].getAll("file").map((f) => f.name)).toEqual(["a.pdf"]);
+    expect(bodies[1].getAll("file").map((f) => f.name)).toEqual(["b.pdf"]);
+    // All files are cleared from the pending list after a full success
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: /upload/i })).not.toBeInTheDocument()
+    );
+  });
+
+  it("keeps failed files in the pending list and still reports successes", async () => {
+    const onChange = vi.fn();
+    global.fetch = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({
+        ok: false,
+        json: async () => ({ error: "File type not allowed." }),
+      });
+
+    const { container } = setup({ mode: "teacher", onChange });
+    await selectFilesAndUpload(container, [fileA(), fileB()]);
+
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    // The failed file stays selected so the teacher can retry
+    expect(await screen.findByText(/b\.pdf/)).toBeInTheDocument();
+    expect(screen.queryByText(/a\.pdf/)).not.toBeInTheDocument();
   });
 });
 
