@@ -1,6 +1,0 @@
-# Toolchain attack mitigation: exclude packages published less than 7 days ago.
-# Refresh this date before any dependency update session:
-#   python scripts/refresh-exclude-newer.py   (cross-platform)
-#   pwsh scripts/refresh-exclude-newer.ps1    (Windows)
-# Then run `uv lock` / `uv add` as normal.
-exclude-newer = "2026-06-05T00:00:00Z"
