@@ -111,25 +111,33 @@ const ResourcePicker = ({ context, mode, value = [], onChange, disabled = false 
     if (!endpoint || selectedFiles.length === 0) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      selectedFiles.forEach((f) => formData.append("file", f, f.name));
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: formData,
-      });
-      if (res.ok) {
-        toast.success(
-          `${selectedFiles.length} file${selectedFiles.length > 1 ? "s" : ""} uploaded`
-        );
-        setSelectedFiles([]);
-        onChange?.();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        toast.error(err.error || "Upload failed");
+      // The backend handles one file per request, so POST each file separately.
+      const failed = [];
+      for (const file of selectedFiles) {
+        try {
+          const formData = new FormData();
+          formData.append("file", file, file.name);
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: formData,
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            toast.error(err.error || `Could not upload "${file.name}"`);
+            failed.push(file);
+          }
+        } catch {
+          toast.error(`An error occurred uploading "${file.name}"`);
+          failed.push(file);
+        }
       }
-    } catch {
-      toast.error("An error occurred during upload");
+      const uploaded = selectedFiles.length - failed.length;
+      if (uploaded > 0) {
+        toast.success(`${uploaded} file${uploaded > 1 ? "s" : ""} uploaded`);
+        setSelectedFiles(failed);
+        onChange?.();
+      }
     } finally {
       setUploading(false);
     }
