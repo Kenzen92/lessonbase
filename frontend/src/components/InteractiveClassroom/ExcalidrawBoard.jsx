@@ -27,14 +27,23 @@ const versionKey = (el) => `${el.version}:${el.versionNonce}`;
  * Excalidraw's own reconcileElements and applied with captureUpdate NEVER so
  * they don't pollute the local undo stack. The server snapshots the scene to
  * every (re)connection, so reconnects self-heal.
+ *
+ * Excalidraw's built-in library (shape collections, libraries.excalidraw.com)
+ * is disabled: it duplicates the platform's class-resource library and its
+ * import/persistence paths don't work in our embed. Entry points are hidden
+ * via CSS, and any state change that opens the library tab (command palette,
+ * dropped .excalidrawlib files) is reverted and routed to onLibraryOpen so the
+ * shell can open the native resource drawer instead.
  */
-const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
+const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange, onLibraryOpen }) => {
   const apiRef = useRef(null);
   const socketRef = useRef(null);
   const syncedVersions = useRef(new Map()); // element id -> "version:nonce"
   const syncedFileIds = useRef(new Set());
   const flushTimer = useRef(null);
   const bufferedRemote = useRef([]); // payloads that arrived before the API was ready
+  const onLibraryOpenRef = useRef(onLibraryOpen);
+  onLibraryOpenRef.current = onLibraryOpen;
 
   const applyRemotePayload = useCallback((payload) => {
     const api = apiRef.current;
@@ -99,6 +108,25 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
     }
   }, [flushPending]);
 
+  const handleChange = useCallback(
+    (_elements, appState) => {
+      // Library tab requested (command palette / dropped .excalidrawlib):
+      // close it and hand off to the native class-resource drawer.
+      if (
+        appState?.openSidebar?.name === "default" &&
+        appState.openSidebar.tab === "library"
+      ) {
+        apiRef.current?.updateScene({
+          appState: { openSidebar: null },
+          captureUpdate: CaptureUpdateAction.NEVER,
+        });
+        onLibraryOpenRef.current?.();
+      }
+      scheduleFlush();
+    },
+    [scheduleFlush]
+  );
+
   const handleApi = useCallback(
     (api) => {
       apiRef.current = api;
@@ -142,8 +170,16 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
           "--color-primary-light": "rgba(49, 164, 255, 0.25)",
           fontFamily: lumi.font.body,
         },
-        // The library sidebar's "Browse libraries" button links out to
-        // libraries.excalidraw.com — keep the classroom unbranded.
+        // Excalidraw's own library is disabled in the classroom (the native
+        // resource drawer replaces it): hide the top-right Library trigger and
+        // the library tab inside the default sidebar (search stays). The
+        // handleChange interception below covers the non-CSS entry points.
+        "& label.sidebar-trigger__label-element:has(.default-sidebar-trigger)": {
+          display: "none",
+        },
+        "& .sidebar-triggers .sidebar-tab-trigger:nth-of-type(2)": {
+          display: "none",
+        },
         "& .library-menu-browse-button": { display: "none" },
         // Hide the stock image tool: for mouse users it enters click-to-place
         // mode whose cursor-preview resize can hang the tab on large photos.
@@ -154,7 +190,7 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
     >
       <Excalidraw
         excalidrawAPI={handleApi}
-        onChange={scheduleFlush}
+        onChange={handleChange}
         theme="dark"
         UIOptions={{
           canvasActions: {
@@ -189,9 +225,10 @@ const ExcalidrawBoard = ({ roomId, onApiReady, onConnectionChange }) => {
           </Tooltip>
         )}
       >
-        {/* Custom menu: useful actions only, no Excalidraw+/socials links. */}
+        {/* Custom menu: useful actions only, no Excalidraw+/socials links.
+            (No CommandPalette item: the palette dialog isn't mounted in the
+            embeddable package, so the menu entry would be a no-op.) */}
         <MainMenu>
-          <MainMenu.DefaultItems.CommandPalette />
           <MainMenu.DefaultItems.SearchMenu />
           <MainMenu.DefaultItems.SaveAsImage />
           <MainMenu.DefaultItems.ClearCanvas />

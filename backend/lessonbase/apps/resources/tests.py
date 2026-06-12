@@ -495,3 +495,26 @@ class ClassEventResourcesTest(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["title"], "Listed")
+
+    def test_enrolled_student_can_list_class_resources(self):
+        resource = Resource.objects.create(
+            owner=self.teacher,
+            title="For the class",
+            kind=Resource.Kind.LINK,
+            url="https://l.com",
+        )
+        ClassResource.objects.create(
+            class_event=self.lesson, resource=resource, added_by=self.teacher
+        )
+        self._student_auth()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["title"], "For the class")
+
+    def test_outsider_cannot_list_class_resources(self):
+        outsider = self.create_extra_student()
+        token, _ = Token.objects.get_or_create(user=outsider)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)

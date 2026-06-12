@@ -199,6 +199,11 @@ class ClassEventResourcesViewSet(viewsets.ViewSet):
 
     def list(self, request, class_event_pk=None):
         class_event = self._get_class_event(class_event_pk)
+        if not class_event.can_access(request.user):
+            return Response(
+                {"error": "You do not have access to this class."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         links = class_event.resource_links.select_related("resource").all()
         return Response(ResourceSerializer([l.resource for l in links], many=True).data)
 

@@ -18,6 +18,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import DownloadIcon from "@mui/icons-material/Download";
+import UploadIcon from "@mui/icons-material/Upload";
 import GridViewIcon from "@mui/icons-material/GridView";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import FilterListIcon from "@mui/icons-material/FilterList";
@@ -57,6 +58,7 @@ const ICONS = {
   edit: EditIcon,
   delete: DeleteOutlineIcon,
   download: DownloadIcon,
+  upload: UploadIcon,
   grid_view: GridViewIcon,
   list_view: ViewListIcon,
   filter: FilterListIcon,

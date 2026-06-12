@@ -201,20 +201,18 @@ const InteractiveClassroom = () => {
 
         <Box sx={{ flex: 1 }} />
 
-        {userRole === "teacher" && (
-          <Tooltip title="Teaching resources">
-            <IconButton
-              data-testid="open-resources-btn"
-              onClick={() => setResourcesOpen(true)}
-              sx={{
-                color: lumi.color.onSurfaceVariant,
-                "&:hover": { color: lumi.color.primary, backgroundColor: tint(lumi.color.primary, 0.12) },
-              }}
-            >
-              <LumiIcon name="folder_open" />
-            </IconButton>
-          </Tooltip>
-        )}
+        <Tooltip title={userRole === "teacher" ? "Teaching resources" : "Class resources"}>
+          <IconButton
+            data-testid="open-resources-btn"
+            onClick={() => setResourcesOpen(true)}
+            sx={{
+              color: lumi.color.onSurfaceVariant,
+              "&:hover": { color: lumi.color.primary, backgroundColor: tint(lumi.color.primary, 0.12) },
+            }}
+          >
+            <LumiIcon name="folder_open" />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Exit classroom">
           <IconButton
             data-testid="exit-classroom-btn"
@@ -248,6 +246,7 @@ const InteractiveClassroom = () => {
               boardApiRef.current = api;
             }}
             onConnectionChange={setBoardConnected}
+            onLibraryOpen={() => setResourcesOpen(true)}
           />
 
           {/* Screen share overlay — board stays mounted underneath. */}
@@ -349,6 +348,8 @@ const InteractiveClassroom = () => {
         open={resourcesOpen}
         onClose={() => setResourcesOpen(false)}
         getBoardApi={() => boardApiRef.current}
+        classEventId={classroomData?.id}
+        userRole={userRole}
       />
 
       <PostClassFeedbackModal open={showFeedbackModal} classEventId={classroomData?.id} />
