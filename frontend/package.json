@@ -12,8 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "heroku-postbuild": "vite build",
-    "check:ages": "node scripts/check-pkg-ages.mjs"
+    "heroku-postbuild": "vite build"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

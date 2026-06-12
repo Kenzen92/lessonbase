@@ -28,6 +28,11 @@ dependencies = [
     "requests==2.32.5"
 ]
 
+[tool.uv]
+# Supply-chain cooldown: never resolve a package version published in the
+# last 7 days. The window slides automatically; requires uv >= 0.9.
+exclude-newer = "7 days"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

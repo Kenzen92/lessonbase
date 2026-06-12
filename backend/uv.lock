@@ -2,6 +2,10 @@ version = 1
 revision = 3
 requires-python = ">=3.13"
 
+[options]
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer-span = "P7D"
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -544,24 +548,24 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "boto3", specifier = ">=1.35.0" },
+    { name = "boto3", specifier = "==1.43.2" },
     { name = "channels", specifier = "==4.1.0" },
-    { name = "channels-redis", specifier = ">=4.2.0" },
+    { name = "channels-redis", specifier = "==4.2.1" },
     { name = "daphne", specifier = "==4.1.2" },
-    { name = "dj-database-url", specifier = ">=3.0.0" },
+    { name = "dj-database-url", specifier = "==3.0.1" },
     { name = "django", specifier = "==5.2.5" },
-    { name = "django-allauth", extras = ["socialaccount"], specifier = ">=65.13.0" },
+    { name = "django-allauth", extras = ["socialaccount"], specifier = "==65.13.0" },
     { name = "django-cors-headers", specifier = "==4.3.1" },
     { name = "django-polymorphic", specifier = "==4.1.0" },
     { name = "django-storages", specifier = "==1.14.3" },
     { name = "djangorestframework", specifier = "==3.15.1" },
     { name = "faker", specifier = "==24.4.0" },
-    { name = "gunicorn", specifier = ">=23.0.0" },
+    { name = "gunicorn", specifier = "==23.0.0" },
     { name = "openai", specifier = "==1.35.3" },
     { name = "pillow", specifier = "==12.0.0" },
-    { name = "psycopg2-binary", specifier = ">=2.9.1" },
+    { name = "psycopg2-binary", specifier = "==2.9.11" },
     { name = "pyjwt", specifier = "==2.10.0" },
-    { name = "requests", specifier = ">=2.31.0" },
+    { name = "requests", specifier = "==2.32.5" },
 ]
 
 [[package]]
