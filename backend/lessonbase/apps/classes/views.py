@@ -11,6 +11,7 @@ from rest_framework.decorators import (
     action,
 )
 from apps.core.authentication import ExpiringTokenAuthentication as TokenAuthentication
+from apps.core.permissions import IsTeacherOrReadOnly
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -44,7 +45,9 @@ class ClassEventPagination(LimitOffsetPagination):
 
 class ClassEventViewSet(viewsets.ViewSet):
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # Students can list/retrieve their own events; only teachers can
+    # create, edit or cancel them.
+    permission_classes = [IsAuthenticated, IsTeacherOrReadOnly]
 
     def get_serializer_class(self):
         if self.action in ("create", "update", "partial_update"):
@@ -178,9 +181,12 @@ def class_events_for_student(request, student_id=None):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def student_statistics(request):
+    """Single combined statistics payload for the student dashboard and
+    per-page stat summaries, mirroring `teacher_statistics` (the old
+    `?page=` variants returned partial payloads and 400'd without the
+    parameter, which no caller ever sent)."""
     from apps.resources.models import Resource
 
-    page = request.GET.get("page")
     try:
         student = Student.objects.get(pk=request.user.id)
         current_datetime = datetime.datetime.now()
@@ -200,25 +206,32 @@ def student_statistics(request):
         ).count()
         total_assignments = Assignment.objects.filter(students=student).count()
 
-        if page == "dashboard":
-            stats = {
-                "total_classes": total_classes,
-                "completed_classes": completed_classes,
-                "upcoming_classes": upcoming_classes,
-            }
-        elif page == "assignments":
-            stats = {
-                "total_assignments": total_assignments,
-                "total_documents": Resource.objects.filter(
-                    assignment_links__assignment__students=student
-                )
-                .distinct()
-                .count(),
-            }
-        else:
-            return Response(
-                {"error": "Invalid page parameter"}, status=status.HTTP_400_BAD_REQUEST
+        stats = {
+            "total_classes": total_classes,
+            "completed_classes": completed_classes,
+            "upcoming_classes": upcoming_classes,
+            "total_assignments": total_assignments,
+            # Unmarked work is what a student still has to act on; marked
+            # work is done and dusted.
+            "pending_assignments": Assignment.objects.filter(
+                students=student, marked=False
+            ).count(),
+            "completed_assignments": Assignment.objects.filter(
+                students=student, marked=True
+            ).count(),
+            "total_teachers": Teacher.objects.filter(students=student).count(),
+            "total_class_groups": ClassGroup.objects.filter(
+                students=student
+            ).count(),
+            # Matches the Resources screen's "shared with me" listing:
+            # anything linked to one of the student's classes or assignments.
+            "total_documents": Resource.objects.filter(
+                Q(class_links__class_event__students=student)
+                | Q(assignment_links__assignment__students=student)
             )
+            .distinct()
+            .count(),
+        }
 
         return Response({"data": stats}, status=status.HTTP_200_OK)
 

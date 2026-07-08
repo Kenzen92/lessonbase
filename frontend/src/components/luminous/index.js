@@ -3,7 +3,7 @@
 
 export { lumi, lumiType, tint } from "./tokens";
 export { LumiIcon, accentColor, statusAccent, SubjectChip, brightenForDark } from "./shared";
-export { navItems, activeNavFromPath } from "./nav";
+export { navItems, studentNavItems, navItemsFor, activeNavFromPath } from "./nav";
 
 export { default as SideNav, SIDEBAR_WIDTH } from "./side_nav";
 export { default as AppShell } from "./AppShell";

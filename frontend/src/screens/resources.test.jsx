@@ -7,9 +7,16 @@ import ResourcesPage from "./resources";
 
 // ── Module mocks ─────────────────────────────────────────────────────────────
 
-vi.mock("../contexts/auth_context", () => ({
-  useAuth: () => ({ auth: { userType: "teacher", token: "test-token" } }),
-}));
+vi.mock("../contexts/auth_context", async () => {
+  const { createContext } = await import("react");
+  const auth = { userType: "teacher", token: "test-token" };
+  return {
+    // The real module also exports the raw context (consumed by useRole);
+    // seed it with the same auth value the hook returns.
+    AuthContext: createContext({ auth }),
+    useAuth: () => ({ auth }),
+  };
+});
 
 vi.mock("../contexts/user_context", () => ({
   useUser: () => ({ firstName: "Ada", profilePicture: null }),

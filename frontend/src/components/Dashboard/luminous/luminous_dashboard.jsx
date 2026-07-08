@@ -123,6 +123,8 @@ export default function LuminousDashboard({
           <WeeklyMarkingCard
             progress={weeklyMarking.progress}
             remaining={weeklyMarking.remaining}
+            {...(weeklyMarking.title ? { title: weeklyMarking.title } : {})}
+            {...(weeklyMarking.remainingText ? { remainingText: weeklyMarking.remainingText } : {})}
           />
         </Box>
       </Box>

@@ -19,6 +19,7 @@ from apps.user_accounts.views import (
     login,
     logout,
     marketing_preferences,
+    new_student,
     profile,
     auth_user,
 )
@@ -77,6 +78,7 @@ urlpatterns = [
     path("subjects/all/", all_subjects),
     path("subjects/", subjects),
     path("confirm-account/", confirm_account, name="confirm_account"),
+    path("new-student/", new_student, name="new_student"),
     path("chats/", views.ChatListCreateView.as_view(), name="chat-list-create"),
     path("chats/<int:chat_id>/messages/", views.MessageListCreateView.as_view(), name="message-list-create"),
     path("class_report/", class_report, name="class_report"),

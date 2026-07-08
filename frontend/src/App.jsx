@@ -13,9 +13,10 @@ import ForgotPassword from "./screens/forgot-password";
 import ResetPassword from "./screens/reset-password";
 import Profile from "./screens/profile";
 import Settings from "./screens/settings";
-import PrivateRoutes from "./components/privateRoute";
+import PrivateRoutes, { RoleRoute } from "./components/privateRoute";
 import ToastNotification from "./components/notification";
 import Students from "./screens/students";
+import Teachers from "./screens/teachers";
 import Classes from "./screens/class-groups";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
@@ -75,7 +76,15 @@ function App() {
                 />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/students/:id?" element={<Students />} />
+                {/* Role-scoped directories: teachers browse students, students
+                    browse their teachers. Wrong-role visits bounce to the
+                    equivalent page. */}
+                <Route element={<RoleRoute allow="teacher" redirectTo="/teachers" />}>
+                  <Route path="/students/:id?" element={<Students />} />
+                </Route>
+                <Route element={<RoleRoute allow="student" redirectTo="/students" />}>
+                  <Route path="/teachers/:id?" element={<Teachers />} />
+                </Route>
                 <Route path="/class-groups/:id?" element={<Classes />} />
                 <Route path="/assignments/:id?" element={<Assignments />} />
                 <Route path="/resources" element={<Resources />} />

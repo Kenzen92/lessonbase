@@ -110,11 +110,11 @@ const Chat = ({ student, chatId, chatOpen, setChatOpen, currentUserId }) => {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Avatar alt={student.first_name} src={resolveMediaUrl(student.profile_picture) || undefined}>
-              {student.first_name[0]}
+            <Avatar alt={student?.first_name} src={resolveMediaUrl(student?.profile_picture) || undefined}>
+              {student?.first_name?.[0] || "?"}
             </Avatar>
             <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              {student.first_name}
+              {student?.first_name || student?.username || ""}
             </Typography>
             <IconButton onClick={closeChat} color="inherit">
               <FaWindowClose color="#fff" />

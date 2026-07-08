@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 import StudentListCard from "../Students/student_list_card";
 import { fetchClassGroup } from "../../utils/agent";
+import useRole from "../../hooks/useRole";
 import {
   LumiDrawer,
   PrimaryActionButton,
@@ -18,6 +20,8 @@ import {
 
 export default function ClassDetailsDrawer({ classGroupId, open, onClose, handleOpenStudentSearch }) {
   const [classGroup, setClassGroup] = useState(null);
+  const { isTeacher } = useRole();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -43,7 +47,7 @@ export default function ClassDetailsDrawer({ classGroupId, open, onClose, handle
       title={classGroup?.name}
       subtitle={classGroup ? `Class Code: ${classGroup.class_code}` : undefined}
       footer={
-        classGroup ? (
+        classGroup && isTeacher ? (
           <PrimaryActionButton label="Edit Class" icon="edit" onClick={handleOpenStudentSearch} sx={{ flex: 1 }} />
         ) : null
       }
@@ -75,12 +79,34 @@ export default function ClassDetailsDrawer({ classGroupId, open, onClose, handle
             )}
           </DrawerSection>
 
+          {/* Students see who teaches the group, linking into their
+              Teachers directory. */}
+          {!isTeacher && (
+            <DrawerList
+              icon="person"
+              title="Teachers"
+              items={classGroup.teachers || []}
+              emptyMessage="No teachers assigned"
+              renderItem={(teacher) => (
+                <StudentListCard
+                  key={teacher.id}
+                  student={teacher}
+                  onClick={() => navigate(`/teachers/${teacher.id}`)}
+                />
+              )}
+            />
+          )}
+
           <DrawerList
             icon="group"
-            title="Students"
+            title={isTeacher ? "Students" : "Classmates"}
             items={classGroup.students || []}
             emptyMessage="No students enrolled"
-            renderItem={(student) => <StudentListCard key={student.id} student={student} />}
+            renderItem={(student) => (
+              // Classmate rows are read-only for students; only teachers
+              // may drill into a student's detail page.
+              <StudentListCard key={student.id} student={student} onClick={isTeacher ? undefined : null} />
+            )}
           />
         </>
       ) : (

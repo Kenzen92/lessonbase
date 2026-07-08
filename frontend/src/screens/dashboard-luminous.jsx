@@ -5,10 +5,15 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import LuminousDashboard from "../components/Dashboard/luminous/luminous_dashboard";
 import {
   toMetrics,
+  toStudentMetrics,
   toUpcomingClasses,
   toRecentAssignments,
   toWeeklyMarking,
+  toWeeklyProgress,
+  studentStatusLabels,
 } from "../components/Dashboard/luminous/transform";
+import { activeNavFromPath } from "../components/luminous/nav";
+import useRole from "../hooks/useRole";
 
 import ClassEventWizard from "../components/ClassEvents/class_event_wizard.jsx";
 import ClassEventDetailsDrawer from "../components/ClassEvents/class_event_details_drawer.jsx";
@@ -42,6 +47,7 @@ export default function DashboardLuminous() {
 
   const queryClient = useQueryClient();
   const { auth } = useAuth();
+  const { isTeacher } = useRole();
   const { profilePicture, firstName } = useUser();
   const { statistics } = useStatistics();
   const { assignments, isLoading: assignmentsLoading } = useAssignments();
@@ -55,9 +61,10 @@ export default function DashboardLuminous() {
   const [currentClassEvent, setCurrentClassEvent] = useState(null);
   const [storage, setStorage] = useState(null);
 
-  // Storage usage feeds the Resources metric card's detail line.
+  // Storage usage feeds the Resources metric card's detail line. Students
+  // don't own storage, so their card skips the usage fetch entirely.
   useEffect(() => {
-    if (!auth?.token) return;
+    if (!auth?.token || !isTeacher) return;
     let cancelled = false;
     (async () => {
       try {
@@ -70,7 +77,7 @@ export default function DashboardLuminous() {
     return () => {
       cancelled = true;
     };
-  }, [auth?.token, navigate]);
+  }, [auth?.token, isTeacher, navigate]);
 
   // ── Class events: range-scoped, server-paginated (15 per page) ──────────
   const {
@@ -94,24 +101,33 @@ export default function DashboardLuminous() {
         : undefined,
   });
 
-  // ── Derived presentational props ────────────────────────────────────────
-  const metrics = useMemo(() => toMetrics(statistics, storage), [statistics, storage]);
+  // ── Derived presentational props (role decides the view-model) ──────────
+  const metrics = useMemo(
+    () => (isTeacher ? toMetrics(statistics, storage) : toStudentMetrics(statistics)),
+    [isTeacher, statistics, storage]
+  );
   const upcomingClasses = useMemo(() => {
     const events = (pagedClasses?.pages || []).flatMap((page) => page?.results || []);
     return toUpcomingClasses(events);
   }, [pagedClasses]);
-  const recentAssignments = useMemo(() => toRecentAssignments(assignments), [assignments]);
-  const weeklyMarking = useMemo(() => toWeeklyMarking(assignments), [assignments]);
+  const recentAssignments = useMemo(
+    () => toRecentAssignments(assignments, 5, isTeacher ? {} : studentStatusLabels),
+    [assignments, isTeacher]
+  );
+  const weeklyMarking = useMemo(
+    () =>
+      isTeacher
+        ? toWeeklyMarking(assignments)
+        : {
+            ...toWeeklyProgress(assignments),
+            title: "Weekly Progress",
+            remainingText: (n) =>
+              `You have ${n} assignment${n === 1 ? "" : "s"} to hand in. Keep going!`,
+          },
+    [isTeacher, assignments]
+  );
 
-  const activeNav = (() => {
-    const p = location.pathname;
-    if (p.startsWith("/students")) return "students";
-    if (p.startsWith("/class-groups")) return "classes";
-    if (p.startsWith("/assignments")) return "assignments";
-    if (p.startsWith("/resources")) return "resources";
-    if (p.startsWith("/profile")) return "settings";
-    return "dashboard";
-  })();
+  const activeNav = activeNavFromPath(location.pathname);
 
   // ── Class event handlers (mirror the original dashboard) ────────────────
   // Also refresh the drawer's event so in-drawer mutations (e.g. attaching a
@@ -214,7 +230,7 @@ export default function DashboardLuminous() {
         onLoadMoreClasses={fetchNextPage}
         onNavigate={(item) => navigate(item.path)}
         onMetricClick={(metric) => metric.path && navigate(metric.path)}
-        onCreateNew={handleCreateNew}
+        onCreateNew={isTeacher ? handleCreateNew : undefined}
         onLogout={handleLogout}
         onProfile={() => navigate("/profile")}
         onClassDetails={handleOpenDetails}
@@ -232,16 +248,20 @@ export default function DashboardLuminous() {
         handleCancelClassEvent={handleCancelClassEvent}
       />
 
-      <ClassEventWizard
-        key={currentClassEvent?.id ?? "new"}
-        open={wizardOpen}
-        onClose={() => setWizardOpen(false)}
-        onSaved={handleReloadData}
-        classData={currentClassEvent}
-        subjects={subjects}
-        students={students}
-        classGroups={classGroups}
-      />
+      {/* Creating/editing class events is teacher-only; students never get a
+          path that opens the wizard. */}
+      {isTeacher && (
+        <ClassEventWizard
+          key={currentClassEvent?.id ?? "new"}
+          open={wizardOpen}
+          onClose={() => setWizardOpen(false)}
+          onSaved={handleReloadData}
+          classData={currentClassEvent}
+          subjects={subjects}
+          students={students}
+          classGroups={classGroups}
+        />
+      )}
     </>
   );
 }

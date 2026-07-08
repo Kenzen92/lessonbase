@@ -30,21 +30,30 @@ import {
 } from "../components/luminous";
 import { useUser } from "../contexts/user_context";
 import { useSubjects } from "../contexts/subjects_context";
+import useRole from "../hooks/useRole";
 import { getToken, setUser as cacheUser } from "../utils/tokenStorage";
 import { resolveMediaUrl } from "../utils/media";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
-const validationSchema = yup.object({
+const baseSchema = {
   username: yup.string().required("Username is required"),
   first_name: yup.string().required("First name is required"),
   last_name: yup.string(),
   email: yup.string().email("Enter a valid email").required("Email is required"),
+};
+
+// Teaching subjects only exist on teacher accounts; a student's profile has
+// no subjects section, so their schema must not demand one.
+const teacherSchema = yup.object({
+  ...baseSchema,
   subjects: yup
     .array()
     .of(yup.object({ value: yup.number().required(), label: yup.string().required() }))
     .min(1, "Please select at least one subject"),
 });
+
+const studentSchema = yup.object(baseSchema);
 
 function Profile() {
   const [profilePictureFile, setProfilePictureFile] = useState(null);
@@ -55,6 +64,7 @@ function Profile() {
   const navigate = useNavigate();
 
   const { user, isLoading: userLoading, refetch, setUser, firstName, profilePicture } = useUser();
+  const { isTeacher } = useRole();
   const { data: userSubjects, refetch: refetchSubjects, allSubjects } = useSubjects();
   const { data: subjectsData, isLoading: subjectsLoading } = allSubjects || {};
 
@@ -62,14 +72,16 @@ function Profile() {
 
   const formik = useFormik({
     initialValues: { username: "", first_name: "", last_name: "", email: "", subjects: [] },
-    validationSchema,
+    validationSchema: isTeacher ? teacherSchema : studentSchema,
     onSubmit: async (values) => {
       const formData = new FormData();
       formData.append("username", values.username);
       formData.append("first_name", values.first_name);
       formData.append("last_name", values.last_name);
       formData.append("email", values.email);
-      values.subjects.forEach((subject) => formData.append("subjects", subject.value));
+      if (isTeacher) {
+        values.subjects.forEach((subject) => formData.append("subjects", subject.value));
+      }
       if (profilePictureFile) formData.append("profile_picture", profilePictureFile);
 
       try {
@@ -292,28 +304,34 @@ function Profile() {
                 />
               </Box>
 
-              <Typography sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, mt: 4, mb: 2 }}>
-                {user?.user_type === "Student" ? "Subjects" : "Teaching Subjects"}
-              </Typography>
-              <FormControl fullWidth error={formik.touched.subjects && Boolean(formik.errors.subjects)}>
-                <Select
-                  inputId="subjects"
-                  name="subjects"
-                  value={formik.values.subjects}
-                  onChange={(selected) => {
-                    formik.setFieldValue("subjects", selected || []);
-                    formik.setFieldTouched("subjects", true, false);
-                  }}
-                  onBlur={() => formik.setFieldTouched("subjects", true)}
-                  options={subjectOptions}
-                  isMulti
-                  styles={selectStyles}
-                  placeholder="Select subjects…"
-                />
-                {formik.touched.subjects && formik.errors.subjects && (
-                  <FormHelperText sx={{ color: lumi.color.error }}>{formik.errors.subjects}</FormHelperText>
-                )}
-              </FormControl>
+              {/* Teaching subjects are a teacher concept — students don't
+                  manage subjects on their profile at all. */}
+              {isTeacher && (
+                <>
+                  <Typography sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, mt: 4, mb: 2 }}>
+                    Teaching Subjects
+                  </Typography>
+                  <FormControl fullWidth error={formik.touched.subjects && Boolean(formik.errors.subjects)}>
+                    <Select
+                      inputId="subjects"
+                      name="subjects"
+                      value={formik.values.subjects}
+                      onChange={(selected) => {
+                        formik.setFieldValue("subjects", selected || []);
+                        formik.setFieldTouched("subjects", true, false);
+                      }}
+                      onBlur={() => formik.setFieldTouched("subjects", true)}
+                      options={subjectOptions}
+                      isMulti
+                      styles={selectStyles}
+                      placeholder="Select subjects…"
+                    />
+                    {formik.touched.subjects && formik.errors.subjects && (
+                      <FormHelperText sx={{ color: lumi.color.error }}>{formik.errors.subjects}</FormHelperText>
+                    )}
+                  </FormControl>
+                </>
+              )}
 
               <PrimaryActionButton
                 type="submit"
