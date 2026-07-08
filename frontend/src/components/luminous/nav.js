@@ -9,10 +9,26 @@ export const navItems = [
   { id: "resources", label: "Resources", icon: "folder_open", path: "/resources" },
 ];
 
+// Students get the same shell but their directory lists their teachers, not
+// a student roster.
+export const studentNavItems = [
+  { id: "dashboard", label: "Dashboard", icon: "dashboard", path: "/dashboard" },
+  { id: "teachers", label: "Teachers", icon: "group", path: "/teachers" },
+  { id: "classes", label: "Classes", icon: "school", path: "/class-groups" },
+  { id: "assignments", label: "Assignments", icon: "assignment", path: "/assignments" },
+  { id: "resources", label: "Resources", icon: "folder_open", path: "/resources" },
+];
+
+// Role-scoped nav. An unknown/absent role falls back to the teacher list so
+// standalone renders (tests, storybook-style usage) keep working.
+export const navItemsFor = (userType) =>
+  userType === "student" ? studentNavItems : navItems;
+
 // Resolve the active nav id from a router pathname. Centralised so every page
 // (and the shell) agree on which item lights up.
 export const activeNavFromPath = (pathname = "") => {
   if (pathname.startsWith("/students")) return "students";
+  if (pathname.startsWith("/teachers")) return "teachers";
   if (pathname.startsWith("/class-groups")) return "classes";
   if (pathname.startsWith("/assignments")) return "assignments";
   if (pathname.startsWith("/resources")) return "resources";

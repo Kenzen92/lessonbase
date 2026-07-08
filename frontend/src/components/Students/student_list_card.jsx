@@ -5,34 +5,41 @@ import { resolveMediaUrl } from "../../utils/media";
 import { LumiIcon, lumi, lumiType } from "../luminous";
 
 /**
- * Compact student row used inside detail drawers: avatar + name, the whole
+ * Compact person row used inside detail drawers: avatar + name, the whole
  * row navigating to the student's detail page (or `onClick` when given).
- * `subtitle` adds a muted second line; `trailing` replaces the default
- * chevron with custom content (e.g. a submission status / action button).
+ * Pass `onClick={null}` for a read-only row (no navigation, no chevron) —
+ * e.g. a student viewing their classmates. `subtitle` adds a muted second
+ * line; `trailing` replaces the default chevron with custom content.
  */
 const StudentListCard = ({ student, subtitle, onClick, trailing }) => {
   const navigate = useNavigate();
+  const interactive = onClick !== null;
   const handleClick = onClick || (() => navigate(`/students/${student.id}`));
 
   return (
     <Box
-      role="button"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handleClick();
-        }
-      }}
+      {...(interactive
+        ? {
+            role: "button",
+            tabIndex: 0,
+            onClick: handleClick,
+            onKeyDown: (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleClick();
+              }
+            },
+          }
+        : {})}
       sx={{
         display: "flex",
         alignItems: "center",
         gap: 1.5,
         p: 1,
         borderRadius: lumi.radius.md,
-        cursor: "pointer",
-        "&:hover": { backgroundColor: lumi.color.surfaceContainerHigh },
+        ...(interactive
+          ? { cursor: "pointer", "&:hover": { backgroundColor: lumi.color.surfaceContainerHigh } }
+          : {}),
       }}
     >
       <Avatar
@@ -52,9 +59,10 @@ const StudentListCard = ({ student, subtitle, onClick, trailing }) => {
           </Typography>
         )}
       </Box>
-      {trailing ?? (
-        <LumiIcon name="chevron_right" sx={{ fontSize: 18, color: lumi.color.onSurfaceVariant }} />
-      )}
+      {trailing ??
+        (interactive ? (
+          <LumiIcon name="chevron_right" sx={{ fontSize: 18, color: lumi.color.onSurfaceVariant }} />
+        ) : null)}
     </Box>
   );
 };

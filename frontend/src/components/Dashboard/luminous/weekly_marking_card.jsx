@@ -4,12 +4,17 @@ import { lumi, lumiType } from "./tokens";
 import { sampleWeeklyMarking } from "./sample_data";
 
 /**
- * "Weekly Marking" progress card. `progress` is a 0–100 percentage; `remaining`
- * is the count surfaced in the helper line.
+ * Weekly progress rail card. `progress` is a 0–100 percentage; `remaining`
+ * is the count surfaced in the helper line. Defaults read as the teacher's
+ * "Weekly Marking"; the student dashboard re-labels it via `title` and
+ * `remainingText(remaining)`.
  */
 export default function WeeklyMarkingCard({
   progress = sampleWeeklyMarking.progress,
   remaining = sampleWeeklyMarking.remaining,
+  title = "Weekly Marking",
+  remainingText = (n) =>
+    `You have ${n} assignment${n === 1 ? "" : "s"} left to mark this week. Keep it up!`,
 }) {
   const pct = Math.max(0, Math.min(100, progress));
   return (
@@ -39,7 +44,7 @@ export default function WeeklyMarkingCard({
         }}
       />
       <Typography component="h2" sx={{ ...lumiType.headlineMd, color: lumi.color.onBackground, mb: 2 }}>
-        Weekly Marking
+        {title}
       </Typography>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 2 }}>
@@ -54,7 +59,7 @@ export default function WeeklyMarkingCard({
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="Weekly marking progress"
+          aria-label={`${title} progress`}
           sx={{
             height: 8,
             width: "100%",
@@ -76,7 +81,7 @@ export default function WeeklyMarkingCard({
       </Box>
 
       <Typography sx={{ ...lumiType.bodyMd, color: lumi.color.onSurfaceVariant }}>
-        You have {remaining} assignment{remaining === 1 ? "" : "s"} left to mark this week. Keep it up!
+        {remainingText(remaining)}
       </Typography>
     </Box>
   );

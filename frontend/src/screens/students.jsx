@@ -10,7 +10,6 @@ import Chat from "../components/Chat/chat";
 import { fetchChats } from "../utils/agent";
 import { useStudents } from "../contexts/students_context";
 import { useUser } from "../contexts/user_context";
-import { useAuth } from "../contexts/auth_context";
 import { useStatistics } from "../contexts/statistics_context";
 import { resolveMediaUrl } from "../utils/media";
 import { getToken } from "../utils/tokenStorage";
@@ -19,7 +18,6 @@ const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 function Students() {
   const { user, firstName, profilePicture } = useUser();
-  const { auth } = useAuth();
   const { statistics } = useStatistics();
   const {
     data: studentsData,
@@ -29,7 +27,6 @@ function Students() {
 
   const { id } = useParams();
   const navigate = useNavigate();
-  const isTeacher = auth.userType === "teacher";
 
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -137,17 +134,13 @@ function Students() {
         value: searchTerm,
         onChange: setSearchTerm,
       }}
-      onCreateNew={isTeacher ? () => setShowStudentForm(true) : undefined}
+      onCreateNew={() => setShowStudentForm(true)}
     >
       <PageHeader
         title="Students Directory"
         subtitle="Manage your students, their classes and activity."
         stats={stats}
-        action={
-          isTeacher
-            ? { label: "Add New Student", icon: "add", onClick: () => setShowStudentForm(true) }
-            : undefined
-        }
+        action={{ label: "Add New Student", icon: "add", onClick: () => setShowStudentForm(true) }}
       />
 
       {studentsLoading ? (

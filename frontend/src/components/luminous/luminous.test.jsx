@@ -19,6 +19,8 @@ import KanbanColumn from "./KanbanColumn";
 import LumiModal from "./LumiModal";
 import LumiDrawer from "./LumiDrawer";
 import { SubjectChip, brightenForDark } from "./shared";
+import { navItemsFor, activeNavFromPath } from "./nav";
+import { AuthContext } from "../../contexts/auth_context";
 
 describe("Luminous shared components", () => {
   it("AppShell renders nav, search and page content", () => {
@@ -227,5 +229,54 @@ describe("Luminous shared components", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Role-aware shell", () => {
+  const withAuth = (userType, ui) => (
+    <AuthContext.Provider value={{ auth: { userType, token: "t", user: null, isLoading: false } }}>
+      <MemoryRouter initialEntries={["/dashboard"]}>{ui}</MemoryRouter>
+    </AuthContext.Provider>
+  );
+
+  it("students see a Teachers tab instead of Students", () => {
+    render(withAuth("student", <AppShell user={{ userName: "Ada" }}>x</AppShell>));
+    expect(screen.getByText("Teachers")).toBeInTheDocument();
+    expect(screen.queryByText("Students")).not.toBeInTheDocument();
+  });
+
+  it("teachers keep the Students tab", () => {
+    render(withAuth("teacher", <AppShell user={{ userName: "Ada" }}>x</AppShell>));
+    expect(screen.getByText("Students")).toBeInTheDocument();
+    expect(screen.queryByText("Teachers")).not.toBeInTheDocument();
+  });
+
+  it("hides the Create New CTA when no handler is supplied", () => {
+    render(withAuth("student", <AppShell user={{ userName: "Ada" }}>x</AppShell>));
+    expect(screen.queryByText("Create New")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Create New" })).not.toBeInTheDocument();
+  });
+
+  it("shows the Create New CTA when a handler is supplied", () => {
+    render(
+      withAuth("teacher", (
+        <AppShell user={{ userName: "Ada" }} onCreateNew={() => {}}>
+          x
+        </AppShell>
+      ))
+    );
+    expect(screen.getByText("Create New")).toBeInTheDocument();
+  });
+
+  it("navItemsFor maps roles to their directories", () => {
+    expect(navItemsFor("teacher").map((i) => i.id)).toContain("students");
+    expect(navItemsFor("student").map((i) => i.id)).toContain("teachers");
+    // Unknown role falls back to the teacher list (standalone renders).
+    expect(navItemsFor(null).map((i) => i.id)).toContain("students");
+  });
+
+  it("activeNavFromPath resolves the teachers directory", () => {
+    expect(activeNavFromPath("/teachers")).toBe("teachers");
+    expect(activeNavFromPath("/teachers/3")).toBe("teachers");
   });
 });

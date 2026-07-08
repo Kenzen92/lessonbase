@@ -93,6 +93,11 @@ export const fetchStudents = async (navigate) => {
   return await apiRequest(getFullUrl('/student/'), "GET", null, navigate);
 };
 
+// Role-scoped on the server: a student receives their own teachers.
+export const fetchTeachers = async (navigate) => {
+  return await apiRequest(getFullUrl('/teacher/'), "GET", null, navigate);
+};
+
 export const fetchSubjects = async (navigate) => {
   return await apiRequest(getFullUrl('/subjects/'), "GET", null, navigate);
 };

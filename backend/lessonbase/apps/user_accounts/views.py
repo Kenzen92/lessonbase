@@ -30,11 +30,13 @@ from .serializers import (
     CustomAccountSerializer,
     LoginSerializer,
     MarketingPreferencesSerializer,
+    StudentProfileSerializer,
     StudentSerializer,
     TeacherDetailSerializer,
-    TeacherListSerializer,
+    TeacherDirectorySerializer,
     TeacherUpdateSerializer,
 )
+from apps.core.permissions import IsTeacher, IsTeacherOrReadOnly
 from datetime import datetime
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
@@ -65,7 +67,7 @@ class TeacherViewSet(viewsets.ModelViewSet):
     """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrReadOnly]
     lookup_field = "id"
 
     def get_serializer_class(self):
@@ -74,11 +76,14 @@ class TeacherViewSet(viewsets.ModelViewSet):
         if self.action == "update" or self.action == "partial_update":
             return TeacherUpdateSerializer
         else:
-            return TeacherListSerializer
+            return TeacherDirectorySerializer
 
     def get_queryset(self):
-        user = self.request.user
-        return Teacher.objects.filter(id=user.id).prefetch_related("subjects")
+        user = self.request.user.get_real_instance()
+        if isinstance(user, Teacher):
+            return Teacher.objects.filter(id=user.id).prefetch_related("subjects")
+        # Students see their own teachers — the "My Teachers" directory.
+        return Teacher.objects.filter(students=user).prefetch_related("subjects")
 
     def create(self, request, *args, **kwargs):
         print("creating")
@@ -125,18 +130,14 @@ class StudentViewSet(viewsets.ModelViewSet):
     """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrReadOnly]
     lookup_field = "id"
 
     def get_serializer_class(self):
-        if (
-            self.action == "create"
-            or self.action == "update"
-            or self.action == "partial_update"
-        ):
-            return StudentSerializer
-        else:
-            return StudentSerializer
+        # Teachers manage these accounts (and students only ever see
+        # themselves here), so the email-bearing profile serializer is
+        # appropriate for every action.
+        return StudentProfileSerializer
 
     def get_queryset(self):
         # cast polymorphic user type to actual instance
@@ -296,7 +297,7 @@ def students_for_teacher(request):
 
 @api_view(["POST"])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsTeacher])
 def connect_student_teacher(request):
     teacher = request.user.get_real_instance()
     student_ids = request.data.get("students", [])
@@ -315,7 +316,7 @@ def profile(request):
         if user.polymorphic_ctype.name == "teacher":
             serializer = TeacherDetailSerializer(instance=user)
         else:
-            serializer = StudentSerializer(instance=user)
+            serializer = StudentProfileSerializer(instance=user)
 
         return Response(serializer.data)
 
@@ -326,7 +327,7 @@ def profile(request):
         if user.polymorphic_ctype.name == "teacher":
             serializer = TeacherUpdateSerializer(instance=user, data=request.data)
         else:
-            serializer = StudentSerializer(instance=user, data=request.data)
+            serializer = StudentProfileSerializer(instance=user, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -343,7 +344,7 @@ def profile(request):
                 instance=user, data=request.data, partial=True
             )
         else:
-            serializer = StudentSerializer(
+            serializer = StudentProfileSerializer(
                 instance=user, data=request.data, partial=True
             )
 
@@ -376,7 +377,7 @@ def marketing_preferences(request):
 
 @api_view(["POST"])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsTeacher])
 def new_student(request):
     destination_email = request.data.get("email")  # not using for now
     print(destination_email)
@@ -460,7 +461,7 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
     """
 
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacherOrReadOnly]
     lookup_field = "id"
 
     def get_serializer_class(self):
@@ -476,10 +477,14 @@ class ClassGroupViewSet(viewsets.ModelViewSet):
             return ClassGroupDetailsSerializer
 
     def get_queryset(self):
-        user = self.request.user
-        return ClassGroup.objects.filter(teachers=user).prefetch_related(
-            "teachers", "students", "subjects"
-        )
+        user = self.request.user.get_real_instance()
+        if isinstance(user, Teacher):
+            groups = ClassGroup.objects.filter(teachers=user)
+        else:
+            # Students see the groups they belong to (read-only via
+            # IsTeacherOrReadOnly).
+            groups = ClassGroup.objects.filter(students=user)
+        return groups.prefetch_related("teachers", "students", "subjects")
 
     def create(self, request, *args, **kwargs):
         print("creating")

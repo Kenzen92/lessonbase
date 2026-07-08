@@ -45,6 +45,16 @@ class StudentSerializer(serializers.ModelSerializer):
         ]
 
 
+class StudentProfileSerializer(StudentSerializer):
+    """StudentSerializer plus the email address. Used where the reader is
+    entitled to it — the student's own profile and the teacher's student
+    directory — while embedded rosters (class groups, assignments) keep the
+    email-free base serializer so classmates only see names and avatars."""
+
+    class Meta(StudentSerializer.Meta):
+        fields = StudentSerializer.Meta.fields + ["email"]
+
+
 class TeacherDetailSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     user_type = serializers.SerializerMethodField()
@@ -85,11 +95,22 @@ class TeacherUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
-class TeacherListSerializer(serializers.ModelSerializer):
+class TeacherDirectorySerializer(serializers.ModelSerializer):
+    """What a student may see about their teachers: contact details and
+    subjects, but never the teacher's full student roster."""
+
+    subjects = SubjectSerializer(many=True, read_only=True)
 
     class Meta:
         model = Teacher
-        fields = ["id", "first_name", "last_name"]
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "profile_picture",
+            "subjects",
+        ]
 
 
 class CustomAccountSerializer(serializers.ModelSerializer):
@@ -202,6 +223,7 @@ class ClassGroupCreateSerializer(serializers.ModelSerializer):
 class ClassGroupDetailsSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     students = StudentSerializer(many=True, read_only=True)
+    teachers = TeacherDirectorySerializer(many=True, read_only=True)
     tags = serializers.SerializerMethodField()
 
     class Meta:
@@ -226,6 +248,7 @@ class ClassGroupDetailsSerializer(serializers.ModelSerializer):
 class ClassGroupListSerializer(serializers.ModelSerializer):
     subjects = SubjectSerializer(many=True, read_only=True)
     students = StudentSerializer(many=True, read_only=True)
+    teachers = TeacherDirectorySerializer(many=True, read_only=True)
     tags = serializers.SerializerMethodField()
 
     class Meta:
@@ -236,6 +259,7 @@ class ClassGroupListSerializer(serializers.ModelSerializer):
             "description",
             "class_code",
             "students",
+            "teachers",
             "subjects",
             "color",
             "tags",

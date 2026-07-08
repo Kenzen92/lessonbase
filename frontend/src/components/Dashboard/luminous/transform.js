@@ -77,6 +77,22 @@ export function toMetrics(stats = {}, storage = null) {
 }
 
 /**
+ * Student dashboard metric cards from the student statistics payload.
+ * Mirrors `toMetrics` (same card shape/accents) with student-centric
+ * numbers: their schedule, groups, outstanding work, and shared resources.
+ */
+export function toStudentMetrics(stats = {}) {
+  const n = (key) => Number(stats?.[key] ?? 0);
+
+  return [
+    { id: "upcoming", label: "Upcoming Classes", value: n("upcoming_classes"), icon: "school", accent: "primary", path: "/dashboard" },
+    { id: "classes", label: "My Classes", value: n("total_class_groups"), icon: "group", accent: "tertiary", path: "/class-groups" },
+    { id: "pending", label: "Assignments To Do", value: n("pending_assignments"), icon: "pending", accent: "amber", path: "/assignments" },
+    { id: "resources", label: "Shared Resources", value: n("total_documents"), icon: "folder", accent: "violet", path: "/resources" },
+  ];
+}
+
+/**
  * Class events → presentational cards. Filtering to the range and ordering are
  * now done server-side, so this just maps the rows and attaches a stable
  * `dateKey` (for grouping) plus a friendly `date` divider label. Events are
@@ -113,12 +129,18 @@ export function toUpcomingClasses(events = []) {
   });
 }
 
+// How a student reads the same assignment categories: "To Mark" means
+// they've handed it in; "Set" is still on their to-do list. Mirrors the
+// kanban column labels on the Assignments screen.
+export const studentStatusLabels = { "To Mark": "Submitted", Set: "To Do" };
+
 /**
  * The categorised assignments object ({ "Set": [...], "To Mark": [...], ... })
  * flattened into the most recent `limit` rows, newest due-date first. The
- * category key doubles as the status label.
+ * category key doubles as the status label, optionally re-worded through a
+ * `labels` map (students see "Submitted"/"To Do").
  */
-export function toRecentAssignments(assignmentsByCategory = {}, limit = 5) {
+export function toRecentAssignments(assignmentsByCategory = {}, limit = 5, labels = {}) {
   const rows = [];
   Object.entries(assignmentsByCategory || {}).forEach(([category, items]) => {
     (items || []).forEach((a) => {
@@ -131,13 +153,33 @@ export function toRecentAssignments(assignmentsByCategory = {}, limit = 5) {
         subjectAccent: "primary",
         dueDate: a.due_date ? dueFmt.format(new Date(a.due_date)) : "—",
         dueSort: a.due_date ? new Date(a.due_date).getTime() : 0,
-        statusLabel: category,
+        statusLabel: labels[category] || category,
         statusAccent: statusAccent(category),
       });
     });
   });
   rows.sort((a, b) => b.dueSort - a.dueSort);
   return rows.slice(0, limit);
+}
+
+/**
+ * Student flavour of the weekly rail card: submitted/marked work vs. what
+ * still needs handing in ("Set" is a student's to-do column; "To Mark"
+ * means they've submitted and it's with the teacher).
+ */
+export function toWeeklyProgress(assignmentsByCategory = {}) {
+  const count = (pred) =>
+    Object.entries(assignmentsByCategory || {})
+      .filter(([cat]) => pred(cat.toLowerCase()))
+      .reduce((sum, [, items]) => sum + (items?.length || 0), 0);
+
+  const toDo = count((c) => c === "set");
+  const done = count((c) => c.includes("to mark") || c.includes("complete") || c.includes("marked"));
+  const total = toDo + done;
+  return {
+    remaining: toDo,
+    progress: total > 0 ? Math.round((done / total) * 100) : 0,
+  };
 }
 
 /** Weekly marking progress: marked vs. still-to-mark. */

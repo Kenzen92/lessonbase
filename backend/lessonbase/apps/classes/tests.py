@@ -222,3 +222,69 @@ class ClassEventListAPITest(BaseTestCase):
         second = self.client.get(self.URL, {"range": "upcoming", "offset": 15})
         self.assertEqual(len(second.data["results"]), 5)
         self.assertIsNone(second.data["next"])
+
+
+class StudentStatisticsApiTest(BaseTestCase):
+    """GET /student-statistics/ returns one combined payload (the old
+    ?page= variants 400'd without a parameter the frontend never sent)."""
+
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+
+    def _login(self, user):
+        token, _ = Token.objects.get_or_create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    def test_student_gets_combined_payload(self):
+        from apps.user_accounts.models import ClassGroup
+
+        group = ClassGroup.objects.create(name="Set A")
+        group.students.add(self.student)
+
+        self._login(self.student)
+        res = self.client.get("/student-statistics/")
+        self.assertEqual(res.status_code, 200, res.content)
+        stats = res.data["data"]
+        # The fixture enrols the student in 3 past scheduled lessons.
+        self.assertEqual(stats["total_classes"], 3)
+        self.assertEqual(stats["completed_classes"], 3)
+        self.assertEqual(stats["upcoming_classes"], 0)
+        self.assertEqual(stats["total_teachers"], 1)
+        self.assertEqual(stats["total_class_groups"], 1)
+        self.assertEqual(stats["total_assignments"], 0)
+        self.assertEqual(stats["pending_assignments"], 0)
+        self.assertEqual(stats["completed_assignments"], 0)
+        self.assertEqual(stats["total_documents"], 0)
+
+    def test_teacher_account_gets_404(self):
+        self._login(self.teacher)
+        res = self.client.get("/student-statistics/")
+        self.assertEqual(res.status_code, 404, res.content)
+
+
+class ClassEventWritePermissionTest(BaseTestCase):
+    """Class events are read-only for students."""
+
+    def setUp(self):
+        super().setUp()
+        self.client = APIClient()
+        token, _ = Token.objects.get_or_create(user=self.student)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
+
+    def test_student_can_list_their_events(self):
+        res = self.client.get("/class-event/")
+        self.assertEqual(res.status_code, 200, res.content)
+        self.assertEqual(len(res.data), 3)
+
+    def test_student_cannot_create_or_cancel_events(self):
+        create = self.client.post(
+            "/class-event/",
+            {"name": "Rogue class", "start_time": "2030-01-01T10:00:00Z", "duration": 60},
+            format="json",
+        )
+        self.assertEqual(create.status_code, 403, create.content)
+
+        event_id = self.lessons[0].id
+        delete = self.client.delete(f"/class-event/{event_id}/")
+        self.assertEqual(delete.status_code, 403, delete.content)

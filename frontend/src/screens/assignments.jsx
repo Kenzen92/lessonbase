@@ -40,7 +40,14 @@ function Assignments() {
     { name: "To Mark", label: isTeacher ? "To Mark" : "Submitted", accent: "amber", description: "Assignments awaiting grading or feedback." },
     { name: "Set", label: isTeacher ? "Ongoing" : "To Do", accent: "primary", description: "Set assignments that need to be submitted." },
     { name: "Upcoming", label: "Upcoming", accent: "violet", description: "Assignments scheduled to be set in the future." },
-    { name: "Complete", label: "Complete", accent: "tertiary", description: "Assignments all students submitted, reviewed and marked." },
+    {
+      name: "Complete",
+      label: "Complete",
+      accent: "tertiary",
+      description: isTeacher
+        ? "Assignments all students submitted, reviewed and marked."
+        : "Assignments reviewed and marked by your teacher.",
+    },
   ];
 
   // Unique tags across every column → FilterBar chips.
@@ -111,7 +118,11 @@ function Assignments() {
     >
       <PageHeader
         title="Assignments"
-        subtitle="Track, set and mark work across your classes."
+        subtitle={
+          isTeacher
+            ? "Track, set and mark work across your classes."
+            : "Keep on top of what's due, what you've handed in, and your results."
+        }
         stats={stats}
         action={
           isTeacher

@@ -72,7 +72,12 @@ function Classes() {
     if (!statistics) return [];
     const items = [];
     if (statistics.total_class_groups !== undefined) {
-      items.push({ id: "groups", icon: "school", value: statistics.total_class_groups, label: "Total Groups" });
+      items.push({
+        id: "groups",
+        icon: "school",
+        value: statistics.total_class_groups,
+        label: isTeacher ? "Total Groups" : "My Groups",
+      });
     }
     if (statistics.average_students_per_group !== undefined) {
       items.push({
@@ -82,8 +87,11 @@ function Classes() {
         label: "Students/Group",
       });
     }
+    if (!isTeacher && statistics.total_teachers !== undefined) {
+      items.push({ id: "teachers", icon: "person", value: statistics.total_teachers, label: "Teachers" });
+    }
     return items;
-  }, [statistics]);
+  }, [statistics, isTeacher]);
 
   return (
     <AppShell
@@ -101,7 +109,11 @@ function Classes() {
     >
       <PageHeader
         title="Classes"
-        subtitle="Manage your teaching groups and subjects."
+        subtitle={
+          isTeacher
+            ? "Manage your teaching groups and subjects."
+            : "The class groups you belong to, and who teaches them."
+        }
         stats={stats}
         action={
           isTeacher
@@ -119,7 +131,11 @@ function Classes() {
 
       {filteredClasses.length === 0 ? (
         <Typography sx={{ color: lumi.color.onSurfaceVariant, textAlign: "center", py: 6 }}>
-          {searchTerm ? "No classes match your search." : "No class groups yet."}
+          {searchTerm
+            ? "No classes match your search."
+            : isTeacher
+            ? "No class groups yet."
+            : "You're not in any class groups yet. Your teacher will add you to one."}
         </Typography>
       ) : (
         <Box
@@ -157,16 +173,20 @@ function Classes() {
         handleOpenStudentSearch={() => setShowClassForm(true)}
       />
 
-      <ClassWizard
-        key={currentClassId ?? "new"}
-        open={showClassForm}
-        onClose={() => setShowClassForm(false)}
-        onSaved={handleReloadData}
-        currentClassId={currentClassId}
-        allStudents={allStudents}
-        allSubjects={allSubjects}
-        classes={classes}
-      />
+      {/* Group creation/editing is teacher-only; students have no path that
+          opens the wizard. */}
+      {isTeacher && (
+        <ClassWizard
+          key={currentClassId ?? "new"}
+          open={showClassForm}
+          onClose={() => setShowClassForm(false)}
+          onSaved={handleReloadData}
+          currentClassId={currentClassId}
+          allStudents={allStudents}
+          allSubjects={allSubjects}
+          classes={classes}
+        />
+      )}
     </AppShell>
   );
 }

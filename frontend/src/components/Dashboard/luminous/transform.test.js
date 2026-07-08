@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 
-import { toMetrics, toUpcomingClasses } from "./transform";
+import {
+  toMetrics,
+  toStudentMetrics,
+  toUpcomingClasses,
+  toRecentAssignments,
+  toWeeklyProgress,
+  studentStatusLabels,
+} from "./transform";
 
 const MB = 1024 * 1024;
 
@@ -88,5 +95,68 @@ describe("toUpcomingClasses — start affordance fields", () => {
     const [card] = toUpcomingClasses([event({ duration: undefined })]);
     expect(card.accessToken).toBeNull();
     expect(card.endMs).toBe(card.startMs);
+  });
+});
+
+describe("toStudentMetrics — student dashboard cards", () => {
+  const stats = {
+    upcoming_classes: 2,
+    total_class_groups: 3,
+    pending_assignments: 4,
+    total_documents: 5,
+  };
+
+  it("maps the student statistics payload onto the four cards", () => {
+    const metrics = toStudentMetrics(stats);
+    expect(metrics.map((m) => [m.id, m.value])).toEqual([
+      ["upcoming", 2],
+      ["classes", 3],
+      ["pending", 4],
+      ["resources", 5],
+    ]);
+  });
+
+  it("defaults missing keys to 0 and gives every metric a path", () => {
+    toStudentMetrics({}).forEach((m) => {
+      expect(m.value).toBe(0);
+      expect(m.path).toMatch(/^\//);
+    });
+  });
+});
+
+describe("toWeeklyProgress — student rail card", () => {
+  it("counts Set as to-do and To Mark/Complete as done", () => {
+    const assignments = {
+      Set: [{ id: 1 }, { id: 2 }],
+      "To Mark": [{ id: 3 }],
+      Complete: [{ id: 4 }],
+      Upcoming: [{ id: 5 }],
+    };
+    expect(toWeeklyProgress(assignments)).toEqual({ remaining: 2, progress: 50 });
+  });
+
+  it("reports zero progress with no assignments", () => {
+    expect(toWeeklyProgress({})).toEqual({ remaining: 0, progress: 0 });
+  });
+});
+
+describe("toRecentAssignments — student status labels", () => {
+  const assignments = {
+    "To Mark": [{ id: 1, title: "Essay", due_date: "2026-06-01" }],
+    Set: [{ id: 2, title: "Quiz", due_date: "2026-06-02" }],
+  };
+
+  it("keeps raw category labels by default (teacher view)", () => {
+    const labels = toRecentAssignments(assignments).map((r) => r.statusLabel);
+    expect(labels).toContain("To Mark");
+    expect(labels).toContain("Set");
+  });
+
+  it("re-words categories through the student label map", () => {
+    const labels = toRecentAssignments(assignments, 5, studentStatusLabels).map(
+      (r) => r.statusLabel
+    );
+    expect(labels).toContain("Submitted");
+    expect(labels).toContain("To Do");
   });
 });

@@ -2,7 +2,8 @@ import { Box, Typography, Button, IconButton, Avatar } from "@mui/material";
 
 import { lumi, lumiType, tint } from "./tokens";
 import { LumiIcon } from "./shared";
-import { navItems } from "./nav";
+import { navItemsFor } from "./nav";
+import useRole from "../../hooks/useRole";
 
 const SIDEBAR_WIDTH = 256;
 
@@ -44,10 +45,16 @@ function NavLink({ item, active, onClick }) {
 }
 
 /**
- * Desktop sidebar (fixed) + mobile top bar. Purely presentational: pass an
- * `activeId` and an `onNavigate(item)` handler to wire it to a router.
+ * Desktop sidebar (fixed) + mobile top bar. Pass an `activeId` and an
+ * `onNavigate(item)` handler to wire it to a router. The nav items are
+ * role-scoped (students see Teachers where teachers see Students), and the
+ * "Create New" CTA only renders when a page supplies `onCreateNew` — student
+ * views simply omit the handler.
  */
 export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNew, onLogout, onProfile, avatarUrl }) {
+  const { userType } = useRole();
+  const items = navItemsFor(userType);
+
   return (
     <>
       {/* Mobile top bar */}
@@ -72,17 +79,19 @@ export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNe
           Lessonbase
         </Typography>
         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-          <IconButton
-            aria-label="Create New"
-            onClick={onCreateNew}
-            sx={{
-              color: lumi.color.onSurface,
-              backgroundColor: lumi.color.primaryContainer,
-              "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
-            }}
-          >
-            <LumiIcon name="add" sx={{ fontSize: 22 }} />
-          </IconButton>
+          {onCreateNew && (
+            <IconButton
+              aria-label="Create New"
+              onClick={onCreateNew}
+              sx={{
+                color: lumi.color.onSurface,
+                backgroundColor: lumi.color.primaryContainer,
+                "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
+              }}
+            >
+              <LumiIcon name="add" sx={{ fontSize: 22 }} />
+            </IconButton>
+          )}
           <IconButton aria-label="Notifications" sx={{ color: lumi.color.onSurfaceVariant }}>
             <LumiIcon name="notifications" sx={{ fontSize: 22 }} />
           </IconButton>
@@ -139,26 +148,28 @@ export default function SideNav({ activeId = "dashboard", onNavigate, onCreateNe
           </Box>
         </Box>
 
-        {/* Create New CTA */}
-        <Button
-          onClick={onCreateNew}
-          startIcon={<LumiIcon name="add" sx={{ fontSize: 18 }} />}
-          sx={{
-            height: 48,
-            borderRadius: lumi.radius.md,
-            backgroundColor: lumi.color.primaryContainer,
-            color: lumi.color.onSurface,
-            ...lumiType.buttonText,
-            boxShadow: `0 4px 12px ${tint(lumi.color.primaryContainer, 0.2)}`,
-            "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
-          }}
-        >
-          Create New
-        </Button>
+        {/* Create New CTA — only for pages (and roles) that can create */}
+        {onCreateNew && (
+          <Button
+            onClick={onCreateNew}
+            startIcon={<LumiIcon name="add" sx={{ fontSize: 18 }} />}
+            sx={{
+              height: 48,
+              borderRadius: lumi.radius.md,
+              backgroundColor: lumi.color.primaryContainer,
+              color: lumi.color.onSurface,
+              ...lumiType.buttonText,
+              boxShadow: `0 4px 12px ${tint(lumi.color.primaryContainer, 0.2)}`,
+              "&:hover": { backgroundColor: lumi.color.primaryContainer, filter: "brightness(0.9)" },
+            }}
+          >
+            Create New
+          </Button>
+        )}
 
         {/* Main nav */}
         <Box component="nav" sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
-          {navItems.map((item) => (
+          {items.map((item) => (
             <NavLink key={item.id} item={item} active={item.id === activeId} onClick={onNavigate} />
           ))}
         </Box>

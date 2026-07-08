@@ -225,7 +225,11 @@ export default function ResourcesPage() {
     >
       <PageHeader
         title={isTeacher ? "Resource Library" : "My Resources"}
-        subtitle="Manage and organize teaching materials, documents, and assets for your classes."
+        subtitle={
+          isTeacher
+            ? "Manage and organize teaching materials, documents, and assets for your classes."
+            : "Materials your teachers have shared with your classes and assignments."
+        }
         action={
           isTeacher
             ? { label: "Add Resource", icon: "add", onClick: () => setUploadDialogOpen(true) }
