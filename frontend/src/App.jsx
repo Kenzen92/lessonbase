@@ -27,6 +27,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Assignments from "./screens/assignments";
 import Resources from "./screens/resources";
 import DashboardLuminous from "./screens/dashboard-luminous";
+import Pricing from "./screens/pricing";
 import { useAuth } from "./contexts/auth_context";
 import InteractiveClassroom from "./components/InteractiveClassroom/InteractiveClassroom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
@@ -59,6 +60,7 @@ function App() {
               <Route path="/auth/verify-email/:key" element={<VerifyEmail />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password/:uid/:token" element={<ResetPassword />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route
                 path="/"
                 element={
